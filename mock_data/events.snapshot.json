@@ -1,0 +1,2916 @@
+[
+  {
+    "event_id": "evt_20260626_0001",
+    "event_label": "How agents are transforming work",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-25T02:00:00+00:00",
+    "representative_titles": [
+      "How agents are transforming work"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0002",
+    "event_label": "OpenAI and Broadcom unveil LLM-optimized inference chip",
+    "member_count": 2,
+    "platforms": [
+      "ars-technica",
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-24T22:28:18+00:00",
+    "representative_titles": [
+      "OpenAI and Broadcom unveil LLM-optimized inference chip",
+      "OpenAI and Broadcom announce chip designed for LLM inference at scale"
+    ],
+    "confidence": 0.9766
+  },
+  {
+    "event_id": "evt_20260626_0003",
+    "event_label": "Helping build shared standards for advanced AI",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-23T13:00:00+00:00",
+    "representative_titles": [
+      "Helping build shared standards for advanced AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0004",
+    "event_label": "How GPT-5 helped immunologist Derya Unutmaz solve a 3-year-old mystery",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-23T17:00:00+00:00",
+    "representative_titles": [
+      "How GPT-5 helped immunologist Derya Unutmaz solve a 3-year-old mystery"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0005",
+    "event_label": "How Omio is building the future of conversational travel",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-23T00:00:00+00:00",
+    "representative_titles": [
+      "How Omio is building the future of conversational travel"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0006",
+    "event_label": "Patch the Planet: a Daybreak initiative to support open source maintainers",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-22T10:00:00+00:00",
+    "representative_titles": [
+      "Patch the Planet: a Daybreak initiative to support open source maintainers"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0007",
+    "event_label": "Daybreak: Tools for securing every organization in the world",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-22T10:00:00+00:00",
+    "representative_titles": [
+      "Daybreak: Tools for securing every organization in the world"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0008",
+    "event_label": "Codex-maxxing for long-running work",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-22T00:00:00+00:00",
+    "representative_titles": [
+      "Codex-maxxing for long-running work"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0009",
+    "event_label": "Samsung Electronics brings ChatGPT and Codex to employees",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-21T23:00:00+00:00",
+    "representative_titles": [
+      "Samsung Electronics brings ChatGPT and Codex to employees"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0010",
+    "event_label": "New usage analytics and updated spend controls for enterprises",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-18T17:00:00+00:00",
+    "representative_titles": [
+      "New usage analytics and updated spend controls for enterprises"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0011",
+    "event_label": "Improving health intelligence in ChatGPT",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-18T11:00:00+00:00",
+    "representative_titles": [
+      "Improving health intelligence in ChatGPT"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0012",
+    "event_label": "Using AI to help physicians diagnose rare genetic diseases affecting children",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-18T08:00:00+00:00",
+    "representative_titles": [
+      "Using AI to help physicians diagnose rare genetic diseases affecting children"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0013",
+    "event_label": "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-17T10:00:00+00:00",
+    "representative_titles": [
+      "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0014",
+    "event_label": "Introducing LifeSciBench",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-17T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing LifeSciBench"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0015",
+    "event_label": "Predicting model behavior before release by simulating deployment",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-16T00:00:00+00:00",
+    "representative_titles": [
+      "Predicting model behavior before release by simulating deployment"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0016",
+    "event_label": "Introducing the OpenAI Partner Network",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-14T17:00:00+00:00",
+    "representative_titles": [
+      "Introducing the OpenAI Partner Network"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0017",
+    "event_label": "New OpenAI Academy courses for the next era of work",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-12T10:00:00+00:00",
+    "representative_titles": [
+      "New OpenAI Academy courses for the next era of work"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0018",
+    "event_label": "How Preply combines AI and human tutors to personalize learning",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-12T00:00:00+00:00",
+    "representative_titles": [
+      "How Preply combines AI and human tutors to personalize learning"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0019",
+    "event_label": "How an astrophysicist uses Codex to help simulate black holes",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-11T00:00:00+00:00",
+    "representative_titles": [
+      "How an astrophysicist uses Codex to help simulate black holes"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0020",
+    "event_label": "Supporting Europe’s work in ensuring a trustworthy AI ecosystem",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-11T00:00:00+00:00",
+    "representative_titles": [
+      "Supporting Europe’s work in ensuring a trustworthy AI ecosystem"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0021",
+    "event_label": "Introducing computer use in Gemini 3.5 Flash",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-24T16:30:01+00:00",
+    "representative_titles": [
+      "Introducing computer use in Gemini 3.5 Flash"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0022",
+    "event_label": "Unlocking UK house-building with AI-accelerated planning",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-16T21:29:50+00:00",
+    "representative_titles": [
+      "Unlocking UK house-building with AI-accelerated planning"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0023",
+    "event_label": "Securing the future of AI agents",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-16T15:46:31+00:00",
+    "representative_titles": [
+      "Securing the future of AI agents"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0024",
+    "event_label": "DiffusionGemma: 4x faster text generation",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-10T16:24:11+00:00",
+    "representative_titles": [
+      "DiffusionGemma: 4x faster text generation"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0025",
+    "event_label": "Investing in multi-agent AI safety research",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-10T10:21:19+00:00",
+    "representative_titles": [
+      "Investing in multi-agent AI safety research"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0026",
+    "event_label": "Fluid, natural voice translation with Gemini 3.5 Live Translate",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-09T15:16:25+00:00",
+    "representative_titles": [
+      "Fluid, natural voice translation with Gemini 3.5 Live Translate"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0027",
+    "event_label": "Introducing Gemma 4 12B: a unified, encoder-free multimodal model",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-09T14:10:19+00:00",
+    "representative_titles": [
+      "Introducing Gemma 4 12B: a unified, encoder-free multimodal model"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0028",
+    "event_label": "Powering the future of robotics in Europe",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-09T14:02:33+00:00",
+    "representative_titles": [
+      "Powering the future of robotics in Europe"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0029",
+    "event_label": "Measuring the impact of learning with AI in Sierra Leone and beyond",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-08T13:04:59+00:00",
+    "representative_titles": [
+      "Measuring the impact of learning with AI in Sierra Leone and beyond"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0030",
+    "event_label": "We’re launching the Google DeepMind Accelerator program in Asia Pacific to tackle environmental risks",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-21T19:46:42+00:00",
+    "representative_titles": [
+      "We’re launching the Google DeepMind Accelerator program in Asia Pacific to tackle environmental risks"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0031",
+    "event_label": "Fast-tracking genetic leads to reverse cellular aging",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-18T18:21:39+00:00",
+    "representative_titles": [
+      "Fast-tracking genetic leads to reverse cellular aging"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0032",
+    "event_label": "Simulate real-world places with Project Genie and Street View",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T19:53:18+00:00",
+    "representative_titles": [
+      "Simulate real-world places with Project Genie and Street View"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0033",
+    "event_label": "Introducing Gemini Omni",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T19:50:57+00:00",
+    "representative_titles": [
+      "Introducing Gemini Omni"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0034",
+    "event_label": "Introducing Google Antigravity 2.0",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T19:43:45+00:00",
+    "representative_titles": [
+      "Introducing Google Antigravity 2.0"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0035",
+    "event_label": "Gemini for Science: AI experiments and tools for a new era of discovery",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T13:50:34+00:00",
+    "representative_titles": [
+      "Gemini for Science: AI experiments and tools for a new era of discovery"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0036",
+    "event_label": "Making it easier to understand how content was created and edited",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T13:43:50+00:00",
+    "representative_titles": [
+      "Making it easier to understand how content was created and edited"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0037",
+    "event_label": "Strengthening Singapore’s AI Future: A New National Partnership",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-16T09:13:34+00:00",
+    "representative_titles": [
+      "Strengthening Singapore’s AI Future: A New National Partnership"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0038",
+    "event_label": "Finding the molecular switches behind new infectious diseases",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-16T08:16:06+00:00",
+    "representative_titles": [
+      "Finding the molecular switches behind new infectious diseases"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0039",
+    "event_label": "Opening new paths in aging research",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-16T08:08:44+00:00",
+    "representative_titles": [
+      "Opening new paths in aging research"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0040",
+    "event_label": "Accelerating discovery of liver disease mechanisms",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-16T08:00:15+00:00",
+    "representative_titles": [
+      "Accelerating discovery of liver disease mechanisms"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0041",
+    "event_label": "The Ultimate Summer Sale Pairing: Steam Sale Meets GeForce NOW Discounts",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-25T13:00:34+00:00",
+    "representative_titles": [
+      "The Ultimate Summer Sale Pairing: Steam Sale Meets GeForce NOW Discounts"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0042",
+    "event_label": "NVIDIA and AWS Collaborate to Bring AI to Production at Scale",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-24T00:05:37+00:00",
+    "representative_titles": [
+      "NVIDIA and AWS Collaborate to Bring AI to Production at Scale"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0043",
+    "event_label": "How Businesses Are Building Specialized AI They Can Trust",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-23T13:00:07+00:00",
+    "representative_titles": [
+      "How Businesses Are Building Specialized AI They Can Trust"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0044",
+    "event_label": "NVIDIA Powers Over 400 of the World’s 500 Fastest Supercomputers",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-23T09:00:38+00:00",
+    "representative_titles": [
+      "NVIDIA Powers Over 400 of the World’s 500 Fastest Supercomputers"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0045",
+    "event_label": "NVIDIA Brings Trusted, 24/7 AI Agents to Telecom Operations",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-23T06:00:09+00:00",
+    "representative_titles": [
+      "NVIDIA Brings Trusted, 24/7 AI Agents to Telecom Operations"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0046",
+    "event_label": "At ISC, JUPITER Shows What Exascale Science Looks Like",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:48+00:00",
+    "representative_titles": [
+      "At ISC, JUPITER Shows What Exascale Science Looks Like"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0047",
+    "event_label": "NAIRR Science Program Reshapes Scientific Research, Powered by NVIDIA AI Infrastructure",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:38+00:00",
+    "representative_titles": [
+      "NAIRR Science Program Reshapes Scientific Research, Powered by NVIDIA AI Infrastructure"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0048",
+    "event_label": "From Materials Simulation to Experimental Astronomy, New NVIDIA AI Software Unlocks Scientific Discoveries",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:20+00:00",
+    "representative_titles": [
+      "From Materials Simulation to Experimental Astronomy, New NVIDIA AI Software Unlocks Scientific Discoveries"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0049",
+    "event_label": "NVIDIA Vera CPU Opens the Way for Agentic Scientific AI at Los Alamos National Laboratory",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:20+00:00",
+    "representative_titles": [
+      "NVIDIA Vera CPU Opens the Way for Agentic Scientific AI at Los Alamos National Laboratory"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0050",
+    "event_label": "Eco Wave Power Turns Waves Into Watts With NVIDIA AI Infrastructure and Digital Twins",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:13+00:00",
+    "representative_titles": [
+      "Eco Wave Power Turns Waves Into Watts With NVIDIA AI Infrastructure and Digital Twins"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0051",
+    "event_label": "Hotter Than a Hot Tub: The 45°C Breakthrough to Cool AI’s Biggest Machines",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T05:00:22+00:00",
+    "representative_titles": [
+      "Hotter Than a Hot Tub: The 45°C Breakthrough to Cool AI’s Biggest Machines"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0052",
+    "event_label": "How FERC’s Large-Load Interconnection Actions Help Address Grid Stress, Improve Affordability",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T20:00:27+00:00",
+    "representative_titles": [
+      "How FERC’s Large-Load Interconnection Actions Help Address Grid Stress, Improve Affordability"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0053",
+    "event_label": "At Cannes Lions, NVIDIA Partners Reshape Advertising and Marketing With AI",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T13:00:43+00:00",
+    "representative_titles": [
+      "At Cannes Lions, NVIDIA Partners Reshape Advertising and Marketing With AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0054",
+    "event_label": "Sync and Stream: GeForce NOW Connects to Members’ Game Libraries Across Devices",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T13:00:32+00:00",
+    "representative_titles": [
+      "Sync and Stream: GeForce NOW Connects to Members’ Game Libraries Across Devices"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0055",
+    "event_label": "France Advances Europe’s AI Future With NVIDIA Technologies",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T06:00:59+00:00",
+    "representative_titles": [
+      "France Advances Europe’s AI Future With NVIDIA Technologies"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0056",
+    "event_label": "Hands Free, AIs Forward: NVIDIA XR AI Brings Agents to AR Glasses",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T22:30:41+00:00",
+    "representative_titles": [
+      "Hands Free, AIs Forward: NVIDIA XR AI Brings Agents to AR Glasses"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0057",
+    "event_label": "Coherent Breaks Ground on Expanded Texas Facility, Scaling AI’s Optical Backbone",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T22:10:56+00:00",
+    "representative_titles": [
+      "Coherent Breaks Ground on Expanded Texas Facility, Scaling AI’s Optical Backbone"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0058",
+    "event_label": "HPE AI Factory With NVIDIA Expands for the Era of Agents",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T16:30:27+00:00",
+    "representative_titles": [
+      "HPE AI Factory With NVIDIA Expands for the Era of Agents"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0059",
+    "event_label": "Run a vLLM Server on HF Jobs in One Command",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "Run a vLLM Server on HF Jobs in One Command"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0060",
+    "event_label": "Which tokens does a hybrid model predict better?",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-25T16:11:42+00:00",
+    "representative_titles": [
+      "Which tokens does a hybrid model predict better?"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0061",
+    "event_label": "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-24T16:00:13+00:00",
+    "representative_titles": [
+      "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0062",
+    "event_label": "Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-24T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0063",
+    "event_label": "Build real agentic apps using CUGA: two dozen working examples on a lightweight harness",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-23T12:51:55+00:00",
+    "representative_titles": [
+      "Build real agentic apps using CUGA: two dozen working examples on a lightweight harness"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0064",
+    "event_label": "Shipping huggingface_hub every week with AI, open tools, and a human in the loop",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-23T00:00:00+00:00",
+    "representative_titles": [
+      "Shipping huggingface_hub every week with AI, open tools, and a human in the loop"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0065",
+    "event_label": "Experimenting with the proposed Cross-Origin Storage API in Transformers.js",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-23T00:00:00+00:00",
+    "representative_titles": [
+      "Experimenting with the proposed Cross-Origin Storage API in Transformers.js"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0066",
+    "event_label": "PP-OCRv6 on Hugging Face: 50-Language OCR from 1.5M to 34.5M Parameters",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-22T13:18:56+00:00",
+    "representative_titles": [
+      "PP-OCRv6 on Hugging Face: 50-Language OCR from 1.5M to 34.5M Parameters"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0067",
+    "event_label": "We got local models to triage the OpenClaw repo for FREE!*",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-22T00:00:00+00:00",
+    "representative_titles": [
+      "We got local models to triage the OpenClaw repo for FREE!*"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0068",
+    "event_label": "MosaicLeaks: Can your research agent keep a secret?",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-18T18:13:13+00:00",
+    "representative_titles": [
+      "MosaicLeaks: Can your research agent keep a secret?"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0069",
+    "event_label": "Beyond LoRA: Can you beat the most popular fine-tuning technique?",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-18T00:00:00+00:00",
+    "representative_titles": [
+      "Beyond LoRA: Can you beat the most popular fine-tuning technique?"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0070",
+    "event_label": "Is it agentic enough? Benchmarking open models on your own tooling",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-18T00:00:00+00:00",
+    "representative_titles": [
+      "Is it agentic enough? Benchmarking open models on your own tooling"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0071",
+    "event_label": "From the Hugging Face Hub to robot hardware with Strands Agents and LeRobot",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-17T10:18:05+00:00",
+    "representative_titles": [
+      "From the Hugging Face Hub to robot hardware with Strands Agents and LeRobot"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0072",
+    "event_label": "GLM-5.2: Built for Long-Horizon Tasks",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-17T09:01:25+00:00",
+    "representative_titles": [
+      "GLM-5.2: Built for Long-Horizon Tasks"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0073",
+    "event_label": "Agentic Resource Discovery: Let agents search",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-17T00:00:00+00:00",
+    "representative_titles": [
+      "Agentic Resource Discovery: Let agents search"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0074",
+    "event_label": "Profiling in PyTorch (Part 2): From nn.Linear to a Fused MLP",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-11T00:00:00+00:00",
+    "representative_titles": [
+      "Profiling in PyTorch (Part 2): From nn.Linear to a Fused MLP"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0075",
+    "event_label": "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-09T10:46:19+00:00",
+    "representative_titles": [
+      "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0076",
+    "event_label": "Migrating Your GitHub CI to Hugging Face Jobs",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-09T00:00:00+00:00",
+    "representative_titles": [
+      "Migrating Your GitHub CI to Hugging Face Jobs"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0077",
+    "event_label": "The Open Source Community is backing OpenEnv for Agentic RL",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-08T00:00:00+00:00",
+    "representative_titles": [
+      "The Open Source Community is backing OpenEnv for Agentic RL"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0078",
+    "event_label": "Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-04T18:57:45+00:00",
+    "representative_titles": [
+      "Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0079",
+    "event_label": "Bringing more control over your connectors",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-06-24T12:00:30+00:00",
+    "representative_titles": [
+      "Bringing more control over your connectors"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0080",
+    "event_label": "Introducing Mistral OCR 4",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-06-23T12:00:48+00:00",
+    "representative_titles": [
+      "Introducing Mistral OCR 4"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0081",
+    "event_label": "AI Now Summit 2026",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-28T12:00:20+00:00",
+    "representative_titles": [
+      "AI Now Summit 2026"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0082",
+    "event_label": "Vibe gets to work.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-28T12:00:09+00:00",
+    "representative_titles": [
+      "Vibe gets to work."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0083",
+    "event_label": "Introducing Search Toolkit",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-28T11:42:21+00:00",
+    "representative_titles": [
+      "Introducing Search Toolkit"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0084",
+    "event_label": "Introducing physics AI at Mistral: the foundation for engineering acceleration.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-27T12:00:55+00:00",
+    "representative_titles": [
+      "Introducing physics AI at Mistral: the foundation for engineering acceleration."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0085",
+    "event_label": "Physics AI research that’s shaping the industry.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-27T12:00:05+00:00",
+    "representative_titles": [
+      "Physics AI research that’s shaping the industry."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0086",
+    "event_label": "Emmi joins Mistral to accelerate the AI-native industry",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-23T12:00:26+00:00",
+    "representative_titles": [
+      "Emmi joins Mistral to accelerate the AI-native industry"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0087",
+    "event_label": "Remote agents in Vibe. Powered by Mistral Medium 3.5.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-22T15:01:55+00:00",
+    "representative_titles": [
+      "Remote agents in Vibe. Powered by Mistral Medium 3.5."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0088",
+    "event_label": "Connect the dots: Build with built-in and custom MCPs in Studio",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-22T14:48:28+00:00",
+    "representative_titles": [
+      "Connect the dots: Build with built-in and custom MCPs in Studio"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0089",
+    "event_label": "Workflows for work that runs the business",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-04-27T12:00:23+00:00",
+    "representative_titles": [
+      "Workflows for work that runs the business"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0090",
+    "event_label": "Speaking of Voxtral",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-23T16:00:00+00:00",
+    "representative_titles": [
+      "Speaking of Voxtral"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0091",
+    "event_label": "Introducing Forge",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-17T16:00:00+00:00",
+    "representative_titles": [
+      "Introducing Forge"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0092",
+    "event_label": "Introducing Mistral Small 4",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T21:00:00+00:00",
+    "representative_titles": [
+      "Introducing Mistral Small 4"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0093",
+    "event_label": "Mistral AI partners with NVIDIA to accelerate open frontier models",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T20:00:00+00:00",
+    "representative_titles": [
+      "Mistral AI partners with NVIDIA to accelerate open frontier models"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0094",
+    "event_label": "Leanstral: Open-Source foundation for trustworthy vibe-coding",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T16:00:00+00:00",
+    "representative_titles": [
+      "Leanstral: Open-Source foundation for trustworthy vibe-coding"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0095",
+    "event_label": "Rails testing on autopilot: Building an agent that writes what developers won't",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-11T12:00:00+00:00",
+    "representative_titles": [
+      "Rails testing on autopilot: Building an agent that writes what developers won't"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0096",
+    "event_label": "Voxtral transcribes at the speed of sound.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-02-04T16:00:00+00:00",
+    "representative_titles": [
+      "Voxtral transcribes at the speed of sound."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0097",
+    "event_label": "Terminally online Mistral Vibe.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-01-27T16:00:00+00:00",
+    "representative_titles": [
+      "Terminally online Mistral Vibe."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0098",
+    "event_label": "Heaps do lie: debugging a memory leak in vLLM.",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-01-21T16:00:00+00:00",
+    "representative_titles": [
+      "Heaps do lie: debugging a memory leak in vLLM."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0099",
+    "event_label": "Rethinking open source mentorship in the AI era",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2026-03-19T18:00:00+00:00",
+    "representative_titles": [
+      "Rethinking open source mentorship in the AI era"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0100",
+    "event_label": "How Squad runs coordinated AI agents inside your repository",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2026-03-19T16:09:50+00:00",
+    "representative_titles": [
+      "How Squad runs coordinated AI agents inside your repository"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0101",
+    "event_label": "Scaling AI opportunity across the globe: Learnings from GitHub and Andela",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2026-03-05T17:00:00+00:00",
+    "representative_titles": [
+      "Scaling AI opportunity across the globe: Learnings from GitHub and Andela"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0102",
+    "event_label": "Welcome to the Eternal September of open source. Here’s what we plan to do for maintainers.",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2026-02-12T20:14:11+00:00",
+    "representative_titles": [
+      "Welcome to the Eternal September of open source. Here’s what we plan to do for maintainers."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0103",
+    "event_label": "Agentic AI, MCP, and spec-driven development: Top blog posts of 2025",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-12-30T17:20:10+00:00",
+    "representative_titles": [
+      "Agentic AI, MCP, and spec-driven development: Top blog posts of 2025"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0104",
+    "event_label": "The new identity of a developer: What changes and what doesn’t in the AI era",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-12-08T18:15:17+00:00",
+    "representative_titles": [
+      "The new identity of a developer: What changes and what doesn’t in the AI era"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0105",
+    "event_label": "Evolving GitHub Copilot’s next edit suggestions through custom model training",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-11-20T18:02:21+00:00",
+    "representative_titles": [
+      "Evolving GitHub Copilot’s next edit suggestions through custom model training"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0106",
+    "event_label": "TypeScript, Python, and the AI feedback loop changing software development",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-11-13T16:00:00+00:00",
+    "representative_titles": [
+      "TypeScript, Python, and the AI feedback loop changing software development"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0107",
+    "event_label": "The developer role is evolving. Here’s how to stay ahead.",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-10-06T20:12:49+00:00",
+    "representative_titles": [
+      "The developer role is evolving. Here’s how to stay ahead."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0108",
+    "event_label": "Gartner positions GitHub as a Leader in the 2025 Magic Quadrant for AI Code Assistants for the second year in a row",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-09-22T18:24:17+00:00",
+    "representative_titles": [
+      "Gartner positions GitHub as a Leader in the 2025 Magic Quadrant for AI Code Assistants for the second year in a row"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0109",
+    "event_label": "Retrofit, don’t rebuild: Agentic overlays for transforming legacy enterprise services",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T17:55:10+00:00",
+    "representative_titles": [
+      "Retrofit, don’t rebuild: Agentic overlays for transforming legacy enterprise services"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0110",
+    "event_label": "Optimize model training on Amazon SageMaker AI with NVIDIA Blackwell",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:41:47+00:00",
+    "representative_titles": [
+      "Optimize model training on Amazon SageMaker AI with NVIDIA Blackwell"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0111",
+    "event_label": "Implementing super resolution by deploying SeedVR2 on Amazon SageMaker AI",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:40:13+00:00",
+    "representative_titles": [
+      "Implementing super resolution by deploying SeedVR2 on Amazon SageMaker AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0112",
+    "event_label": "Build self-service AWS Health analytics to find actionable health insights with AI agents powered by Amazon Bedrock",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:38:12+00:00",
+    "representative_titles": [
+      "Build self-service AWS Health analytics to find actionable health insights with AI agents powered by Amazon Bedrock"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0113",
+    "event_label": "Building agentic AI applications with a modern data mesh strategy on AWS",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:35:07+00:00",
+    "representative_titles": [
+      "Building agentic AI applications with a modern data mesh strategy on AWS"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0114",
+    "event_label": "Huntington Bank: Redacting sensitive data from 400M+ documents with AWS",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T18:24:50+00:00",
+    "representative_titles": [
+      "Huntington Bank: Redacting sensitive data from 400M+ documents with AWS"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0115",
+    "event_label": "Build a healthcare appointment agent with Amazon Nova 2 Sonic",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T18:20:27+00:00",
+    "representative_titles": [
+      "Build a healthcare appointment agent with Amazon Nova 2 Sonic"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0116",
+    "event_label": "AI-powered BI with Snowflake and Amazon Quick",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T18:19:35+00:00",
+    "representative_titles": [
+      "AI-powered BI with Snowflake and Amazon Quick"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0117",
+    "event_label": "How Loka Built a Natural, Low-Latency Voice Agent with Amazon Nova 2 Sonic",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T16:56:24+00:00",
+    "representative_titles": [
+      "How Loka Built a Natural, Low-Latency Voice Agent with Amazon Nova 2 Sonic"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0118",
+    "event_label": "Build a protein research copilot with Amazon Bedrock AgentCore",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-23T16:39:34+00:00",
+    "representative_titles": [
+      "Build a protein research copilot with Amazon Bedrock AgentCore"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0119",
+    "event_label": "Shared infrastructure, isolated tenants: Pool model multi-tenancy with Amazon Bedrock AgentCore",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-23T15:43:59+00:00",
+    "representative_titles": [
+      "Shared infrastructure, isolated tenants: Pool model multi-tenancy with Amazon Bedrock AgentCore"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0120",
+    "event_label": "Building pay-per-intelligence for AI agents: How Ampersend uses Amazon Bedrock AgentCore Payments",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T17:53:40+00:00",
+    "representative_titles": [
+      "Building pay-per-intelligence for AI agents: How Ampersend uses Amazon Bedrock AgentCore Payments"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0121",
+    "event_label": "Embed the world: Multimodal AI for searchable aerial imagery at scale",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T16:32:15+00:00",
+    "representative_titles": [
+      "Embed the world: Multimodal AI for searchable aerial imagery at scale"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0122",
+    "event_label": "Running ComfyUI workflows on Amazon SageMaker AI processing jobs",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T16:28:46+00:00",
+    "representative_titles": [
+      "Running ComfyUI workflows on Amazon SageMaker AI processing jobs"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0123",
+    "event_label": "Introducing Web Search on Amazon Bedrock AgentCore",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-19T14:15:24+00:00",
+    "representative_titles": [
+      "Introducing Web Search on Amazon Bedrock AgentCore"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0124",
+    "event_label": "Accelerate campaign workflow with insights from Adobe Marketing Agent for Amazon Quick",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-19T14:05:04+00:00",
+    "representative_titles": [
+      "Accelerate campaign workflow with insights from Adobe Marketing Agent for Amazon Quick"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0125",
+    "event_label": "Monitor and debug generative AI inference with SageMaker detailed metrics and Insights dashboard on CloudWatch",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-18T23:31:58+00:00",
+    "representative_titles": [
+      "Monitor and debug generative AI inference with SageMaker detailed metrics and Insights dashboard on CloudWatch"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0126",
+    "event_label": "Amazon Bedrock AgentCore harness is now generally available: Go from idea to production-grade agent in minutes",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-18T17:32:22+00:00",
+    "representative_titles": [
+      "Amazon Bedrock AgentCore harness is now generally available: Go from idea to production-grade agent in minutes"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0127",
+    "event_label": "Amazon SageMaker AI Async Inference now supports inline request payloads",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-17T20:56:36+00:00",
+    "representative_titles": [
+      "Amazon SageMaker AI Async Inference now supports inline request payloads"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0128",
+    "event_label": "Get back hours every day with autonomous agents in Amazon Quick",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-17T20:35:39+00:00",
+    "representative_titles": [
+      "Get back hours every day with autonomous agents in Amazon Quick"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0129",
+    "event_label": "从需求到设计到代码，一个软件全搞定！TRAE Work Design实测来了",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T05:12:46+00:00",
+    "representative_titles": [
+      "从需求到设计到代码，一个软件全搞定！TRAE Work Design实测来了"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0130",
+    "event_label": "华勤技术与正行创新达成战略合作，加速机器人“走进工厂、走上产线”",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T04:00:59+00:00",
+    "representative_titles": [
+      "华勤技术与正行创新达成战略合作，加速机器人“走进工厂、走上产线”"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0131",
+    "event_label": "让机器人学会“预判接触”：它石智航牵头四大顶尖机构发布TacForeSight，破解精细操作难题",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T03:47:08+00:00",
+    "representative_titles": [
+      "让机器人学会“预判接触”：它石智航牵头四大顶尖机构发布TacForeSight，破解精细操作难题"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0132",
+    "event_label": "英伟达MoE新开源：一行import，微调加速3.7倍",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T03:23:35+00:00",
+    "representative_titles": [
+      "英伟达MoE新开源：一行import，微调加速3.7倍"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0133",
+    "event_label": "WAVES 2026：今年盛夏，在创投浪潮里，做迎风而立的少数人！",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T02:58:50+00:00",
+    "representative_titles": [
+      "WAVES 2026：今年盛夏，在创投浪潮里，做迎风而立的少数人！"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0134",
+    "event_label": "库克临走给苹果涨价！电脑iPad全线上调，iPhone 18也跑不了",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T01:26:27+00:00",
+    "representative_titles": [
+      "库克临走给苹果涨价！电脑iPad全线上调，iPhone 18也跑不了"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0135",
+    "event_label": "WAIC UP!｜AI圈都在聊参数，我们偏不",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T09:59:40+00:00",
+    "representative_titles": [
+      "WAIC UP!｜AI圈都在聊参数，我们偏不"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0136",
+    "event_label": "三体问世20周年，光帆科技与三体宇宙联合发布联名款AI全感穿戴设备及重磅视频《破晓》",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T09:46:44+00:00",
+    "representative_titles": [
+      "三体问世20周年，光帆科技与三体宇宙联合发布联名款AI全感穿戴设备及重磅视频《破晓》"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0137",
+    "event_label": "科大讯飞发布企业服务Claw平台：一句话搞定需求到方案全流程",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T08:32:00+00:00",
+    "representative_titles": [
+      "科大讯飞发布企业服务Claw平台：一句话搞定需求到方案全流程"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0138",
+    "event_label": "4秒出百万面！突破千万面精度+12K高清贴图，手握数亿的3D生成公司下一局怎么打？",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T08:00:24+00:00",
+    "representative_titles": [
+      "4秒出百万面！突破千万面精度+12K高清贴图，手握数亿的3D生成公司下一局怎么打？"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0139",
+    "event_label": "The White House is asking OpenAI to slow roll the release of its new model over safety concerns",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T23:34:39+00:00",
+    "representative_titles": [
+      "The White House is asking OpenAI to slow roll the release of its new model over safety concerns"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0140",
+    "event_label": "Patronus AI lands $50M to build ‘digital worlds’ that stress-test AI agents",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T20:19:25+00:00",
+    "representative_titles": [
+      "Patronus AI lands $50M to build ‘digital worlds’ that stress-test AI agents"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0141",
+    "event_label": "Anthropic’s Claude is winning over paid consumers, a market owned by ChatGPT",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T17:38:27+00:00",
+    "representative_titles": [
+      "Anthropic’s Claude is winning over paid consumers, a market owned by ChatGPT"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0142",
+    "event_label": "General Intuition’s $2.3B bet that video games can train AI agents for the real world",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T16:55:00+00:00",
+    "representative_titles": [
+      "General Intuition’s $2.3B bet that video games can train AI agents for the real world"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0143",
+    "event_label": "Databricks’ former AI chief thinks he can cut AI’s power bill by 1,000x",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T16:48:11+00:00",
+    "representative_titles": [
+      "Databricks’ former AI chief thinks he can cut AI’s power bill by 1,000x"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0144",
+    "event_label": "Netris raises $15M Series A from a16z to help AI neoclouds go live faster",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T14:55:38+00:00",
+    "representative_titles": [
+      "Netris raises $15M Series A from a16z to help AI neoclouds go live faster"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0145",
+    "event_label": "2 days left to save up to $190: Join 1,000+ founders and investors at TechCrunch Founder Summit",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T14:00:00+00:00",
+    "representative_titles": [
+      "2 days left to save up to $190: Join 1,000+ founders and investors at TechCrunch Founder Summit"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0146",
+    "event_label": "Adobe acquires image and video enhancement tool maker Topaz Labs",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T13:30:00+00:00",
+    "representative_titles": [
+      "Adobe acquires image and video enhancement tool maker Topaz Labs"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0147",
+    "event_label": "Amazon ups India bet with fresh $13B AI infrastructure investment",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T12:00:38+00:00",
+    "representative_titles": [
+      "Amazon ups India bet with fresh $13B AI infrastructure investment"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0148",
+    "event_label": "Europe is pushing back on Washington’s chip war",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T00:08:36+00:00",
+    "representative_titles": [
+      "Europe is pushing back on Washington’s chip war"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0149",
+    "event_label": "Former Infosys chief has a new startup that wants to challenge the IT services world",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T23:26:52+00:00",
+    "representative_titles": [
+      "Former Infosys chief has a new startup that wants to challenge the IT services world"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0150",
+    "event_label": "Cerebras stock plunges after earnings as CEO says margin outlook was misunderstood",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T22:41:41+00:00",
+    "representative_titles": [
+      "Cerebras stock plunges after earnings as CEO says margin outlook was misunderstood"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0151",
+    "event_label": "AI was supposed to kill engineering jobs, but new data suggests they’re the most resilient",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T21:56:41+00:00",
+    "representative_titles": [
+      "AI was supposed to kill engineering jobs, but new data suggests they’re the most resilient"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0152",
+    "event_label": "AI researchers continue to leave Google for its rivals",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T21:42:07+00:00",
+    "representative_titles": [
+      "AI researchers continue to leave Google for its rivals"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0153",
+    "event_label": "The memory chip crunch is paying off for this US company",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T21:30:55+00:00",
+    "representative_titles": [
+      "The memory chip crunch is paying off for this US company"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0154",
+    "event_label": "Companies are scrambling to stop employees from maxing out AI budgets with small tasks",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T20:09:45+00:00",
+    "representative_titles": [
+      "Companies are scrambling to stop employees from maxing out AI budgets with small tasks"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0155",
+    "event_label": "Facebook rolls out an AI companion app for creators",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T17:16:24+00:00",
+    "representative_titles": [
+      "Facebook rolls out an AI companion app for creators"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0156",
+    "event_label": "Agility Robotics plans to go public via SPAC in a $2.5B deal",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T16:48:43+00:00",
+    "representative_titles": [
+      "Agility Robotics plans to go public via SPAC in a $2.5B deal"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0157",
+    "event_label": "Figma adds code layers, support for animations, more AI features in new update",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T16:15:00+00:00",
+    "representative_titles": [
+      "Figma adds code layers, support for animations, more AI features in new update"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0158",
+    "event_label": "OpenAI unveils its first custom chip, built by Broadcom",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T14:54:46+00:00",
+    "representative_titles": [
+      "OpenAI unveils its first custom chip, built by Broadcom"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0159",
+    "event_label": "Google just redesigned the search box for the first time in 25 years — here’s why it matters more than you think.",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-05-19T17:45:00+00:00",
+    "representative_titles": [
+      "Google just redesigned the search box for the first time in 25 years — here’s why it matters more than you think."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0160",
+    "event_label": "Railway secures $100 million to challenge AWS with AI-native cloud infrastructure",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-22T14:00:00+00:00",
+    "representative_titles": [
+      "Railway secures $100 million to challenge AWS with AI-native cloud infrastructure"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0161",
+    "event_label": "Claude Code costs up to $200 a month. Goose does the same thing for free.",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-19T14:00:00+00:00",
+    "representative_titles": [
+      "Claude Code costs up to $200 a month. Goose does the same thing for free."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0162",
+    "event_label": "Listen Labs raises $69M after viral billboard hiring stunt to scale AI customer interviews",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-16T14:01:00+00:00",
+    "representative_titles": [
+      "Listen Labs raises $69M after viral billboard hiring stunt to scale AI customer interviews"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0163",
+    "event_label": "Salesforce rolls out new Slackbot AI agent as it battles Microsoft and Google in workplace AI",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-13T13:00:00+00:00",
+    "representative_titles": [
+      "Salesforce rolls out new Slackbot AI agent as it battles Microsoft and Google in workplace AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0164",
+    "event_label": "Anthropic launches Cowork, a Claude Desktop agent that works in your files — no coding required",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-12T11:30:00+00:00",
+    "representative_titles": [
+      "Anthropic launches Cowork, a Claude Desktop agent that works in your files — no coding required"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0165",
+    "event_label": "Nous Research's NousCoder-14B is an open-source coding model landing right in the Claude Code moment",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-07T20:00:00+00:00",
+    "representative_titles": [
+      "Nous Research's NousCoder-14B is an open-source coding model landing right in the Claude Code moment"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0166",
+    "event_label": "Anthropic Thinks Its Own Success Is Key to Making AI Safe",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-26T00:49:13+00:00",
+    "representative_titles": [
+      "Anthropic Thinks Its Own Success Is Key to Making AI Safe"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0167",
+    "event_label": "Why Amazon Dropped Its OpenAI Movie, Data Center Workers Fight Back, and Meta Leaks Employee Data",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-25T23:13:45+00:00",
+    "representative_titles": [
+      "Why Amazon Dropped Its OpenAI Movie, Data Center Workers Fight Back, and Meta Leaks Employee Data"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0168",
+    "event_label": "World Cup Teams Are in a Race for AI Dominance",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-25T11:00:00+00:00",
+    "representative_titles": [
+      "World Cup Teams Are in a Race for AI Dominance"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0169",
+    "event_label": "British Police Built a Sprawling Crime-Prediction Machine. Some Results Couldn’t Be Trusted",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-25T10:00:00+00:00",
+    "representative_titles": [
+      "British Police Built a Sprawling Crime-Prediction Machine. Some Results Couldn’t Be Trusted"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0170",
+    "event_label": "How to Opt Out of Google Search’s New AI Data Training Feature",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T22:36:16+00:00",
+    "representative_titles": [
+      "How to Opt Out of Google Search’s New AI Data Training Feature"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0171",
+    "event_label": "A24 Knows You’re Mad About the Google AI Collab",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T21:05:51+00:00",
+    "representative_titles": [
+      "A24 Knows You’re Mad About the Google AI Collab"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0172",
+    "event_label": "I Met With China’s Top AI Experts. They’re Freaking Out, Too",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T18:45:00+00:00",
+    "representative_titles": [
+      "I Met With China’s Top AI Experts. They’re Freaking Out, Too"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0173",
+    "event_label": "The Trump White House Is Over Anthropic CEO Dario Amodei",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T15:15:00+00:00",
+    "representative_titles": [
+      "The Trump White House Is Over Anthropic CEO Dario Amodei"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0174",
+    "event_label": "Qualcomm Buys Buzzy Chip Startup Modular for Nearly $4 Billion",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T12:36:07+00:00",
+    "representative_titles": [
+      "Qualcomm Buys Buzzy Chip Startup Modular for Nearly $4 Billion"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0175",
+    "event_label": "Meta Pauses Employee-Tracking Program Following Internal Data Leak",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-22T21:08:09+00:00",
+    "representative_titles": [
+      "Meta Pauses Employee-Tracking Program Following Internal Data Leak"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0176",
+    "event_label": "Microsoft adds another year to Windows 10 extended update program",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T20:24:09+00:00",
+    "representative_titles": [
+      "Microsoft adds another year to Windows 10 extended update program"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0177",
+    "event_label": "FCC may kill $2B program that connects schools and libraries to Internet",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T20:01:08+00:00",
+    "representative_titles": [
+      "FCC may kill $2B program that connects schools and libraries to Internet"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0178",
+    "event_label": "Notion killing Skiff-influenced email app since most users use AI agents instead",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T19:04:57+00:00",
+    "representative_titles": [
+      "Notion killing Skiff-influenced email app since most users use AI agents instead"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0179",
+    "event_label": "Google finally releases a Finance Android app, promises iOS version later in 2026",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T18:38:51+00:00",
+    "representative_titles": [
+      "Google finally releases a Finance Android app, promises iOS version later in 2026"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0180",
+    "event_label": "Anthropic says Alibaba must be punished for largest Claude cloning attack",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T18:01:48+00:00",
+    "representative_titles": [
+      "Anthropic says Alibaba must be punished for largest Claude cloning attack"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0181",
+    "event_label": "Planet orbits so close to its star that their magnetic fields connect",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T18:00:39+00:00",
+    "representative_titles": [
+      "Planet orbits so close to its star that their magnetic fields connect"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0182",
+    "event_label": "Feds deny Polestar authorization to sell cars in US from model year 2027",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T14:40:23+00:00",
+    "representative_titles": [
+      "Feds deny Polestar authorization to sell cars in US from model year 2027"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0183",
+    "event_label": "Apple ratchets up prices, blames the cost of memory",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T14:14:37+00:00",
+    "representative_titles": [
+      "Apple ratchets up prices, blames the cost of memory"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0184",
+    "event_label": "The \"sad inevitability\" of Europe's heat wave",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T13:54:46+00:00",
+    "representative_titles": [
+      "The \"sad inevitability\" of Europe's heat wave"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0185",
+    "event_label": "New effort will get genome sequences for entire Endangered Species list",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T13:40:34+00:00",
+    "representative_titles": [
+      "New effort will get genome sequences for entire Endangered Species list"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0186",
+    "event_label": "Every Homo naledi we know of is female, and the implications are fascinating",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T13:28:54+00:00",
+    "representative_titles": [
+      "Every Homo naledi we know of is female, and the implications are fascinating"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0187",
+    "event_label": "IBM claims world’s first sub-1 nanometer chip technology",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-25T10:00:55+00:00",
+    "representative_titles": [
+      "IBM claims world’s first sub-1 nanometer chip technology"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0188",
+    "event_label": "Hotly anticipated Grand Theft Auto VI will cost more than other AAA games",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T22:47:03+00:00",
+    "representative_titles": [
+      "Hotly anticipated Grand Theft Auto VI will cost more than other AAA games"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0189",
+    "event_label": "13 years and $500 million for a stage adapter? Report justifies NASA cancellations.",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T21:41:03+00:00",
+    "representative_titles": [
+      "13 years and $500 million for a stage adapter? Report justifies NASA cancellations."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0190",
+    "event_label": "US ends hantavirus outbreak response with no answers on draconian quarantines",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T21:28:39+00:00",
+    "representative_titles": [
+      "US ends hantavirus outbreak response with no answers on draconian quarantines"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0191",
+    "event_label": "One-two punch delivered in global operation disrupts cybercrime \"assembly line\"",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T21:03:34+00:00",
+    "representative_titles": [
+      "One-two punch delivered in global operation disrupts cybercrime \"assembly line\""
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0192",
+    "event_label": "Underpromise, overdeliver? Hands-on with the $24,950 Slate auto.",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T20:28:07+00:00",
+    "representative_titles": [
+      "Underpromise, overdeliver? Hands-on with the $24,950 Slate auto."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0193",
+    "event_label": "Disney agreed to $50M settlement over claims it made live-TV streaming expensive",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T20:22:58+00:00",
+    "representative_titles": [
+      "Disney agreed to $50M settlement over claims it made live-TV streaming expensive"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0194",
+    "event_label": "Experimental wine bottle tracks oxygen moving through the cork",
+    "member_count": 1,
+    "platforms": [
+      "ars-technica"
+    ],
+    "latest_pubtime": "2026-06-24T20:04:32+00:00",
+    "representative_titles": [
+      "Experimental wine bottle tracks oxygen moving through the cork"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0195",
+    "event_label": "DMV by Agent Community",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-18T19:14:03+00:00",
+    "representative_titles": [
+      "DMV by Agent Community"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0196",
+    "event_label": "note.md",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-23T12:07:40+00:00",
+    "representative_titles": [
+      "note.md"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0197",
+    "event_label": "Group Subscriptions by beehiiv",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-26T01:59:59+00:00",
+    "representative_titles": [
+      "Group Subscriptions by beehiiv"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0198",
+    "event_label": "Animdock Motion Templates in the Browser",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-21T07:07:34+00:00",
+    "representative_titles": [
+      "Animdock Motion Templates in the Browser"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0199",
+    "event_label": "LockIn MCP",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-25T09:35:32+00:00",
+    "representative_titles": [
+      "LockIn MCP"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0200",
+    "event_label": "Basedash for Excel",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-26T04:15:50+00:00",
+    "representative_titles": [
+      "Basedash for Excel"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0201",
+    "event_label": "ModuleX",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-14T12:41:09+00:00",
+    "representative_titles": [
+      "ModuleX"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0202",
+    "event_label": "AI Slide Editor by CubeOne",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-24T23:07:45+00:00",
+    "representative_titles": [
+      "AI Slide Editor by CubeOne"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0203",
+    "event_label": "Agent Arena",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-16T16:16:18+00:00",
+    "representative_titles": [
+      "Agent Arena"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0204",
+    "event_label": "Atlas",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-19T14:21:35+00:00",
+    "representative_titles": [
+      "Atlas"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0205",
+    "event_label": "SquidHub",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-16T13:38:17+00:00",
+    "representative_titles": [
+      "SquidHub"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0206",
+    "event_label": "Gemini Spark",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-25T05:47:05+00:00",
+    "representative_titles": [
+      "Gemini Spark"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0207",
+    "event_label": "Sleek Analytics",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-25T05:52:23+00:00",
+    "representative_titles": [
+      "Sleek Analytics"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0208",
+    "event_label": "Cewsco",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-25T20:33:39+00:00",
+    "representative_titles": [
+      "Cewsco"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0209",
+    "event_label": "Dub Ninja",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-23T21:35:49+00:00",
+    "representative_titles": [
+      "Dub Ninja"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0210",
+    "event_label": "Postproxy - Engagement API",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-23T08:32:19+00:00",
+    "representative_titles": [
+      "Postproxy - Engagement API"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0211",
+    "event_label": "Signspell",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-24T13:43:37+00:00",
+    "representative_titles": [
+      "Signspell"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0212",
+    "event_label": "Tough Tongue AI for Sales",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-05-25T12:52:38+00:00",
+    "representative_titles": [
+      "Tough Tongue AI for Sales"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0213",
+    "event_label": "Milestones",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-04-30T15:40:14+00:00",
+    "representative_titles": [
+      "Milestones"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0214",
+    "event_label": "MeetPoint",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-24T13:38:24+00:00",
+    "representative_titles": [
+      "MeetPoint"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0215",
+    "event_label": "Repositioning retail for the AI era",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-25T14:22:59+00:00",
+    "representative_titles": [
+      "Repositioning retail for the AI era"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0216",
+    "event_label": "The emergence of the web data infrastructure layer for AI",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-24T11:59:54+00:00",
+    "representative_titles": [
+      "The emergence of the web data infrastructure layer for AI"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0217",
+    "event_label": "The $400 million machine powering the future of chipmaking",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-23T09:00:00+00:00",
+    "representative_titles": [
+      "The $400 million machine powering the future of chipmaking"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0218",
+    "event_label": "Three things to watch amid Anthropic’s latest feud with the government",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-22T18:00:00+00:00",
+    "representative_titles": [
+      "Three things to watch amid Anthropic’s latest feud with the government"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0219",
+    "event_label": "A startup claims it broke through a bottleneck that’s holding back LLMs",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-19T10:40:24+00:00",
+    "representative_titles": [
+      "A startup claims it broke through a bottleneck that’s holding back LLMs"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0220",
+    "event_label": "Want to get a data center online quickly? Give it some flex.",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-16T09:00:00+00:00",
+    "representative_titles": [
+      "Want to get a data center online quickly? Give it some flex."
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0221",
+    "event_label": "Why do South Koreans love AI so much?",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-15T18:46:08+00:00",
+    "representative_titles": [
+      "Why do South Koreans love AI so much?"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0222",
+    "event_label": "Google DeepMind is worried about what happens when millions of agents start to interact",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-11T11:00:45+00:00",
+    "representative_titles": [
+      "Google DeepMind is worried about what happens when millions of agents start to interact"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0223",
+    "event_label": "Learning to lead in a hybrid human-AI enterprise",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-09T10:20:06+00:00",
+    "representative_titles": [
+      "Learning to lead in a hybrid human-AI enterprise"
+    ],
+    "confidence": 1.0
+  },
+  {
+    "event_id": "evt_20260626_0224",
+    "event_label": "Five things you need to know about AI",
+    "member_count": 1,
+    "platforms": [
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-09T09:16:45+00:00",
+    "representative_titles": [
+      "Five things you need to know about AI"
+    ],
+    "confidence": 1.0
+  }
+]

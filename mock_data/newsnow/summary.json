@@ -1,0 +1,202 @@
+[
+  {
+    "platform_id": "36kr-quick",
+    "platform_name": "36氪",
+    "column": "tech",
+    "count": 0,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/36kr-quick.json"
+  },
+  {
+    "platform_id": "36kr-renqi",
+    "platform_name": "36氪",
+    "column": "tech",
+    "count": 0,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/36kr-renqi.json"
+  },
+  {
+    "platform_id": "aihot",
+    "platform_name": "AIHOT",
+    "column": "tech",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/aihot.json"
+  },
+  {
+    "platform_id": "cls-depth",
+    "platform_name": "财联社",
+    "column": "finance",
+    "count": 28,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/cls-depth.json"
+  },
+  {
+    "platform_id": "cls-hot",
+    "platform_name": "财联社",
+    "column": "finance",
+    "count": 13,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/cls-hot.json"
+  },
+  {
+    "platform_id": "cls-telegraph",
+    "platform_name": "财联社",
+    "column": "finance",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/cls-telegraph.json"
+  },
+  {
+    "platform_id": "coolapk",
+    "platform_name": "酷安",
+    "column": "tech",
+    "count": 19,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/coolapk.json"
+  },
+  {
+    "platform_id": "fastbull-express",
+    "platform_name": "法布财经",
+    "column": "finance",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/fastbull-express.json"
+  },
+  {
+    "platform_id": "fastbull-news",
+    "platform_name": "法布财经",
+    "column": "finance",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/fastbull-news.json"
+  },
+  {
+    "platform_id": "gelonghui",
+    "platform_name": "格隆汇",
+    "column": "finance",
+    "count": 15,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/gelonghui.json"
+  },
+  {
+    "platform_id": "github-trending-today",
+    "platform_name": "Github",
+    "column": "tech",
+    "count": 16,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/github-trending-today.json"
+  },
+  {
+    "platform_id": "hackernews",
+    "platform_name": "Hacker News",
+    "column": "tech",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/hackernews.json"
+  },
+  {
+    "platform_id": "ithome",
+    "platform_name": "IT之家",
+    "column": "tech",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/ithome.json"
+  },
+  {
+    "platform_id": "jin10",
+    "platform_name": "金十数据",
+    "column": "finance",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/jin10.json"
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "column": "tech",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/juejin.json"
+  },
+  {
+    "platform_id": "mktnews-flash",
+    "platform_name": "MKTNews",
+    "column": "finance",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/mktnews-flash.json"
+  },
+  {
+    "platform_id": "pcbeta-windows11",
+    "platform_name": "远景论坛",
+    "column": "tech",
+    "count": 20,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/pcbeta-windows11.json"
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "column": "tech",
+    "count": 20,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/producthunt.json"
+  },
+  {
+    "platform_id": "solidot",
+    "platform_name": "Solidot",
+    "column": "tech",
+    "count": 20,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/solidot.json"
+  },
+  {
+    "platform_id": "sspai",
+    "platform_name": "少数派",
+    "column": "tech",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/sspai.json"
+  },
+  {
+    "platform_id": "v2ex-share",
+    "platform_name": "V2EX",
+    "column": "tech",
+    "count": 30,
+    "status": "cache",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/v2ex-share.json"
+  },
+  {
+    "platform_id": "wallstreetcn-hot",
+    "platform_name": "华尔街见闻",
+    "column": "finance",
+    "count": 10,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/wallstreetcn-hot.json"
+  },
+  {
+    "platform_id": "wallstreetcn-news",
+    "platform_name": "华尔街见闻",
+    "column": "finance",
+    "count": 27,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/wallstreetcn-news.json"
+  },
+  {
+    "platform_id": "wallstreetcn-quick",
+    "platform_name": "华尔街见闻",
+    "column": "finance",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/wallstreetcn-quick.json"
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "column": "finance",
+    "count": 30,
+    "status": "success",
+    "file": "/Users/zyf/Code/Projects/modnews/modnews/mock_data/newsnow/xueqiu-hotstock.json"
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 1,
+    "title": "Oxlo.ai",
+    "url": "https://www.producthunt.com/products/oxlo-ai?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1169408",
+      "extra": {
+        "info": " △︎ 432",
+        "hover": "Scale across AI models without scaling your bill"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 2,
+    "title": "BrowserAct",
+    "url": "https://www.producthunt.com/products/browseract?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1173214",
+      "extra": {
+        "info": " △︎ 388",
+        "hover": "Web browser automation for AI agents"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 3,
+    "title": "Zaro",
+    "url": "https://www.producthunt.com/products/zaro?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1180059",
+      "extra": {
+        "info": " △︎ 355",
+        "hover": "Build agents & apps on top of your context with one prompt."
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 4,
+    "title": "Figma Motion",
+    "url": "https://www.producthunt.com/products/figma?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1180511",
+      "extra": {
+        "info": " △︎ 250",
+        "hover": "Your Figma canvas now has a timeline"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 5,
+    "title": "Brain² by ClickUp",
+    "url": "https://www.producthunt.com/products/clickup?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1176406",
+      "extra": {
+        "info": " △︎ 198",
+        "hover": "One AI that knows your entire company and acts on it"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 6,
+    "title": "Samepage Signals",
+    "url": "https://www.producthunt.com/products/samepage-signals?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1173662",
+      "extra": {
+        "info": " △︎ 173",
+        "hover": "Your second brain for product management"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 7,
+    "title": "Tough Tongue AI for Sales",
+    "url": "https://www.producthunt.com/products/tough-tongue-ai-2?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1155431",
+      "extra": {
+        "info": " △︎ 171",
+        "hover": "Live AI teammate for every tough sales conversation"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 8,
+    "title": "Polygraph",
+    "url": "https://www.producthunt.com/products/polygraph?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179782",
+      "extra": {
+        "info": " △︎ 146",
+        "hover": "Let AI agents see cross repo and maintain session memory."
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 9,
+    "title": "Genspark Design",
+    "url": "https://www.producthunt.com/products/genspark-design?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1180077",
+      "extra": {
+        "info": " △︎ 130",
+        "hover": "Generate UI prototypes, videos, and posters with AI"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 10,
+    "title": "Papermark Agents",
+    "url": "https://www.producthunt.com/products/papermark-2?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1180086",
+      "extra": {
+        "info": " △︎ 125",
+        "hover": "Let AI agents run your next deal, fundraise or data room"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 11,
+    "title": "MeetPoint",
+    "url": "https://www.producthunt.com/products/meetpoint-2?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1180041",
+      "extra": {
+        "info": " △︎ 121",
+        "hover": "Find the city where everyone's flights are cheapest"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 12,
+    "title": "Postproxy - Engagement API",
+    "url": "https://www.producthunt.com/products/postproxy?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1178858",
+      "extra": {
+        "info": " △︎ 113",
+        "hover": "Publish, reply, and analyze social media via API"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 13,
+    "title": "Grass 2.0",
+    "url": "https://www.producthunt.com/products/grass-claude-code-from-your-phone?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179935",
+      "extra": {
+        "info": " △︎ 113",
+        "hover": "The always-on computer for your coding agents"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 14,
+    "title": "Milestones",
+    "url": "https://www.producthunt.com/products/milestones-2?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1136080",
+      "extra": {
+        "info": " △︎ 106",
+        "hover": "Native project planning app, now on Mac & with an MCP server"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 15,
+    "title": "Nashra",
+    "url": "https://www.producthunt.com/products/nashra-turn-followers-into-clients?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179713",
+      "extra": {
+        "info": " △︎ 101",
+        "hover": "Turn followers into clients."
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 16,
+    "title": "Dub Ninja",
+    "url": "https://www.producthunt.com/products/dub-ninja?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179465",
+      "extra": {
+        "info": " △︎ 98",
+        "hover": "Live autonomous AI DJ that digs, mixes & explains 24/7"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 17,
+    "title": "SendTidings",
+    "url": "https://www.producthunt.com/products/sendtidings?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1172238",
+      "extra": {
+        "info": " △︎ 94",
+        "hover": "Turn your analytics into beautiful monthly email reports"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 18,
+    "title": "Heron ",
+    "url": "https://www.producthunt.com/products/heron?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179833",
+      "extra": {
+        "info": " △︎ 93",
+        "hover": "Wireshark for AI Agents: passive eBPF observability"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 19,
+    "title": "SayCraft",
+    "url": "https://www.producthunt.com/products/saycraft?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1179786",
+      "extra": {
+        "info": " △︎ 88",
+        "hover": "Build a web app by talking through a meeting"
+      }
+    }
+  },
+  {
+    "platform_id": "producthunt",
+    "platform_name": "Product Hunt",
+    "rank": 20,
+    "title": "BrowserBash",
+    "url": "https://www.producthunt.com/products/browserbash?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+newsnow+%28ID%3A+239216%29",
+    "mobile_url": "",
+    "extra": {
+      "id": "1178826",
+      "extra": {
+        "info": " △︎ 88",
+        "hover": "CLI that turns plain-English into real browser tests"
+      }
+    }
+  }
+]

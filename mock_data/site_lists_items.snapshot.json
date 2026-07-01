@@ -1,0 +1,262 @@
+[
+  {
+    "platform": "anthropic",
+    "title": "Statement on the US government directive to suspend access to Fable 5 and Mythos 5",
+    "url": "https://www.anthropic.com/news/fable-mythos-access",
+    "pubtime": "2026-06-12T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "anthropic",
+    "title": "Introducing Claude Tag",
+    "url": "https://www.anthropic.com/news/introducing-claude-tag",
+    "pubtime": "2026-06-23T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "anthropic",
+    "title": "Policy on the AI Exponential",
+    "url": "https://www.anthropic.com/policy-on-the-ai-exponential",
+    "pubtime": "2026-06-10T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "anthropic",
+    "title": "Introducing Claude Corps",
+    "url": "https://www.anthropic.com/news/claude-corps",
+    "pubtime": "2026-06-11T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "anthropic",
+    "title": "Expanding Project Glasswing",
+    "url": "https://www.anthropic.com/news/expanding-project-glasswing",
+    "pubtime": "2026-06-02T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "anthropic",
+    "title": "Introducing Claude Opus 4.8",
+    "url": "https://www.anthropic.com/news/claude-opus-4-8",
+    "pubtime": "2026-05-28T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "企业微信\"大圆\"内测上线：左滑一下，AI就能帮你盘客户、写总结",
+    "url": "https://news.aibase.com/zh/news/29101",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "前商汤科技高管创立的流形空间融资近 10 亿元，跃升为世界模型独角兽！",
+    "url": "https://news.aibase.com/zh/news/29065",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "豪掷 6 亿港元激励全员：MiniMax 以“真金白银”提振团队信心",
+    "url": "https://news.aibase.com/zh/news/29135",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "字节跳动火山引擎 2026 大会重磅发布：Seedance 2.5 直出 30 秒视频，豆包 2.1 Pro 对标 Opus 4.6",
+    "url": "https://news.aibase.com/zh/news/29085",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "​近 400 家地方报纸起诉 OpenAI 和微软，指控侵犯版权",
+    "url": "https://news.aibase.com/zh/news/29171",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "阿里巴巴发布HappyHorse 1.1 视频生成模型 多维度系统性升级",
+    "url": "https://news.aibase.com/zh/news/29053",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "亚马逊AI算力新策略：自研Trainium芯片或将开启“现货”出售",
+    "url": "https://news.aibase.com/zh/news/29048",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "豆包付费时代开启：三档订阅服务落地，性价比对标全球巨头",
+    "url": "https://news.aibase.com/zh/news/29121",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "火山引擎发布豆包2.1Pro:日常功能确认免费，将推专业版办公模式",
+    "url": "https://news.aibase.com/zh/news/29095",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aibase",
+    "title": "首个高考志愿AI测评发布:千问多项表现超过人类志愿咨询师",
+    "url": "https://news.aibase.com/zh/news/29086",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "How AI is Transforming Scientific Discovery While Keeping Humans at the Center",
+    "url": "https://hai.stanford.edu/news/how-ai-is-transforming-scientific-discovery-while-keeping-humans-at-the-center",
+    "pubtime": null,
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "New Approach to Scaling Laws Could Change How AI Models Are Trained",
+    "url": "https://hai.stanford.edu/news/new-approach-to-scaling-laws-could-change-how-ai-models-are-trained",
+    "pubtime": "2026-05-21T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Stanford HAI Launches AI and Organizations Lab to Study Science of AI in the Workplace",
+    "url": "https://hai.stanford.edu/news/stanford-hai-launches-ai-and-organizations-lab-to-study-science-of-ai-in-the-workplace",
+    "pubtime": "2026-05-13T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Researchers Worldwide Compete to Shape the Future of AI in Organizations",
+    "url": "https://hai.stanford.edu/news/researchers-worldwide-compete-to-shape-the-future-of-ai-in-organizations",
+    "pubtime": "2026-05-12T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Why Stanford Is Restructuring For AI’s Next Era",
+    "url": "https://hai.stanford.edu/news/why-stanford-is-restructuring-for-ais-next-era",
+    "pubtime": "2026-05-04T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Stanford Merges AI and Data Science Efforts Under Single Institute",
+    "url": "https://hai.stanford.edu/news/stanford-merges-ai-and-data-science-efforts-under-single-institute",
+    "pubtime": "2026-05-04T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Collaborative Coding, Better Scaling, Health Tracking: HAI Awards $2.17M to Innovative Research",
+    "url": "https://hai.stanford.edu/news/collaborative-coding-better-scaling-health-tracking-hai-awards-217m-to-innovative-research",
+    "pubtime": "2026-04-29T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "State Policymakers Divided Over How To Address AI Job-Loss Fears",
+    "url": "https://hai.stanford.edu/news/state-policymakers-divided-over-how-to-address-ai-job-loss-fears",
+    "pubtime": "2026-05-30T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Today's AI Talks Like “Nobody.” New Research Gives It Real Personality.",
+    "url": "https://hai.stanford.edu/news/todays-ai-talks-like-nobody-new-research-gives-it-real-personality",
+    "pubtime": null,
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "stanford_hai",
+    "title": "Reading Today’s Headlines Through AI: A Real-Time Audit of Six Commercial Chatbots",
+    "url": "https://hai.stanford.edu/news/reading-todays-headlines-through-ai-a-real-time-audit-of-six-commercial-chatbots",
+    "pubtime": null,
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  }
+]

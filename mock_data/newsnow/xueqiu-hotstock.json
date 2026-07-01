@@ -1,0 +1,422 @@
+[
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 1,
+    "title": "京东方A",
+    "url": "https://xueqiu.com/s/SZ000725",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ000725",
+      "extra": {
+        "info": "4.92% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 2,
+    "title": "N惠科股份",
+    "url": "https://xueqiu.com/s/SZ001399",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ001399",
+      "extra": {
+        "info": "381.42% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 3,
+    "title": "中际旭创",
+    "url": "https://xueqiu.com/s/SZ300308",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ300308",
+      "extra": {
+        "info": "-6.23% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 4,
+    "title": "小米集团-W",
+    "url": "https://xueqiu.com/s/01810",
+    "mobile_url": "",
+    "extra": {
+      "id": "01810",
+      "extra": {
+        "info": "-3.86% HK"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 5,
+    "title": "阿里巴巴-W",
+    "url": "https://xueqiu.com/s/09988",
+    "mobile_url": "",
+    "extra": {
+      "id": "09988",
+      "extra": {
+        "info": "-4.89% HK"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 6,
+    "title": "兆易创新",
+    "url": "https://xueqiu.com/s/SH603986",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH603986",
+      "extra": {
+        "info": "-3.64% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 7,
+    "title": "中船特气",
+    "url": "https://xueqiu.com/s/SH688146",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH688146",
+      "extra": {
+        "info": "3.72% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 8,
+    "title": "太极实业",
+    "url": "https://xueqiu.com/s/SH600667",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600667",
+      "extra": {
+        "info": "9.09% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 9,
+    "title": "XD贵州茅",
+    "url": "https://xueqiu.com/s/SH600519",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600519",
+      "extra": {
+        "info": "0.09% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 10,
+    "title": "长电科技",
+    "url": "https://xueqiu.com/s/SH600584",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600584",
+      "extra": {
+        "info": "-0.15% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 11,
+    "title": "XD紫金矿",
+    "url": "https://xueqiu.com/s/SH601899",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH601899",
+      "extra": {
+        "info": "-1.61% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 12,
+    "title": "中国平安",
+    "url": "https://xueqiu.com/s/SH601318",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH601318",
+      "extra": {
+        "info": "-2.94% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 13,
+    "title": "腾讯控股",
+    "url": "https://xueqiu.com/s/00700",
+    "mobile_url": "",
+    "extra": {
+      "id": "00700",
+      "extra": {
+        "info": "-2.09% HK"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 14,
+    "title": "新易盛",
+    "url": "https://xueqiu.com/s/SZ300502",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ300502",
+      "extra": {
+        "info": "-8.55% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 15,
+    "title": "沃格光电",
+    "url": "https://xueqiu.com/s/SH603773",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH603773",
+      "extra": {
+        "info": "3.59% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 16,
+    "title": "大族激光",
+    "url": "https://xueqiu.com/s/SZ002008",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ002008",
+      "extra": {
+        "info": "0.9% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 17,
+    "title": "泡泡玛特",
+    "url": "https://xueqiu.com/s/09992",
+    "mobile_url": "",
+    "extra": {
+      "id": "09992",
+      "extra": {
+        "info": "0.71% HK"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 18,
+    "title": "胜宏科技",
+    "url": "https://xueqiu.com/s/SZ300476",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ300476",
+      "extra": {
+        "info": "-7.75% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 19,
+    "title": "中天科技",
+    "url": "https://xueqiu.com/s/SH600522",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600522",
+      "extra": {
+        "info": "-9.79% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 20,
+    "title": "比亚迪",
+    "url": "https://xueqiu.com/s/SZ002594",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ002594",
+      "extra": {
+        "info": "-3.61% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 21,
+    "title": "招商轮船",
+    "url": "https://xueqiu.com/s/SH601872",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH601872",
+      "extra": {
+        "info": "-8.19% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 22,
+    "title": "亨通光电",
+    "url": "https://xueqiu.com/s/SH600487",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600487",
+      "extra": {
+        "info": "-8.03% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 23,
+    "title": "招商银行",
+    "url": "https://xueqiu.com/s/SH600036",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH600036",
+      "extra": {
+        "info": "-0.39% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 24,
+    "title": "东山精密",
+    "url": "https://xueqiu.com/s/SZ002384",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ002384",
+      "extra": {
+        "info": "-5.8% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 25,
+    "title": "药明康德",
+    "url": "https://xueqiu.com/s/SH603259",
+    "mobile_url": "",
+    "extra": {
+      "id": "SH603259",
+      "extra": {
+        "info": "0.16% SH"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 26,
+    "title": "德明利",
+    "url": "https://xueqiu.com/s/SZ001309",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ001309",
+      "extra": {
+        "info": "2.41% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 27,
+    "title": "五粮液",
+    "url": "https://xueqiu.com/s/SZ000858",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ000858",
+      "extra": {
+        "info": "-1% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 28,
+    "title": "TCL科技",
+    "url": "https://xueqiu.com/s/SZ000100",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ000100",
+      "extra": {
+        "info": "1.69% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 29,
+    "title": "麦捷科技",
+    "url": "https://xueqiu.com/s/SZ300319",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ300319",
+      "extra": {
+        "info": "6.08% SZ"
+      }
+    }
+  },
+  {
+    "platform_id": "xueqiu-hotstock",
+    "platform_name": "雪球",
+    "rank": 30,
+    "title": "深科技",
+    "url": "https://xueqiu.com/s/SZ000021",
+    "mobile_url": "",
+    "extra": {
+      "id": "SZ000021",
+      "extra": {
+        "info": "3.14% SZ"
+      }
+    }
+  }
+]

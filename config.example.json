@@ -1,0 +1,59 @@
+{
+  "output_path": "output/combined_news.json",
+  "proxy_url": "http://127.0.0.1:7897",
+  "newsnow_cache_dir": "mock_data/newsnow",
+  "ingest_steps": [
+    {
+      "type": "rss",
+      "enabled": true
+    },
+    {
+      "type": "newsnow",
+      "enabled": true,
+      "columns": [
+        "tech",
+        "finance"
+      ],
+      "include_all": false
+    },
+    {
+      "type": "linux_do",
+      "enabled": true,
+      "limit": 30,
+      "skip_pinned": true
+    },
+    {
+      "type": "site_lists",
+      "enabled": true,
+      "sites": [
+        "anthropic",
+        "aibase",
+        "stanford_hai"
+      ],
+      "limit_per_site": 10
+    }
+  ],
+  "classification": {
+    "enabled": true,
+    "output_path": "output/news_with_events.json",
+    "events_output_path": "output/events.json",
+    "discarded_output_path": "output/discarded_news.json",
+    "batch_size": 25,
+    "batch_concurrency": 8,
+    "event_candidate_count": 5,
+    "merge_candidate_count": 5,
+    "time_window_hours": 72,
+    "suspect_mode": "discard",
+    "llm": {
+      "model": "qwen-plus",
+      "cache_path": "output/llm_classification_cache.sqlite3",
+      "temperature": 0,
+      "timeout_seconds": 90
+    },
+    "embedding": {
+      "model": "text-embedding-v4",
+      "cache_path": "output/event_vector_cache.sqlite3",
+      "timeout_seconds": 60
+    }
+  }
+}

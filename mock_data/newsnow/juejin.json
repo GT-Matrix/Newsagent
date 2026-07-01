@@ -1,0 +1,332 @@
+[
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 1,
+    "title": "Node.js 还能再战十年？给你一个不换引擎的理由",
+    "url": "https://juejin.cn/post/7654166345454026803",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654166345454026803"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 2,
+    "title": "鸿蒙激励金8000元到手，但我决定不再参加了",
+    "url": "https://juejin.cn/post/7654531180474597395",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654531180474597395"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 3,
+    "title": "Codex 最佳实践（超级长文）：先搞懂 AI，再用好 AI",
+    "url": "https://juejin.cn/post/7654140424869855282",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654140424869855282"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 4,
+    "title": "一人公司别再上 Jenkins，真不值",
+    "url": "https://juejin.cn/post/7654166345454829619",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654166345454829619"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 5,
+    "title": "别再 console.log 了：5 个 Chrome DevTools 调试技巧，用过就回不去了",
+    "url": "https://juejin.cn/post/7654473428947795994",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654473428947795994"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 6,
+    "title": "从一个传文件的破需求,到一个能挂公网的\"瞬传\":我用 WorkBuddy 把它从 HTML 一路做到了 Java",
+    "url": "https://juejin.cn/post/7654808985048416290",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654808985048416290"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 7,
+    "title": "用了半年 Claude Code 后，我尝试关掉它写了一周代码——结果比想象中严重",
+    "url": "https://juejin.cn/post/7654807811400450086",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654807811400450086"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 8,
+    "title": "订单列表慢查询，先看 WHERE、ORDER BY 和 LIMIT",
+    "url": "https://juejin.cn/post/7654102171461812262",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654102171461812262"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 9,
+    "title": "Android 17 正式发布！target 37 一大批旧代码直接不能用了",
+    "url": "https://juejin.cn/post/7653533398469820425",
+    "mobile_url": "",
+    "extra": {
+      "id": "7653533398469820425"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 10,
+    "title": "推荐一个牛逼的智能代码审查系统",
+    "url": "https://juejin.cn/post/7654122741077753898",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654122741077753898"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 11,
+    "title": "苹果 AirPods 协议，Android 也可以使用完整版 AirPods 能力",
+    "url": "https://juejin.cn/post/7654471531117379590",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654471531117379590"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 12,
+    "title": "那不是我的黑历史，那是我的来时路啊！😭😭",
+    "url": "https://juejin.cn/post/7654522836775436298",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654522836775436298"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 13,
+    "title": "🔥UniApp 仅需 5 行代码！实现所有页面中控制应用主题变化",
+    "url": "https://juejin.cn/post/7654415237039538214",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654415237039538214"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 14,
+    "title": "AI 生成的代码能跑就行？这 5 个坑迟早炸",
+    "url": "https://juejin.cn/post/7654068162002632750",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654068162002632750"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 15,
+    "title": "Codex 会把磁盘给烧了？完整复盘来了！",
+    "url": "https://juejin.cn/post/7654522603739103238",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654522603739103238"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 16,
+    "title": "铁子，IntelliJ IDEA 2026.1.3来了，升不升？",
+    "url": "https://juejin.cn/post/7654370220606832649",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654370220606832649"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 17,
+    "title": "5 分钟搞懂 Kotlin DSL",
+    "url": "https://juejin.cn/post/7653708807583498286",
+    "mobile_url": "",
+    "extra": {
+      "id": "7653708807583498286"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 18,
+    "title": "流式响应断了，前端怎么自动重连续传",
+    "url": "https://juejin.cn/post/7654437699564929078",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654437699564929078"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 19,
+    "title": "Claude Code 准确率从 41% 升到 89%，这个 CLAUDE.md 只做了一件事",
+    "url": "https://juejin.cn/post/7654519145632743475",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654519145632743475"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 20,
+    "title": "Flutter Patchwork，不用 Fork 改依赖包源码的第三方工具",
+    "url": "https://juejin.cn/post/7654481202876301375",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654481202876301375"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 21,
+    "title": "cos-design v3.0：从 15 个 Demo 到 49 个组件的视觉特效库",
+    "url": "https://juejin.cn/post/7654142523153235995",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654142523153235995"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 22,
+    "title": "Agent底层原理连问8道，从ReAct到记忆压缩，PaiCLI项目实战拆解",
+    "url": "https://juejin.cn/post/7654497055944491060",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654497055944491060"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 23,
+    "title": " Vue 3 里被严重低估的 API：InjectionKey",
+    "url": "https://juejin.cn/post/7654840513968537641",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654840513968537641"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 24,
+    "title": "🎁 送你一套超好用超实用的 FE AI-Coding Skills",
+    "url": "https://juejin.cn/post/7654415237039456294",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654415237039456294"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 25,
+    "title": "AI时代跨平台还有必要吗？",
+    "url": "https://juejin.cn/post/7654131199482675226",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654131199482675226"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 26,
+    "title": "AI 帮我盯飞书、修 Bug，我负责喝咖啡：DM-Watch 搭建全拆解",
+    "url": "https://juejin.cn/post/7654109309843144738",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654109309843144738"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 27,
+    "title": "如何使用Glide和Coil加载WebP动图",
+    "url": "https://juejin.cn/post/7653437401839845410",
+    "mobile_url": "",
+    "extra": {
+      "id": "7653437401839845410"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 28,
+    "title": "Agent 实战: 智语 + baoyu-skills 自动发布文章到公众号",
+    "url": "https://juejin.cn/post/7654867618023817216",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654867618023817216"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 29,
+    "title": "如何用Vite实现Vue组件的按需打包和远程加载",
+    "url": "https://juejin.cn/post/7654526567432241187",
+    "mobile_url": "",
+    "extra": {
+      "id": "7654526567432241187"
+    }
+  },
+  {
+    "platform_id": "juejin",
+    "platform_name": "稀土掘金",
+    "rank": 30,
+    "title": "开源本地通信库，纯客户端 RPC，像聊天一样通信",
+    "url": "https://juejin.cn/post/7653415873380532266",
+    "mobile_url": "",
+    "extra": {
+      "id": "7653415873380532266"
+    }
+  }
+]

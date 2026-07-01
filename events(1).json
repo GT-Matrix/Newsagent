@@ -1,0 +1,3961 @@
+[
+  {
+    "event_id": "evt_20260630_0001",
+    "event_label": "OpenAI-Broadcom inference chip launch",
+    "member_count": 4,
+    "platforms": [
+      "ars-technica",
+      "openai",
+      "solidot",
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T18:36:43+08:00",
+    "representative_titles": [
+      "OpenAI 宣布了专用于推理的自研 AI 芯片 Jalapeño",
+      "OpenAI and Broadcom unveil LLM-optimized inference chip",
+      "OpenAI unveils its first custom chip, built by Broadcom",
+      "OpenAI and Broadcom announce chip designed for LLM inference at scale"
+    ],
+    "confidence": 1.0,
+    "event_summary": "OpenAI与Broadcom推出LLM优化推理芯片",
+    "event_type": "AI硬件",
+    "key_entities": [
+      "OpenAI",
+      "Broadcom",
+      "LLM推理芯片"
+    ],
+    "source_news_ids": [
+      1,
+      157,
+      188,
+      630
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0002",
+    "event_label": "GPT-5 aids immunologist Derya Unutmaz in scientific breakthrough",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-23T17:00:00+00:00",
+    "representative_titles": [
+      "How GPT-5 helped immunologist Derya Unutmaz solve a 3-year-old mystery"
+    ],
+    "confidence": 0.9,
+    "event_summary": "GPT-5 helped immunologist Derya Unutmaz solve a three-year-old mystery, demonstrating AI's impact on scientific research.",
+    "event_type": "AI研究",
+    "key_entities": [
+      "GPT-5",
+      "Derya Unutmaz"
+    ],
+    "source_news_ids": [
+      3
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0003",
+    "event_label": "Omio conversational travel AI",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-23T00:00:00+00:00",
+    "representative_titles": [
+      "How Omio is building the future of conversational travel"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Omio builds conversational travel future with AI.",
+    "event_type": "AI应用",
+    "key_entities": [
+      "Omio",
+      "对话式旅行"
+    ],
+    "source_news_ids": [
+      4
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0004",
+    "event_label": "Codex for long-running work",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-22T00:00:00+00:00",
+    "representative_titles": [
+      "Codex-maxxing for long-running work"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Codex用于长时间运行工作",
+    "event_type": "AI应用",
+    "key_entities": [
+      "Codex",
+      "OpenAI"
+    ],
+    "source_news_ids": [
+      7
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0005",
+    "event_label": "Samsung adopts ChatGPT and Codex for employees",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-21T23:00:00+00:00",
+    "representative_titles": [
+      "Samsung Electronics brings ChatGPT and Codex to employees"
+    ],
+    "confidence": 0.95,
+    "event_summary": "三星电子引入ChatGPT和Codex为员工使用",
+    "event_type": "AI应用",
+    "key_entities": [
+      "Samsung Electronics",
+      "ChatGPT",
+      "Codex"
+    ],
+    "source_news_ids": [
+      8
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0006",
+    "event_label": "ChatGPT health intelligence update",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-18T11:00:00+00:00",
+    "representative_titles": [
+      "Improving health intelligence in ChatGPT"
+    ],
+    "confidence": 0.9,
+    "event_summary": "OpenAI improves ChatGPT's health intelligence capabilities.",
+    "event_type": "AI应用",
+    "key_entities": [
+      "ChatGPT",
+      "OpenAI"
+    ],
+    "source_news_ids": [
+      10
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0007",
+    "event_label": "AI-assisted diagnosis of rare genetic diseases",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-18T08:00:00+00:00",
+    "representative_titles": [
+      "Using AI to help physicians diagnose rare genetic diseases affecting children"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Using AI to help physicians diagnose rare genetic diseases affecting children.",
+    "event_type": "AI医疗",
+    "key_entities": [
+      "AI",
+      "rare genetic diseases",
+      "physicians"
+    ],
+    "source_news_ids": [
+      11
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0008",
+    "event_label": "AI chemist improves medicinal chemistry reaction",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-17T10:00:00+00:00",
+    "representative_titles": [
+      "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry"
+    ],
+    "confidence": 0.9,
+    "event_summary": "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry.",
+    "event_type": "AI研究",
+    "key_entities": [
+      "AI化学家"
+    ],
+    "source_news_ids": [
+      12
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0009",
+    "event_label": "Simulated deployment for model behavior prediction",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-16T00:00:00+00:00",
+    "representative_titles": [
+      "Predicting model behavior before release by simulating deployment"
+    ],
+    "confidence": 0.9,
+    "event_summary": "OpenAI develops a method to predict model behavior before release by simulating deployment scenarios.",
+    "event_type": "AI安全",
+    "key_entities": [
+      "OpenAI"
+    ],
+    "source_news_ids": [
+      14
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0010",
+    "event_label": "OpenAI Academy新课程发布",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-12T10:00:00+00:00",
+    "representative_titles": [
+      "New OpenAI Academy courses for the next era of work"
+    ],
+    "confidence": 0.9,
+    "event_summary": "OpenAI Academy发布面向未来工作新课程",
+    "event_type": "AI教育",
+    "key_entities": [
+      "OpenAI Academy"
+    ],
+    "source_news_ids": [
+      16
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0011",
+    "event_label": "Astrophysicist uses Codex for black hole simulation",
+    "member_count": 1,
+    "platforms": [
+      "openai"
+    ],
+    "latest_pubtime": "2026-06-11T00:00:00+00:00",
+    "representative_titles": [
+      "How an astrophysicist uses Codex to help simulate black holes"
+    ],
+    "confidence": 0.9,
+    "event_summary": "天体物理学家使用Codex模拟黑洞",
+    "event_type": "AI研究",
+    "key_entities": [
+      "Codex"
+    ],
+    "source_news_ids": [
+      18
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0012",
+    "event_label": "Gemini 3.5 Flash computer use",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-24T16:30:01+00:00",
+    "representative_titles": [
+      "Introducing computer use in Gemini 3.5 Flash"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Gemini 3.5 Flash introduces computer use feature.",
+    "event_type": "AI模型更新",
+    "key_entities": [
+      "Gemini 3.5 Flash",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      20
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0013",
+    "event_label": "AI-accelerated planning for UK house-building",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-16T21:29:50+00:00",
+    "representative_titles": [
+      "Unlocking UK house-building with AI-accelerated planning"
+    ],
+    "confidence": 0.8,
+    "event_summary": "Using AI to accelerate and improve the planning process for house-building in the UK.",
+    "event_type": "AI应用",
+    "key_entities": [
+      "AI",
+      "UK house-building",
+      "planning"
+    ],
+    "source_news_ids": [
+      21
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0014",
+    "event_label": "DiffusionGemma发布",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-10T16:24:11+00:00",
+    "representative_titles": [
+      "DiffusionGemma: 4x faster text generation"
+    ],
+    "confidence": 0.95,
+    "event_summary": "DiffusionGemma实现4倍加速文本生成",
+    "event_type": "AI模型发布",
+    "key_entities": [
+      "DiffusionGemma",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      23
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0016",
+    "event_label": "Gemini 3.5 Live Translate发布",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-09T15:16:25+00:00",
+    "representative_titles": [
+      "Fluid, natural voice translation with Gemini 3.5 Live Translate"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Gemini 3.5推出自然语音翻译功能Live Translate",
+    "event_type": "product launch",
+    "key_entities": [
+      "Gemini 3.5",
+      "Live Translate"
+    ],
+    "source_news_ids": [
+      25
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0017",
+    "event_label": "Gemma 4 12B发布",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-09T14:10:19+00:00",
+    "representative_titles": [
+      "Introducing Gemma 4 12B: a unified, encoder-free multimodal model"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google DeepMind发布统一免编码多模态模型Gemma 4 12B",
+    "event_type": "AI模型发布",
+    "key_entities": [
+      "Gemma 4",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      26
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0018",
+    "event_label": "AI教育影响评估项目",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-06-08T13:04:59+00:00",
+    "representative_titles": [
+      "Measuring the impact of learning with AI in Sierra Leone and beyond"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google DeepMind在塞拉利昂等地测量AI学习影响",
+    "event_type": "research",
+    "key_entities": [
+      "Google DeepMind",
+      "Sierra Leone"
+    ],
+    "source_news_ids": [
+      28
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0019",
+    "event_label": "Google DeepMind Accelerator APAC launch",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-21T19:46:42+00:00",
+    "representative_titles": [
+      "We’re launching the Google DeepMind Accelerator program in Asia Pacific to tackle environmental risks"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google DeepMind launches accelerator program in Asia Pacific to tackle environmental risks",
+    "event_type": "partnership",
+    "key_entities": [
+      "Google DeepMind Accelerator",
+      "Asia Pacific"
+    ],
+    "source_news_ids": [
+      29
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0020",
+    "event_label": "Project Genie and Street View product launch",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T19:53:18+00:00",
+    "representative_titles": [
+      "Simulate real-world places with Project Genie and Street View"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google DeepMind launched Project Genie to simulate real-world places using Street View.",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Project Genie",
+      "Street View",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      31
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0021",
+    "event_label": "Gemini Omni Model Release",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T19:50:57+00:00",
+    "representative_titles": [
+      "Introducing Gemini Omni"
+    ],
+    "confidence": 0.95,
+    "event_summary": "推出Gemini Omni模型",
+    "event_type": "model_release",
+    "key_entities": [
+      "Gemini Omni",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      32
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0022",
+    "event_label": "Gemini for Science Launch",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-17T13:50:34+00:00",
+    "representative_titles": [
+      "Gemini for Science: AI experiments and tools for a new era of discovery"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Google DeepMind launched Gemini for Science, providing AI experiments and tools for scientific discovery.",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Gemini",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      34
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0023",
+    "event_label": "Singapore-DeepMind National Partnership",
+    "member_count": 1,
+    "platforms": [
+      "google-deepmind"
+    ],
+    "latest_pubtime": "2026-05-16T09:13:34+00:00",
+    "representative_titles": [
+      "Strengthening Singapore’s AI Future: A New National Partnership"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google DeepMind and Singapore announce a new national partnership to strengthen AI future.",
+    "event_type": "partnership",
+    "key_entities": [
+      "Singapore",
+      "Google DeepMind"
+    ],
+    "source_news_ids": [
+      36
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0024",
+    "event_label": "NVIDIA-AWS AI production collaboration",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-24T00:05:37+00:00",
+    "representative_titles": [
+      "NVIDIA and AWS Collaborate to Bring AI to Production at Scale"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA and AWS collaborate to bring AI to production at scale",
+    "event_type": "partnership",
+    "key_entities": [
+      "NVIDIA",
+      "AWS"
+    ],
+    "source_news_ids": [
+      41
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0025",
+    "event_label": "NVIDIA supercomputing milestone",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-23T09:00:38+00:00",
+    "representative_titles": [
+      "NVIDIA Powers Over 400 of the World’s 500 Fastest Supercomputers"
+    ],
+    "confidence": 0.8,
+    "event_summary": "NVIDIA powers over 400 of the world's 500 fastest supercomputers",
+    "event_type": "AI硬件",
+    "key_entities": [
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      43
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0026",
+    "event_label": "NVIDIA AI Agents for Telecom",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-23T06:00:09+00:00",
+    "representative_titles": [
+      "NVIDIA Brings Trusted, 24/7 AI Agents to Telecom Operations"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA brings trusted, 24/7 AI agents to telecom operations.",
+    "event_type": "product launch",
+    "key_entities": [
+      "NVIDIA",
+      "AI Agents",
+      "telecom"
+    ],
+    "source_news_ids": [
+      44
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0027",
+    "event_label": "NAIRR Science Program powered by NVIDIA",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:38+00:00",
+    "representative_titles": [
+      "NAIRR Science Program Reshapes Scientific Research, Powered by NVIDIA AI Infrastructure"
+    ],
+    "confidence": 0.95,
+    "event_summary": "NAIRR Science Program reshaping scientific research using NVIDIA AI infrastructure",
+    "event_type": "partnership",
+    "key_entities": [
+      "NAIRR",
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      46
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0028",
+    "event_label": "NVIDIA AI software for scientific discovery",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:20+00:00",
+    "representative_titles": [
+      "From Materials Simulation to Experimental Astronomy, New NVIDIA AI Software Unlocks Scientific Discoveries"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA launches new AI software for materials simulation and experimental astronomy.",
+    "event_type": "product launch",
+    "key_entities": [
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      47
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0029",
+    "event_label": "NVIDIA Vera CPU for scientific AI at Los Alamos",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:20+00:00",
+    "representative_titles": [
+      "NVIDIA Vera CPU Opens the Way for Agentic Scientific AI at Los Alamos National Laboratory"
+    ],
+    "confidence": 0.95,
+    "event_summary": "NVIDIA Vera CPU为洛斯阿拉莫斯国家实验室开启智能科学AI",
+    "event_type": "product launch",
+    "key_entities": [
+      "NVIDIA Vera CPU",
+      "Los Alamos National Laboratory"
+    ],
+    "source_news_ids": [
+      48
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0030",
+    "event_label": "Eco Wave Power-NVIDIA AI infrastructure partnership",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T13:00:13+00:00",
+    "representative_titles": [
+      "Eco Wave Power Turns Waves Into Watts With NVIDIA AI Infrastructure and Digital Twins"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Eco Wave Power uses NVIDIA AI infrastructure and digital twins for wave energy conversion.",
+    "event_type": "partnership",
+    "key_entities": [
+      "Eco Wave Power",
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      49
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0031",
+    "event_label": "NVIDIA 45°C cooling breakthrough for AI",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-22T05:00:22+00:00",
+    "representative_titles": [
+      "Hotter Than a Hot Tub: The 45°C Breakthrough to Cool AI’s Biggest Machines"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA achieves 45°C cooling breakthrough to cool large AI machines.",
+    "event_type": "技术突破",
+    "key_entities": [
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      50
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0032",
+    "event_label": "NVIDIA partners reshape advertising with AI at Cannes Lions",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T13:00:43+00:00",
+    "representative_titles": [
+      "At Cannes Lions, NVIDIA Partners Reshape Advertising and Marketing With AI"
+    ],
+    "confidence": 1.0,
+    "event_summary": "NVIDIA and its partners showcase AI technologies reshaping advertising and marketing at the Cannes Lions festival.",
+    "event_type": "行业应用",
+    "key_entities": [
+      "NVIDIA",
+      "Cannes Lions",
+      "AI"
+    ],
+    "source_news_ids": [
+      52
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0033",
+    "event_label": "France Advances Europe’s AI Future With NVIDIA Technologies",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-18T06:00:59+00:00",
+    "representative_titles": [
+      "France Advances Europe’s AI Future With NVIDIA Technologies"
+    ],
+    "confidence": 90.0,
+    "event_summary": "France advances Europe's AI future by leveraging NVIDIA technologies.",
+    "event_type": "政策合作",
+    "key_entities": [
+      "France",
+      "NVIDIA",
+      "Europe"
+    ],
+    "source_news_ids": [
+      54
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0034",
+    "event_label": "NVIDIA XR AI Brings AI Agents to AR Glasses",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T22:30:41+00:00",
+    "representative_titles": [
+      "Hands Free, AIs Forward: NVIDIA XR AI Brings Agents to AR Glasses"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA XR AI将智能体带入AR眼镜，实现无需手部的AI交互。",
+    "event_type": "产品发布",
+    "key_entities": [
+      "NVIDIA",
+      "NVIDIA XR AI",
+      "AR Glasses"
+    ],
+    "source_news_ids": [
+      55
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0035",
+    "event_label": "Coherent 德州工厂扩建",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T22:10:56+00:00",
+    "representative_titles": [
+      "Coherent Breaks Ground on Expanded Texas Facility, Scaling AI’s Optical Backbone"
+    ],
+    "confidence": 0.0,
+    "event_summary": "Coherent在德州扩建工厂，扩展AI光学骨干基础设施。",
+    "event_type": "基础设施投资",
+    "key_entities": [
+      "Coherent"
+    ],
+    "source_news_ids": [
+      56
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0036",
+    "event_label": "HPE AI Factory Expansion with NVIDIA",
+    "member_count": 1,
+    "platforms": [
+      "nvidia"
+    ],
+    "latest_pubtime": "2026-06-16T16:30:27+00:00",
+    "representative_titles": [
+      "HPE AI Factory With NVIDIA Expands for the Era of Agents"
+    ],
+    "confidence": 0.9,
+    "event_summary": "HPE and NVIDIA expand their AI Factory for the era of agents.",
+    "event_type": "Partnership Expansion",
+    "key_entities": [
+      "HPE",
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      57
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0037",
+    "event_label": "vLLM on Hugging Face Jobs",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "Run a vLLM Server on HF Jobs in One Command"
+    ],
+    "confidence": 0.0,
+    "event_summary": "Run a vLLM server on Hugging Face Jobs in one command.",
+    "event_type": "工具发布",
+    "key_entities": [
+      "vLLM",
+      "Hugging Face"
+    ],
+    "source_news_ids": [
+      58
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0038",
+    "event_label": "NVIDIA NeMo AutoModel for Transformers fine-tuning",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-24T16:00:13+00:00",
+    "representative_titles": [
+      "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel"
+    ],
+    "confidence": 0.9,
+    "event_summary": "NVIDIA NeMo AutoModel accelerates Transformer fine-tuning.",
+    "event_type": "工具优化",
+    "key_entities": [
+      "NVIDIA NeMo AutoModel",
+      "Transformers"
+    ],
+    "source_news_ids": [
+      60
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0039",
+    "event_label": "FFASR Leaderboard",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-24T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World"
+    ],
+    "confidence": 0.0,
+    "event_summary": "发布FFASR排行榜，真实世界ASR基准测试",
+    "event_type": "基准发布",
+    "key_entities": [
+      "FFASR"
+    ],
+    "source_news_ids": [
+      61
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0040",
+    "event_label": "CUGA for agentic apps",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-23T12:51:55+00:00",
+    "representative_titles": [
+      "Build real agentic apps using CUGA: two dozen working examples on a lightweight harness"
+    ],
+    "confidence": 0.9,
+    "event_summary": "CUGA轻量级框架发布，提供24个真实智能体应用示例",
+    "event_type": "工具发布",
+    "key_entities": [
+      "CUGA"
+    ],
+    "source_news_ids": [
+      62
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0041",
+    "event_label": "PP-OCRv6 发布",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-22T13:18:56+00:00",
+    "representative_titles": [
+      "PP-OCRv6 on Hugging Face: 50-Language OCR from 1.5M to 34.5M Parameters"
+    ],
+    "confidence": 85.0,
+    "event_summary": "PP-OCRv6登陆Hugging Face，支持50种语言，参数量从1.5M到34.5M。",
+    "event_type": "模型发布",
+    "key_entities": [
+      "PP-OCRv6",
+      "Hugging Face"
+    ],
+    "source_news_ids": [
+      65
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0042",
+    "event_label": "Hugging Face Hub to Robot Hardware with Strands Agents and LeRobot",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-17T10:18:05+00:00",
+    "representative_titles": [
+      "From the Hugging Face Hub to robot hardware with Strands Agents and LeRobot"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Use of Hugging Face Hub models with Strands Agents and LeRobot to deploy on robot hardware.",
+    "event_type": "集成应用",
+    "key_entities": [
+      "Hugging Face",
+      "Strands Agents",
+      "LeRobot"
+    ],
+    "source_news_ids": [
+      70
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0043",
+    "event_label": "GLM-5.2发布",
+    "member_count": 2,
+    "platforms": [
+      "huggingface",
+      "wallstreetcn-hot"
+    ],
+    "latest_pubtime": "2026-06-17T09:01:25+00:00",
+    "representative_titles": [
+      "GLM-5.2: Built for Long-Horizon Tasks",
+      "“1/6的价格，打爆美国AI护城河”——智谱开源模型GLM 5.2震动硅谷"
+    ],
+    "confidence": 0.95,
+    "event_summary": "GLM-5.2发布，专为长周期任务设计",
+    "event_type": "模型发布",
+    "key_entities": [
+      "GLM-5.2",
+      "智谱"
+    ],
+    "source_news_ids": [
+      71,
+      715
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0044",
+    "event_label": "3D Paris Gallery Demo on Hugging Face Spaces",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-09T10:46:19+00:00",
+    "representative_titles": [
+      "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces"
+    ],
+    "confidence": 0.9,
+    "event_summary": "An agent built a 3D Paris gallery by chaining two Hugging Face Spaces.",
+    "event_type": "应用演示",
+    "key_entities": [
+      "Hugging Face Spaces"
+    ],
+    "source_news_ids": [
+      74
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0045",
+    "event_label": "OpenEnv for Agentic RL Backed by Open Source Community",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-08T00:00:00+00:00",
+    "representative_titles": [
+      "The Open Source Community is backing OpenEnv for Agentic RL"
+    ],
+    "confidence": 0.95,
+    "event_summary": "开源社区支持OpenEnv用于智能体强化学习",
+    "event_type": "open_source_announcement",
+    "key_entities": [
+      "OpenEnv",
+      "Agentic RL"
+    ],
+    "source_news_ids": [
+      76
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0046",
+    "event_label": "Nemotron 3.5 Content Safety Release",
+    "member_count": 1,
+    "platforms": [
+      "huggingface"
+    ],
+    "latest_pubtime": "2026-06-04T18:57:45+00:00",
+    "representative_titles": [
+      "Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI"
+    ],
+    "confidence": 0.95,
+    "event_summary": "NVIDIA releases Nemotron 3.5 Content Safety, a customizable multimodal safety model for enterprise AI.",
+    "event_type": "model_release",
+    "key_entities": [
+      "NVIDIA",
+      "Nemotron 3.5"
+    ],
+    "source_news_ids": [
+      77
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0047",
+    "event_label": "Mistral OCR 4 发布",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-06-23T12:00:48+00:00",
+    "representative_titles": [
+      "Introducing Mistral OCR 4"
+    ],
+    "confidence": 9.0,
+    "event_summary": "推出Mistral OCR 4",
+    "event_type": "model_release",
+    "key_entities": [
+      "Mistral OCR 4",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      79
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0048",
+    "event_label": "Mistral Search Toolkit Launch",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-28T11:42:21+00:00",
+    "representative_titles": [
+      "Introducing Search Toolkit"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Mistral launched Search Toolkit on 2026-05-28",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Search Toolkit",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      82
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0049",
+    "event_label": "Mistral Physics AI Launch",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-27T12:00:55+00:00",
+    "representative_titles": [
+      "Introducing physics AI at Mistral: the foundation for engineering acceleration."
+    ],
+    "confidence": 0.9,
+    "event_summary": "Mistral launches Physics AI on 2026-05-27",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Mistral",
+      "Physics AI"
+    ],
+    "source_news_ids": [
+      83
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0050",
+    "event_label": "Emmi joins Mistral",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-23T12:00:26+00:00",
+    "representative_titles": [
+      "Emmi joins Mistral to accelerate the AI-native industry"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Emmi joins Mistral to accelerate the AI-native industry.",
+    "event_type": "partnership_hiring",
+    "key_entities": [
+      "Emmi",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      85
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0051",
+    "event_label": "Remote agents in Vibe powered by Mistral Medium 3.5",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-22T15:01:55+00:00",
+    "representative_titles": [
+      "Remote agents in Vibe. Powered by Mistral Medium 3.5."
+    ],
+    "confidence": 0.8,
+    "event_summary": "Vibe launches remote agents powered by Mistral Medium 3.5.",
+    "event_type": "feature_launch",
+    "key_entities": [
+      "Vibe",
+      "Mistral Medium 3.5"
+    ],
+    "source_news_ids": [
+      86
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0052",
+    "event_label": "Build with MCPs in Mistral Studio",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-05-22T14:48:28+00:00",
+    "representative_titles": [
+      "Connect the dots: Build with built-in and custom MCPs in Studio"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Mistral Studio announces ability to build with built-in and custom MCPs.",
+    "event_type": "feature_launch",
+    "key_entities": [
+      "MCPs",
+      "Mistral Studio"
+    ],
+    "source_news_ids": [
+      87
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0053",
+    "event_label": "Mistral Small 4 released",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T21:00:00+00:00",
+    "representative_titles": [
+      "Introducing Mistral Small 4"
+    ],
+    "confidence": 0.0,
+    "event_summary": "Mistral announced the release of Mistral Small 4.",
+    "event_type": "model_release",
+    "key_entities": [
+      "Mistral Small 4",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      91
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0054",
+    "event_label": "Mistral-NVIDIA partnership",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T20:00:00+00:00",
+    "representative_titles": [
+      "Mistral AI partners with NVIDIA to accelerate open frontier models"
+    ],
+    "confidence": 9.0,
+    "event_summary": "Mistral AI partners with NVIDIA to accelerate open frontier models.",
+    "event_type": "partnership",
+    "key_entities": [
+      "Mistral",
+      "NVIDIA"
+    ],
+    "source_news_ids": [
+      92
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0055",
+    "event_label": "Leanstral open-source foundation announcement",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-16T16:00:00+00:00",
+    "representative_titles": [
+      "Leanstral: Open-Source foundation for trustworthy vibe-coding"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Mistral announced Leanstral, an open-source foundation for trustworthy AI programming.",
+    "event_type": "open_source_announcement",
+    "key_entities": [
+      "Leanstral",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      93
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0056",
+    "event_label": "Mistral Rails testing agent",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-03-11T12:00:00+00:00",
+    "representative_titles": [
+      "Rails testing on autopilot: Building an agent that writes what developers won't"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Mistral builds an AI agent that automatically writes Rails tests.",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Mistral"
+    ],
+    "source_news_ids": [
+      94
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0057",
+    "event_label": "Voxtral model release",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-02-04T16:00:00+00:00",
+    "representative_titles": [
+      "Voxtral transcribes at the speed of sound."
+    ],
+    "confidence": 0.9,
+    "event_summary": "Mistral releases Voxtral, a transcription model that operates at the speed of sound.",
+    "event_type": "model_release",
+    "key_entities": [
+      "Voxtral",
+      "Mistral"
+    ],
+    "source_news_ids": [
+      95
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0058",
+    "event_label": "vLLM memory leak debugging blog",
+    "member_count": 1,
+    "platforms": [
+      "mistral"
+    ],
+    "latest_pubtime": "2026-01-21T16:00:00+00:00",
+    "representative_titles": [
+      "Heaps do lie: debugging a memory leak in vLLM."
+    ],
+    "confidence": 0.8,
+    "event_summary": "vLLM developers share debugging experience on memory leak.",
+    "event_type": "technical_blog",
+    "key_entities": [
+      "vLLM"
+    ],
+    "source_news_ids": [
+      97
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0059",
+    "event_label": "Squad coordinated AI agents launch",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2026-03-19T16:09:50+00:00",
+    "representative_titles": [
+      "How Squad runs coordinated AI agents inside your repository"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Squad launches coordinated AI agents that operate inside a repository.",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Squad",
+      "GitHub"
+    ],
+    "source_news_ids": [
+      99
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0060",
+    "event_label": "GitHub Copilot自定义模型训练",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-11-20T18:02:21+00:00",
+    "representative_titles": [
+      "Evolving GitHub Copilot’s next edit suggestions through custom model training"
+    ],
+    "confidence": 0.95,
+    "event_summary": "GitHub Copilot通过自定义模型训练进化其编辑建议功能。",
+    "event_type": "AI产品更新",
+    "key_entities": [
+      "GitHub Copilot"
+    ],
+    "source_news_ids": [
+      104
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0061",
+    "event_label": "GitHub recognized as Gartner Magic Quadrant Leader 2025",
+    "member_count": 1,
+    "platforms": [
+      "github-blog-ai"
+    ],
+    "latest_pubtime": "2025-09-22T18:24:17+00:00",
+    "representative_titles": [
+      "Gartner positions GitHub as a Leader in the 2025 Magic Quadrant for AI Code Assistants for the second year in a row"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Gartner positioned GitHub as a Leader in the 2025 Magic Quadrant for AI Code Assistants for the second year in a row.",
+    "event_type": "行业认可",
+    "key_entities": [
+      "GitHub",
+      "Gartner",
+      "AI Code Assistants"
+    ],
+    "source_news_ids": [
+      107
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0062",
+    "event_label": "Amazon SageMaker AI with NVIDIA Blackwell optimization",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:41:47+00:00",
+    "representative_titles": [
+      "Optimize model training on Amazon SageMaker AI with NVIDIA Blackwell"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Amazon SageMaker AI integrates NVIDIA Blackwell to optimize model training.",
+    "event_type": "AI基础设施",
+    "key_entities": [
+      "Amazon SageMaker AI",
+      "NVIDIA Blackwell"
+    ],
+    "source_news_ids": [
+      109
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0063",
+    "event_label": "SeedVR2 on Amazon SageMaker AI",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:40:13+00:00",
+    "representative_titles": [
+      "Implementing super resolution by deploying SeedVR2 on Amazon SageMaker AI"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Deploying SeedVR2 for super resolution on Amazon SageMaker AI",
+    "event_type": "AI应用部署",
+    "key_entities": [
+      "SeedVR2",
+      "Amazon SageMaker AI"
+    ],
+    "source_news_ids": [
+      110
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0064",
+    "event_label": "Amazon Bedrock AI代理用于AWS Health分析",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-25T16:38:12+00:00",
+    "representative_titles": [
+      "Build self-service AWS Health analytics to find actionable health insights with AI agents powered by Amazon Bedrock"
+    ],
+    "confidence": 0.8,
+    "event_summary": "使用Amazon Bedrock AI代理构建自助式AWS健康分析以发现可操作的健康洞察",
+    "event_type": "AI应用",
+    "key_entities": [
+      "AWS Health",
+      "Amazon Bedrock",
+      "AI agents"
+    ],
+    "source_news_ids": [
+      111
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0065",
+    "event_label": "AI-powered BI with Snowflake and Amazon Quick",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T18:19:35+00:00",
+    "representative_titles": [
+      "AI-powered BI with Snowflake and Amazon Quick"
+    ],
+    "confidence": 0.95,
+    "event_summary": "结合Snowflake和Amazon Quick实现AI驱动的BI",
+    "event_type": "AI应用",
+    "key_entities": [
+      "Snowflake",
+      "Amazon Quick"
+    ],
+    "source_news_ids": [
+      115
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0066",
+    "event_label": "Loka使用Amazon Nova 2 Sonic构建语音代理",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-24T16:56:24+00:00",
+    "representative_titles": [
+      "How Loka Built a Natural, Low-Latency Voice Agent with Amazon Nova 2 Sonic"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Loka使用Amazon Nova 2 Sonic构建低延迟语音代理",
+    "event_type": "AI代理应用",
+    "key_entities": [
+      "Loka",
+      "Amazon Nova 2 Sonic"
+    ],
+    "source_news_ids": [
+      116
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0067",
+    "event_label": "Build protein research copilot with Amazon Bedrock AgentCore",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-23T16:39:34+00:00",
+    "representative_titles": [
+      "Build a protein research copilot with Amazon Bedrock AgentCore"
+    ],
+    "confidence": 0.9,
+    "event_summary": "使用Amazon Bedrock AgentCore构建蛋白质研究副驾驶",
+    "event_type": "AI应用",
+    "key_entities": [
+      "Amazon Bedrock AgentCore"
+    ],
+    "source_news_ids": [
+      117
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0068",
+    "event_label": "Shared infrastructure, isolated tenants with Amazon Bedrock AgentCore",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-23T15:43:59+00:00",
+    "representative_titles": [
+      "Shared infrastructure, isolated tenants: Pool model multi-tenancy with Amazon Bedrock AgentCore"
+    ],
+    "confidence": 0.9,
+    "event_summary": "使用Amazon Bedrock AgentCore实现共享基础设施隔离租户的模型多租户",
+    "event_type": "AI基础设施",
+    "key_entities": [
+      "Amazon Bedrock AgentCore"
+    ],
+    "source_news_ids": [
+      118
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0069",
+    "event_label": "Ampersend builds pay-per-intelligence AI agent with Amazon Bedrock AgentCore Payments",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T17:53:40+00:00",
+    "representative_titles": [
+      "Building pay-per-intelligence for AI agents: How Ampersend uses Amazon Bedrock AgentCore Payments"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Ampersend使用Amazon Bedrock AgentCore Payments构建按智付费的AI代理",
+    "event_type": "AI商业模式",
+    "key_entities": [
+      "Ampersend",
+      "Amazon Bedrock AgentCore Payments"
+    ],
+    "source_news_ids": [
+      119
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0070",
+    "event_label": "Multimodal AI for aerial imagery search",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T16:32:15+00:00",
+    "representative_titles": [
+      "Embed the world: Multimodal AI for searchable aerial imagery at scale"
+    ],
+    "confidence": 1.0,
+    "event_summary": "使用多模态AI实现大规模可搜索航空影像",
+    "event_type": "AI应用",
+    "key_entities": [
+      "multimodal AI",
+      "aerial imagery"
+    ],
+    "source_news_ids": [
+      120
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0071",
+    "event_label": "ComfyUI workflows on SageMaker AI",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-22T16:28:46+00:00",
+    "representative_titles": [
+      "Running ComfyUI workflows on Amazon SageMaker AI processing jobs"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Running ComfyUI workflows on Amazon SageMaker AI processing jobs",
+    "event_type": "AI部署",
+    "key_entities": [
+      "ComfyUI",
+      "Amazon SageMaker AI"
+    ],
+    "source_news_ids": [
+      121
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0072",
+    "event_label": "Amazon Bedrock AgentCore introduces web search",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-19T14:15:24+00:00",
+    "representative_titles": [
+      "Introducing Web Search on Amazon Bedrock AgentCore"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Amazon Bedrock AgentCore adds web search capability to its AI agent platform.",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Amazon Bedrock AgentCore",
+      "AWS",
+      "Web Search"
+    ],
+    "source_news_ids": [
+      122
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0073",
+    "event_label": "Adobe Marketing Agent for Amazon Quick announced",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-19T14:05:04+00:00",
+    "representative_titles": [
+      "Accelerate campaign workflow with insights from Adobe Marketing Agent for Amazon Quick"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Adobe Marketing Agent for Amazon Quick accelerates campaign workflow with AI insights.",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Adobe Marketing Agent",
+      "Amazon Quick"
+    ],
+    "source_news_ids": [
+      123
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0074",
+    "event_label": "Amazon SageMaker详细指标与CloudWatch洞察仪表板发布",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-18T23:31:58+00:00",
+    "representative_titles": [
+      "Monitor and debug generative AI inference with SageMaker detailed metrics and Insights dashboard on CloudWatch"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Amazon SageMaker推出了详细指标和CloudWatch洞察仪表板，用于监控和调试生成式AI推理。",
+    "event_type": "AI运维",
+    "key_entities": [
+      "SageMaker",
+      "CloudWatch"
+    ],
+    "source_news_ids": [
+      124
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0075",
+    "event_label": "Amazon Bedrock AgentCore harness generally available",
+    "member_count": 1,
+    "platforms": [
+      "aws-ml"
+    ],
+    "latest_pubtime": "2026-06-18T17:32:22+00:00",
+    "representative_titles": [
+      "Amazon Bedrock AgentCore harness is now generally available: Go from idea to production-grade agent in minutes"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Amazon Bedrock AgentCore harness is now generally available, enabling rapid construction of production-grade AI agents.",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Amazon Bedrock",
+      "AgentCore"
+    ],
+    "source_news_ids": [
+      125
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0076",
+    "event_label": "华勤技术与正行创新战略合作机器人进工厂",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T04:00:59+00:00",
+    "representative_titles": [
+      "华勤技术与正行创新达成战略合作，加速机器人“走进工厂、走上产线”"
+    ],
+    "confidence": 0.95,
+    "event_summary": "华勤技术与正行创新合作，推动机器人进入工厂和产线。",
+    "event_type": "战略合作",
+    "key_entities": [
+      "华勤技术",
+      "正行创新"
+    ],
+    "source_news_ids": [
+      129
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0077",
+    "event_label": "它石智航发布TacForeSight",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T03:47:08+00:00",
+    "representative_titles": [
+      "让机器人学会“预判接触”：它石智航牵头四大顶尖机构发布TacForeSight，破解精细操作难题"
+    ],
+    "confidence": 0.0,
+    "event_summary": "它石智航联合四大顶尖机构发布TacForeSight，提升机器人精细操作能力",
+    "event_type": "技术发布",
+    "key_entities": [
+      "它石智航",
+      "TacForeSight"
+    ],
+    "source_news_ids": [
+      130
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0078",
+    "event_label": "NVIDIA MoE Open-Source Tool Release",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T03:23:35+00:00",
+    "representative_titles": [
+      "英伟达MoE新开源：一行import，微调加速3.7倍"
+    ],
+    "confidence": 0.95,
+    "event_summary": "NVIDIA releases an open-source MoE tool that accelerates fine-tuning by 3.7x with a single import.",
+    "event_type": "tool_release",
+    "key_entities": [
+      "NVIDIA",
+      "MoE"
+    ],
+    "source_news_ids": [
+      131
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0079",
+    "event_label": "光帆科技与三体宇宙联合发布AI全感穿戴设备",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T09:46:44+00:00",
+    "representative_titles": [
+      "三体问世20周年，光帆科技与三体宇宙联合发布联名款AI全感穿戴设备及重磅视频《破晓》"
+    ],
+    "confidence": 0.8,
+    "event_summary": "光帆科技与三体宇宙联合发布AI全感穿戴设备及视频《破晓》",
+    "event_type": "产品发布",
+    "key_entities": [
+      "光帆科技",
+      "三体宇宙"
+    ],
+    "source_news_ids": [
+      135
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0080",
+    "event_label": "科大讯飞发布Claw平台",
+    "member_count": 1,
+    "platforms": [
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-25T08:32:00+00:00",
+    "representative_titles": [
+      "科大讯飞发布企业服务Claw平台：一句话搞定需求到方案全流程"
+    ],
+    "confidence": 1.0,
+    "event_summary": "科大讯飞发布企业服务Claw平台，一句话驱动需求到方案全流程",
+    "event_type": "产品发布",
+    "key_entities": [
+      "科大讯飞",
+      "Claw"
+    ],
+    "source_news_ids": [
+      136
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0081",
+    "event_label": "3D生成技术突破：千万面精度+12K贴图",
+    "member_count": 2,
+    "platforms": [
+      "aihot",
+      "qbitai"
+    ],
+    "latest_pubtime": "2026-06-26T01:30:00+00:00",
+    "representative_titles": [
+      "4秒出百万面！突破千万面精度+12K高清贴图，手握数亿的3D生成公司下一局怎么打？",
+      "Hyper3D Rodin Gen-2.5 发布：4秒生成百万面模型，新增拆件功能"
+    ],
+    "confidence": 0.95,
+    "event_summary": "3D生成公司实现千万面精度和12K高清贴图，4秒输出百万面。",
+    "event_type": "技术突破",
+    "key_entities": [
+      "3D生成"
+    ],
+    "source_news_ids": [
+      137,
+      232
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0083",
+    "event_label": "Patronus AI 融资",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T20:19:25+00:00",
+    "representative_titles": [
+      "Patronus AI lands $50M to build ‘digital worlds’ that stress-test AI agents"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Patronus AI 获得 5000 万美元融资，用于构建测试 AI Agent 的数字世界，投资方包括 a16z",
+    "event_type": "融资",
+    "key_entities": [
+      "Patronus AI",
+      "a16z"
+    ],
+    "source_news_ids": [
+      139
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0084",
+    "event_label": "Anthropic Claude surpasses ChatGPT in paid consumer market",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T17:38:27+00:00",
+    "representative_titles": [
+      "Anthropic’s Claude is winning over paid consumers, a market owned by ChatGPT"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Anthropic's Claude has overtaken ChatGPT in the paid consumer AI assistant market.",
+    "event_type": "市场竞争",
+    "key_entities": [
+      "Anthropic",
+      "Claude",
+      "ChatGPT"
+    ],
+    "source_news_ids": [
+      140
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0085",
+    "event_label": "General Intuition 融资 23 亿美元",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T16:55:00+00:00",
+    "representative_titles": [
+      "General Intuition’s $2.3B bet that video games can train AI agents for the real world"
+    ],
+    "confidence": 0.95,
+    "event_summary": "General Intuition 获得 23 亿美元投资，利用视频游戏训练 AI Agent",
+    "event_type": "融资",
+    "key_entities": [
+      "General Intuition"
+    ],
+    "source_news_ids": [
+      141
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0086",
+    "event_label": "AI energy reduction claim by ex-Databricks AI chief",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T16:48:11+00:00",
+    "representative_titles": [
+      "Databricks’ former AI chief thinks he can cut AI’s power bill by 1,000x"
+    ],
+    "confidence": 8.0,
+    "event_summary": "前 Databricks AI 负责人声称可降低 AI 能耗 1000 倍",
+    "event_type": "AI基础设施",
+    "key_entities": [
+      "Databricks"
+    ],
+    "source_news_ids": [
+      142
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0087",
+    "event_label": "Netris raises $15M Series A from a16z",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T14:55:38+00:00",
+    "representative_titles": [
+      "Netris raises $15M Series A from a16z to help AI neoclouds go live faster"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Netris raises $15M Series A from a16z to help AI neoclouds go live faster",
+    "event_type": "融资",
+    "key_entities": [
+      "Netris",
+      "a16z"
+    ],
+    "source_news_ids": [
+      143
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0088",
+    "event_label": "Adobe acquires Topaz Labs",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T13:30:00+00:00",
+    "representative_titles": [
+      "Adobe acquires image and video enhancement tool maker Topaz Labs"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Adobe acquires image and video enhancement tool maker Topaz Labs",
+    "event_type": "收购",
+    "key_entities": [
+      "Adobe",
+      "Topaz Labs"
+    ],
+    "source_news_ids": [
+      145
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0089",
+    "event_label": "Amazon 130亿美元印度AI基础设施投资",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-25T12:00:38+00:00",
+    "representative_titles": [
+      "Amazon ups India bet with fresh $13B AI infrastructure investment"
+    ],
+    "confidence": 0.95,
+    "event_summary": "亚马逊宣布在印度新增130亿美元投资用于AI基础设施建设",
+    "event_type": "投资",
+    "key_entities": [
+      "亚马逊",
+      "印度"
+    ],
+    "source_news_ids": [
+      146
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0090",
+    "event_label": "Facebook AI伴侣应用",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T17:16:24+00:00",
+    "representative_titles": [
+      "Facebook rolls out an AI companion app for creators"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Meta推出面向创作者的AI伴侣应用",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Meta",
+      "Facebook"
+    ],
+    "source_news_ids": [
+      154
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0091",
+    "event_label": "Agility Robotics SPAC $2.5B",
+    "member_count": 1,
+    "platforms": [
+      "techcrunch-ai"
+    ],
+    "latest_pubtime": "2026-06-24T16:48:43+00:00",
+    "representative_titles": [
+      "Agility Robotics plans to go public via SPAC in a $2.5B deal"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Agility Robotics plans to go public via SPAC in a $2.5B deal",
+    "event_type": "IPO",
+    "key_entities": [
+      "Agility Robotics"
+    ],
+    "source_news_ids": [
+      155
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0092",
+    "event_label": "Railway $100M funding for AI-native cloud",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-22T14:00:00+00:00",
+    "representative_titles": [
+      "Railway secures $100 million to challenge AWS with AI-native cloud infrastructure"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Railway raises $100 million to build AI-native cloud infrastructure challenging AWS.",
+    "event_type": "funding",
+    "key_entities": [
+      "Railway",
+      "AWS"
+    ],
+    "source_news_ids": [
+      159
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0093",
+    "event_label": "Claude Code vs Goose free alternative",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-19T14:00:00+00:00",
+    "representative_titles": [
+      "Claude Code costs up to $200 a month. Goose does the same thing for free."
+    ],
+    "confidence": 0.9,
+    "event_summary": "Claude Code costs up to $200/month while open-source tool Goose provides similar functionality for free.",
+    "event_type": "product_comparison",
+    "key_entities": [
+      "Claude",
+      "Goose"
+    ],
+    "source_news_ids": [
+      160
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0094",
+    "event_label": "Listen Labs raises $69M for AI customer interviews",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-16T14:01:00+00:00",
+    "representative_titles": [
+      "Listen Labs raises $69M after viral billboard hiring stunt to scale AI customer interviews"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Listen Labs raised $69M to scale its AI-powered customer interview platform.",
+    "event_type": "funding",
+    "key_entities": [
+      "Listen Labs"
+    ],
+    "source_news_ids": [
+      161
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0095",
+    "event_label": "Salesforce Launches New Slackbot AI Agent",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-13T13:00:00+00:00",
+    "representative_titles": [
+      "Salesforce rolls out new Slackbot AI agent as it battles Microsoft and Google in workplace AI"
+    ],
+    "confidence": 85.0,
+    "event_summary": "Salesforce announces the rollout of a new AI-powered Slackbot agent to compete with Microsoft and Google in workplace AI.",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Salesforce",
+      "Slack"
+    ],
+    "source_news_ids": [
+      162
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0096",
+    "event_label": "Anthropic Launches Cowork Claude Desktop Agent",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-12T11:30:00+00:00",
+    "representative_titles": [
+      "Anthropic launches Cowork, a Claude Desktop agent that works in your files — no coding required"
+    ],
+    "confidence": 9.0,
+    "event_summary": "Anthropic发布Cowork，一个Claude桌面代理，无需编码",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Anthropic",
+      "Claude"
+    ],
+    "source_news_ids": [
+      163
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0097",
+    "event_label": "NousCoder-14B发布",
+    "member_count": 1,
+    "platforms": [
+      "venturebeat"
+    ],
+    "latest_pubtime": "2026-01-07T20:00:00+00:00",
+    "representative_titles": [
+      "Nous Research's NousCoder-14B is an open-source coding model landing right in the Claude Code moment"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Nous Research发布开源编码模型NousCoder-14B",
+    "event_type": "模型发布",
+    "key_entities": [
+      "Nous Research",
+      "NousCoder-14B"
+    ],
+    "source_news_ids": [
+      164
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0098",
+    "event_label": "Google Search AI data training opt-out",
+    "member_count": 1,
+    "platforms": [
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T22:36:16+00:00",
+    "representative_titles": [
+      "How to Opt Out of Google Search’s New AI Data Training Feature"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Google introduces AI data training feature for Search; users can opt out.",
+    "event_type": "隐私设置",
+    "key_entities": [
+      "Google",
+      "Google Search"
+    ],
+    "source_news_ids": [
+      169
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0099",
+    "event_label": "Trump White House discontent with Anthropic CEO",
+    "member_count": 2,
+    "platforms": [
+      "mit-tech-review",
+      "wired-ai"
+    ],
+    "latest_pubtime": "2026-06-24T15:15:00+00:00",
+    "representative_titles": [
+      "The Trump White House Is Over Anthropic CEO Dario Amodei",
+      "Three things to watch amid Anthropic’s latest feud with the government"
+    ],
+    "confidence": 0.9,
+    "event_summary": "特朗普白宫对Anthropic CEO Dario Amodei感到不满",
+    "event_type": "政治动态",
+    "key_entities": [
+      "Trump",
+      "Anthropic",
+      "Dario Amodei"
+    ],
+    "source_news_ids": [
+      172,
+      218
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0100",
+    "event_label": "Anthropic accuses Alibaba of cloning Claude",
+    "member_count": 2,
+    "platforms": [
+      "ars-technica",
+      "solidot"
+    ],
+    "latest_pubtime": "2026-06-25T18:01:48+00:00",
+    "representative_titles": [
+      "Anthropic 指控阿里巴巴蒸馏其模型",
+      "Anthropic says Alibaba must be punished for largest Claude cloning attack"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Anthropic accuses Alibaba of cloning its Claude model and demands punishment.",
+    "event_type": "AI安全事件",
+    "key_entities": [
+      "Anthropic",
+      "Alibaba",
+      "Claude"
+    ],
+    "source_news_ids": [
+      179,
+      636
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0101",
+    "event_label": "AI Slide Editor by CubeOne",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-24T23:07:45+00:00",
+    "representative_titles": [
+      "AI Slide Editor by CubeOne"
+    ],
+    "confidence": 0.9,
+    "event_summary": "CubeOne发布AI幻灯片编辑器",
+    "event_type": "AI产品发布",
+    "key_entities": [
+      "CubeOne"
+    ],
+    "source_news_ids": [
+      197
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0102",
+    "event_label": "Agent Arena launches on Product Hunt",
+    "member_count": 1,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-06-16T16:16:18+00:00",
+    "representative_titles": [
+      "Agent Arena"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Agent Arena, an AI agent competition platform or tool, launched on Product Hunt.",
+    "event_type": "产品发布",
+    "key_entities": [
+      "Agent Arena"
+    ],
+    "source_news_ids": [
+      204
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0103",
+    "event_label": "Tough Tongue AI for Sales Launch",
+    "member_count": 2,
+    "platforms": [
+      "producthunt"
+    ],
+    "latest_pubtime": "2026-05-25T12:52:38+00:00",
+    "representative_titles": [
+      "Tough Tongue AI for Sales"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Tough Tongue AI for Sales, a sales AI tool, launched on ProductHunt.",
+    "event_type": "product_launch",
+    "key_entities": [
+      "Tough Tongue AI"
+    ],
+    "source_news_ids": [
+      214,
+      612
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0104",
+    "event_label": "Google DeepMind对多智能体交互的担忧",
+    "member_count": 2,
+    "platforms": [
+      "google-deepmind",
+      "mit-tech-review"
+    ],
+    "latest_pubtime": "2026-06-11T11:00:45+00:00",
+    "representative_titles": [
+      "Investing in multi-agent AI safety research",
+      "Google DeepMind is worried about what happens when millions of agents start to interact"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Google DeepMind担忧数百万代理开始互动可能带来的问题",
+    "event_type": "AI安全观点",
+    "key_entities": [
+      "Google DeepMind",
+      "多智能体AI"
+    ],
+    "source_news_ids": [
+      24,
+      222
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0105",
+    "event_label": "阿里云Model Studio上线HappyHorse 1.1",
+    "member_count": 2,
+    "platforms": [
+      "aibase",
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T02:09:07+00:00",
+    "representative_titles": [
+      "阿里云Model Studio上线HappyHorse 1.1",
+      "阿里巴巴发布HappyHorse 1.1 视频生成模型 多维度系统性升级"
+    ],
+    "confidence": 0.95,
+    "event_summary": "阿里云Model Studio上线HappyHorse 1.1模型",
+    "event_type": "model_release",
+    "key_entities": [
+      "阿里云",
+      "HappyHorse"
+    ],
+    "source_news_ids": [
+      226,
+      843
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0106",
+    "event_label": "Snowflake CEO compares GLM and Opus token costs",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:30:59+00:00",
+    "representative_titles": [
+      "Snowflake CEO 实验：GLM token 消耗是 Opus 的 2 倍，但成本更低"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Snowflake CEO 实验对比 GLM 与 Opus 的 token 消耗，发现 GLM token 消耗是 Opus 的 2 倍但成本更低。",
+    "event_type": "benchmark",
+    "key_entities": [
+      "Snowflake",
+      "GLM",
+      "Opus"
+    ],
+    "source_news_ids": [
+      231
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0107",
+    "event_label": "小互开源IP配图技能",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:26:23+00:00",
+    "representative_titles": [
+      "小互开源个人IP配图技能\"小互IP Studio\"，含31个原创角色"
+    ],
+    "confidence": 1.0,
+    "event_summary": "小互开源个人IP配图技能，含31个原创角色",
+    "event_type": "open source",
+    "key_entities": [
+      "小互"
+    ],
+    "source_news_ids": [
+      234
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0108",
+    "event_label": "思必驰二次冲击上市遭经销商举报",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:16:51+00:00",
+    "representative_titles": [
+      "语音 AI 企业思必驰二度冲击上市，被多家经销商实名举报画大饼诱导囤货"
+    ],
+    "confidence": 0.9,
+    "event_summary": "语音AI企业思必驰二度冲击上市，被多家经销商实名举报画大饼诱导囤货",
+    "event_type": "company news",
+    "key_entities": [
+      "思必驰"
+    ],
+    "source_news_ids": [
+      236
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0109",
+    "event_label": "Linux Foundation Akrites project launch",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:10:12+00:00",
+    "representative_titles": [
+      "Linux 基金会联合多方推出 Akrites 项目，抵御 AI 驱动开源软件漏洞攻击"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Linux Foundation launches Akrites project to defend against AI-driven open-source software vulnerability attacks",
+    "event_type": "security project",
+    "key_entities": [
+      "Linux Foundation",
+      "Akrites"
+    ],
+    "source_news_ids": [
+      238
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0110",
+    "event_label": "移远通信推出SP805FL AI算力模组",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:02:02+00:00",
+    "representative_titles": [
+      "移远通信推出首款联发科平台旗舰AI算力模组SP805FL系列"
+    ],
+    "confidence": 0.9,
+    "event_summary": "移远通信推出首款联发科平台旗舰AI算力模组SP805FL",
+    "event_type": "产品发布",
+    "key_entities": [
+      "移远通信",
+      "联发科",
+      "SP805FL"
+    ],
+    "source_news_ids": [
+      241
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0111",
+    "event_label": "Seedance 2.0 on PixVerse native 4K",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T01:00:17+00:00",
+    "representative_titles": [
+      "Seedance 2.0 在 PixVerse 支持原生 4K"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Seedance 2.0 在PixVerse支持原生4K",
+    "event_type": "model_update",
+    "key_entities": [
+      "Seedance",
+      "PixVerse"
+    ],
+    "source_news_ids": [
+      243
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0112",
+    "event_label": "GLM-5.2 adds nitro fast inference endpoint",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:58:57+00:00",
+    "representative_titles": [
+      "GLM-5.2 新增nitro快速推理端点"
+    ],
+    "confidence": 1.0,
+    "event_summary": "GLM-5.2新增nitro快速推理端点",
+    "event_type": "model update",
+    "key_entities": [
+      "GLM-5.2"
+    ],
+    "source_news_ids": [
+      244
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0113",
+    "event_label": "v0 Design Systems 2.0 发布",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:55:22+00:00",
+    "representative_titles": [
+      "v0 发布 Design Systems 2.0"
+    ],
+    "confidence": 1.0,
+    "event_summary": "v0发布Design Systems 2.0",
+    "event_type": "product_release",
+    "key_entities": [
+      "v0"
+    ],
+    "source_news_ids": [
+      245
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0114",
+    "event_label": "安森美收购Synaptics",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:50:40+00:00",
+    "representative_titles": [
+      "安森美将换股收购边缘 AI 芯片企业 Synaptics，交易价值 70 亿美元"
+    ],
+    "confidence": 0.95,
+    "event_summary": "安森美换股收购边缘AI芯片企业Synaptics，交易价值70亿美元",
+    "event_type": "收购",
+    "key_entities": [
+      "安森美",
+      "Synaptics"
+    ],
+    "source_news_ids": [
+      247
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0115",
+    "event_label": "商汤CEO徐立会见韩国总理金民锡",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:50:12+00:00",
+    "representative_titles": [
+      "商汤CEO徐立在北京会见韩国总理金民锡，共议绿色AI与可信AI合作"
+    ],
+    "confidence": 0.95,
+    "event_summary": "商汤CEO徐立在北京会见韩国总理金民锡，共议绿色AI与可信AI合作",
+    "event_type": "meeting",
+    "key_entities": [
+      "商汤",
+      "徐立",
+      "韩国总理金民锡"
+    ],
+    "source_news_ids": [
+      248
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0116",
+    "event_label": "清华团队人形机器人自主互动引发热议",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:45:32+00:00",
+    "representative_titles": [
+      "清华团队人形机器人：无遥控自主互动引热议"
+    ],
+    "confidence": 0.0,
+    "event_summary": "清华团队人形机器人实现无遥控自主互动，引发热议。",
+    "event_type": "产品发布/技术突破",
+    "key_entities": [
+      "清华团队",
+      "人形机器人"
+    ],
+    "source_news_ids": [
+      250
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0117",
+    "event_label": "US Congress considers banning super-alien open-source models",
+    "member_count": 1,
+    "platforms": [
+      "aihot"
+    ],
+    "latest_pubtime": "2026-06-26T00:34:01+00:00",
+    "representative_titles": [
+      "美国会将超寓言级开源模型定为非法吗？"
+    ],
+    "confidence": 0.9,
+    "event_summary": "美国国会考虑将超寓言级开源模型定为非法。",
+    "event_type": "政策/监管",
+    "key_entities": [
+      "美国国会"
+    ],
+    "source_news_ids": [
+      254
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0118",
+    "event_label": "三星宣布在韩投资1000万亿韩元聚焦芯片与AI",
+    "member_count": 1,
+    "platforms": [
+      "cls-depth"
+    ],
+    "latest_pubtime": "2026-06-26T02:10:54+00:00",
+    "representative_titles": [
+      "韩企史上最大手笔！三星据称将宣布在韩投资1000万亿韩元 聚焦芯片与AI"
+    ],
+    "confidence": 0.95,
+    "event_summary": "三星计划在韩国投资1000万亿韩元，用于芯片与AI领域。",
+    "event_type": "投资",
+    "key_entities": [
+      "三星",
+      "韩国"
+    ],
+    "source_news_ids": [
+      257
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0119",
+    "event_label": "OpenAI考虑推迟IPO",
+    "member_count": 2,
+    "platforms": [
+      "cls-depth",
+      "wallstreetcn-news"
+    ],
+    "latest_pubtime": "2026-06-26T00:28:16+00:00",
+    "representative_titles": [
+      "被SpaceX大跌吓退了？OpenAI据传考虑推迟IPO",
+      "万亿美元估值撞上SpaceX大跌：OpenAI IPO倾向推迟至2027年"
+    ],
+    "confidence": 0.95,
+    "event_summary": "据传OpenAI考虑推迟IPO。",
+    "event_type": "公司/融资",
+    "key_entities": [
+      "OpenAI"
+    ],
+    "source_news_ids": [
+      266,
+      738
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0120",
+    "event_label": "金刚石散热技术因AI算力需求迎来放量拐点",
+    "member_count": 1,
+    "platforms": [
+      "cls-depth"
+    ],
+    "latest_pubtime": "2026-06-26T00:13:36+00:00",
+    "representative_titles": [
+      "AI算力“烤”热培育钻石 金刚石散热现成长拐点 业内：2027年或迎放量期"
+    ],
+    "confidence": 0.7,
+    "event_summary": "AI算力推动金刚石散热技术，预计2027年放量。",
+    "event_type": "技术/材料",
+    "key_entities": [
+      "金刚石散热",
+      "AI算力"
+    ],
+    "source_news_ids": [
+      270
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0121",
+    "event_label": "DeepSeek计划扩编一倍",
+    "member_count": 3,
+    "platforms": [
+      "cls-depth",
+      "cls-hot",
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T01:29:18.151000+00:00",
+    "representative_titles": [
+      "DeepSeek拟将所有部门规模扩大至少一倍",
+      "全速扩容！DeepSeek“招兵买马”扩编一倍",
+      "小K播早报|DeepSeek计划扩编一倍 苹果市值一夜蒸发1.8万亿元"
+    ],
+    "confidence": 0.95,
+    "event_summary": "DeepSeek计划扩编一倍。",
+    "event_type": "company/recruitment",
+    "key_entities": [
+      "DeepSeek"
+    ],
+    "source_news_ids": [
+      271,
+      285,
+      827
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0122",
+    "event_label": "上海AI制药产业落地验证与计算生物学赛事",
+    "member_count": 1,
+    "platforms": [
+      "cls-depth"
+    ],
+    "latest_pubtime": "2026-06-25T23:44:53+00:00",
+    "representative_titles": [
+      "AI制药产业重心转向落地验证 上海以计算生物学赛事构筑创新转化高地"
+    ],
+    "confidence": 9.0,
+    "event_summary": "AI制药产业重心转向落地验证，上海举办计算生物学赛事促进创新转化",
+    "event_type": "AI应用",
+    "key_entities": [
+      "上海",
+      "AI制药"
+    ],
+    "source_news_ids": [
+      276
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0123",
+    "event_label": "国家能源局推进算力与电力协同建设",
+    "member_count": 3,
+    "platforms": [
+      "cls-telegraph",
+      "jin10",
+      "mktnews-flash"
+    ],
+    "latest_pubtime": "2026-06-26T02:39:52+00:00",
+    "representative_titles": [
+      "AI生成5秒钟高清视频用电量相当于给10部手机充电 国家能源局：将强化算电协同部署",
+      "国家能源局：AI生成5秒钟高清视频用电量相当于给10部手机充电 将推进算力设施与电力系统协同建设",
+      "China NEA to coordinate power and AI compute; backs green-power links, western renewables hubs, eastern microgrids"
+    ],
+    "confidence": 95.0,
+    "event_summary": "国家能源局指出AI生成5秒高清视频用电量相当于给10部手机充电，并宣布将推进算力设施与电力系统协同建设。",
+    "event_type": "AI基础设施政策",
+    "key_entities": [
+      "国家能源局"
+    ],
+    "source_news_ids": [
+      302,
+      510,
+      557
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0124",
+    "event_label": "Rosenblatt initiates CoreWeave coverage at $250",
+    "member_count": 1,
+    "platforms": [
+      "gelonghui"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Rosenblatt首予Coreweave目标价250美元"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Rosenblatt首次覆盖CoreWeave，目标价250美元",
+    "event_type": "分析师评级",
+    "key_entities": [
+      "CoreWeave",
+      "Rosenblatt"
+    ],
+    "source_news_ids": [
+      405
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0125",
+    "event_label": "领益智造布局AI硬件基础设施",
+    "member_count": 1,
+    "platforms": [
+      "gelonghui"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "领益智造：打造AI硬件底层基础设施，端侧AI、算力、物理AI三线并进"
+    ],
+    "confidence": 0.9,
+    "event_summary": "领益智造宣布布局AI硬件基础设施，专注端侧AI、算力和物理AI。",
+    "event_type": "公司战略",
+    "key_entities": [
+      "领益智造"
+    ],
+    "source_news_ids": [
+      413
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0126",
+    "event_label": "AWS Agent Toolkit for building AI agents",
+    "member_count": 1,
+    "platforms": [
+      "github-trending-today"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "aws /      agent-toolkit-for-aws"
+    ],
+    "confidence": 0.9,
+    "event_summary": "A new GitHub repository 'agent-toolkit-for-aws' provides a toolkit for building AI agents on AWS.",
+    "event_type": "开源工具",
+    "key_entities": [
+      "AWS",
+      "Agent Toolkit"
+    ],
+    "source_news_ids": [
+      428
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0127",
+    "event_label": "Alibaba page-agent AI agent project",
+    "member_count": 1,
+    "platforms": [
+      "github-trending-today"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "alibaba /      page-agent"
+    ],
+    "confidence": 0.9,
+    "event_summary": "阿里巴巴发布page-agent AI代理项目，托管于GitHub",
+    "event_type": "AI代理",
+    "key_entities": [
+      "Alibaba",
+      "page-agent"
+    ],
+    "source_news_ids": [
+      430
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0128",
+    "event_label": "AI生成的儿童书籍（身体恐怖题材）",
+    "member_count": 1,
+    "platforms": [
+      "hackernews"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "AI children's books, body horror edition"
+    ],
+    "confidence": 0.8,
+    "event_summary": "黑客新闻上讨论AI生成的儿童书籍，包含身体恐怖题材。",
+    "event_type": "AI内容生成",
+    "key_entities": [
+      "AI",
+      "儿童书籍"
+    ],
+    "source_news_ids": [
+      436
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0129",
+    "event_label": "Apple M7 AI chip strategy",
+    "member_count": 1,
+    "platforms": [
+      "hackernews"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Apple to skip high-end M6 Mac chips in favor of AI-focused M7 line"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Apple to skip high-end M6 Mac chips and focus on AI-focused M7 line",
+    "event_type": "AI chip strategy",
+    "key_entities": [
+      "Apple",
+      "M7"
+    ],
+    "source_news_ids": [
+      438
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0130",
+    "event_label": "OpenKnowledge发布",
+    "member_count": 1,
+    "platforms": [
+      "hackernews"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Show HN: OpenKnowledge – open source AI-first alternative to Obsidian/Notion"
+    ],
+    "confidence": 1.0,
+    "event_summary": "OpenKnowledge作为开源AI优先的知识管理工具，旨在替代Obsidian/Notion，在Hacker News上发布。",
+    "event_type": "AI产品发布",
+    "key_entities": [
+      "OpenKnowledge"
+    ],
+    "source_news_ids": [
+      449
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0131",
+    "event_label": "过拟合Transformer压缩数据实验",
+    "member_count": 1,
+    "platforms": [
+      "hackernews"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Overfitted a 900KB Transformer to Compress a 100MB CSV into 7MB"
+    ],
+    "confidence": 0.9,
+    "event_summary": "一个900KB的Transformer通过过拟合将100MB CSV压缩至7MB",
+    "event_type": "AI研究",
+    "key_entities": [
+      "Transformer"
+    ],
+    "source_news_ids": [
+      453
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0132",
+    "event_label": "驰为推出UniBook AI笔记本",
+    "member_count": 1,
+    "platforms": [
+      "ithome"
+    ],
+    "latest_pubtime": "2026-06-26T10:35:24+08:00",
+    "representative_titles": [
+      "驰为推出 UniBook AI 笔记本：英特尔酷睿 3 304 处理器、8GB 内存，449 美元"
+    ],
+    "confidence": 0.9,
+    "event_summary": "驰为推出UniBook AI笔记本，搭载英特尔酷睿3 304处理器、8GB内存，售价449美元。",
+    "event_type": "AI硬件产品",
+    "key_entities": [
+      "驰为",
+      "UniBook AI"
+    ],
+    "source_news_ids": [
+      474
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0133",
+    "event_label": "埃森哲内部录音曝光AI使用成本失控",
+    "member_count": 1,
+    "platforms": [
+      "ithome"
+    ],
+    "latest_pubtime": "2026-06-26T10:29:28+08:00",
+    "representative_titles": [
+      "埃森哲内部录音曝光：企业 AI 使用成本失控，PDF 转 PPT 消耗巨额 Token"
+    ],
+    "confidence": 0.9,
+    "event_summary": "埃森哲内部录音曝光企业AI使用成本失控，PDF转PPT消耗巨额Token",
+    "event_type": "企业AI应用成本",
+    "key_entities": [
+      "埃森哲"
+    ],
+    "source_news_ids": [
+      475
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0134",
+    "event_label": "Xcode 26.6 Gemini integration",
+    "member_count": 1,
+    "platforms": [
+      "ithome"
+    ],
+    "latest_pubtime": "2026-06-26T10:25:18+08:00",
+    "representative_titles": [
+      "苹果 Xcode 26.6 正式版发布，新增谷歌 Gemini 编程助手支持"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Apple releases Xcode 26.6 with Google Gemini programming assistant support.",
+    "event_type": "AI编程工具",
+    "key_entities": [
+      "苹果",
+      "谷歌",
+      "Gemini",
+      "Xcode"
+    ],
+    "source_news_ids": [
+      478
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0135",
+    "event_label": "Codex磁盘事故复盘",
+    "member_count": 1,
+    "platforms": [
+      "juejin"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Codex 会把磁盘给烧了？完整复盘来了！"
+    ],
+    "confidence": 0.9,
+    "event_summary": "复盘Codex可能导致磁盘问题的完整事件",
+    "event_type": "AI工具事故复盘",
+    "key_entities": [
+      "Codex"
+    ],
+    "source_news_ids": [
+      540
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0136",
+    "event_label": "Claude Code准确率优化技巧",
+    "member_count": 1,
+    "platforms": [
+      "juejin"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Claude Code 准确率从 41% 升到 89%，这个 CLAUDE.md 只做了一件事"
+    ],
+    "confidence": 0.9,
+    "event_summary": "通过优化CLAUDE.md将Claude Code准确率从41%提升至89%",
+    "event_type": "AI工具性能优化",
+    "key_entities": [
+      "Claude Code"
+    ],
+    "source_news_ids": [
+      544
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0137",
+    "event_label": "DM-Watch AI工具搭建",
+    "member_count": 1,
+    "platforms": [
+      "juejin"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "AI 帮我盯飞书、修 Bug，我负责喝咖啡：DM-Watch 搭建全拆解"
+    ],
+    "confidence": 0.95,
+    "event_summary": "搭建AI工具DM-Watch，自动监测飞书和修复Bug",
+    "event_type": "AI应用开发",
+    "key_entities": [
+      "DM-Watch",
+      "飞书"
+    ],
+    "source_news_ids": [
+      551
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0138",
+    "event_label": "智语 and baoyu-skills AI Agent for auto-publishing",
+    "member_count": 1,
+    "platforms": [
+      "juejin"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Agent 实战: 智语 + baoyu-skills 自动发布文章到公众号"
+    ],
+    "confidence": 0.7,
+    "event_summary": "利用Agent（智语和baoyu-skills）自动发布文章到公众号",
+    "event_type": "AI Agent实战",
+    "key_entities": [
+      "智语",
+      "baoyu-skills"
+    ],
+    "source_news_ids": [
+      553
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0139",
+    "event_label": "WWDC26 发布会：Liquid Glass精调与Apple智能大升级",
+    "member_count": 1,
+    "platforms": [
+      "sspai"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Liquid Glass 精调、Apple 智能大升级：WWDC26 发布会回顾"
+    ],
+    "confidence": 0.95,
+    "event_summary": "WWDC26发布会重点介绍了Liquid Glass精调技术和Apple智能的大升级。",
+    "event_type": "AI产品发布",
+    "key_entities": [
+      "Liquid Glass",
+      "Apple智能",
+      "WWDC"
+    ],
+    "source_news_ids": [
+      657
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0140",
+    "event_label": "OpenAI补偿意外取消订阅用户",
+    "member_count": 1,
+    "platforms": [
+      "v2ex-share"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "好消息， openai 给 6 月 25 日被意外取消订阅的用户免费补了 1 个月的订阅"
+    ],
+    "confidence": 0.9,
+    "event_summary": "OpenAI在6月25日意外取消用户订阅后，为受影响用户免费补偿一个月订阅。",
+    "event_type": "AI公司政策",
+    "key_entities": [
+      "OpenAI"
+    ],
+    "source_news_ids": [
+      679
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0141",
+    "event_label": "百度千帆Coding Plan停止续费",
+    "member_count": 1,
+    "platforms": [
+      "v2ex-share"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "百度千帆 Coding Plan 上线 4 个月就停止续费了，有人买了吗？"
+    ],
+    "confidence": 0.9,
+    "event_summary": "百度千帆Coding Plan上线4个月后停止续费，用户讨论购买情况。",
+    "event_type": "AI产品服务变更",
+    "key_entities": [
+      "百度",
+      "千帆"
+    ],
+    "source_news_ids": [
+      690
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0142",
+    "event_label": "Cursor Pro支持免费使用GLM 5.2",
+    "member_count": 1,
+    "platforms": [
+      "v2ex-share"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "今天重开了 Cursor Pro（新人半价 $10），竟然发现 GLM 5.2 可以免费蹬"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Cursor Pro用户可免费使用GLM 5.2模型",
+    "event_type": "产品更新",
+    "key_entities": [
+      "Cursor",
+      "GLM-5.2"
+    ],
+    "source_news_ids": [
+      694
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0143",
+    "event_label": "腾讯Agent Mail内测体验",
+    "member_count": 2,
+    "platforms": [
+      "linux_do",
+      "v2ex-share"
+    ],
+    "latest_pubtime": "2026-06-26T06:09:40.724000+00:00",
+    "representative_titles": [
+      "腾讯搞了个AgentMail",
+      "腾讯 Agent Mail 内测体验 + 优化版 Skill 分享"
+    ],
+    "confidence": 0.95,
+    "event_summary": "腾讯Agent Mail内测体验及优化版Skill分享",
+    "event_type": "AI产品内测",
+    "key_entities": [
+      "腾讯",
+      "Agent Mail"
+    ],
+    "source_news_ids": [
+      695,
+      806
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0144",
+    "event_label": "基于AI的2D精灵图生成器",
+    "member_count": 1,
+    "platforms": [
+      "v2ex-share"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "搞了个基于 AI 的 2D 精灵 sprite sheet 生成器， OpenCV 智能抠图和前端可视化切帧"
+    ],
+    "confidence": 0.9,
+    "event_summary": "基于AI的2D精灵图生成器，使用OpenCV智能抠图和前端可视化切帧",
+    "event_type": "AI产品发布",
+    "key_entities": [
+      "AI",
+      "OpenCV",
+      "2D精灵图生成器"
+    ],
+    "source_news_ids": [
+      700
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0145",
+    "event_label": "DeepSeek Coding Agent坦白书",
+    "member_count": 1,
+    "platforms": [
+      "v2ex-share"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Whale 的坦白书：一个 DeepSeek Coding Agent"
+    ],
+    "confidence": 8.0,
+    "event_summary": "关于DeepSeek Coding Agent的坦白书",
+    "event_type": "AI Agent",
+    "key_entities": [
+      "DeepSeek",
+      "Coding Agent"
+    ],
+    "source_news_ids": [
+      703
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0146",
+    "event_label": "IBM 0.7nm chip technology breakthrough",
+    "member_count": 2,
+    "platforms": [
+      "linux_do",
+      "wallstreetcn-hot"
+    ],
+    "latest_pubtime": "2026-06-26T02:54:46.770000+00:00",
+    "representative_titles": [
+      "慢讯——昨日，IBM 宣布全球首个低于1纳米的芯片",
+      "物理极限被打破！IBM推出全球首款0.7纳米芯片技术，半导体迈入“埃米时代”"
+    ],
+    "confidence": 0.95,
+    "event_summary": "IBM推出全球首款0.7纳米芯片技术，进入埃米时代",
+    "event_type": "AI芯片技术",
+    "key_entities": [
+      "IBM"
+    ],
+    "source_news_ids": [
+      712,
+      819
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0148",
+    "event_label": "US-EU AI Partnership for Regulatory Coordination and Supply Chain Security",
+    "member_count": 1,
+    "platforms": [
+      "wallstreetcn-news"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "美国据称寻求与欧盟建立AI伙伴关系，聚焦监管协调与供应链安全"
+    ],
+    "confidence": 0.85,
+    "event_summary": "The US is reportedly seeking to establish an AI partnership with the EU, focusing on regulatory alignment and supply chain security.",
+    "event_type": "政策合作",
+    "key_entities": [
+      "美国",
+      "欧盟"
+    ],
+    "source_news_ids": [
+      735
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0149",
+    "event_label": "Cerebras股价暴跌30%",
+    "member_count": 1,
+    "platforms": [
+      "wallstreetcn-news"
+    ],
+    "latest_pubtime": null,
+    "representative_titles": [
+      "Cerebras两日一度暴跌30%！AI芯片“高预期”反噬，业绩指引难填估值鸿沟"
+    ],
+    "confidence": 85.0,
+    "event_summary": "Cerebras两日暴跌30%，AI芯片高预期反噬",
+    "event_type": "公司业绩",
+    "key_entities": [
+      "Cerebras"
+    ],
+    "source_news_ids": [
+      742
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0150",
+    "event_label": "GPT-5.6预计7月第二周上线",
+    "member_count": 9,
+    "platforms": [
+      "aihot",
+      "cls-depth",
+      "linux_do",
+      "techcrunch-ai",
+      "wallstreetcn-news"
+    ],
+    "latest_pubtime": "2026-06-26T07:05:21.455000+00:00",
+    "representative_titles": [
+      "似乎5.6被要求延迟发布了",
+      "特朗普政府要求OpenAI分阶段发布GPT-5.6",
+      "GPT5.6预计将于 7 月第二周上线？价格居然不变？",
+      "消息称美国政府要求OpenAI审核后分批发布GPT-5.6",
+      "消息称美国政府要求 OpenAI 审核后分批发布 GPT-5.6"
+    ],
+    "confidence": 1.0,
+    "event_summary": "GPT-5.6预计7月第二周上线，价格不变",
+    "event_type": "模型发布",
+    "key_entities": [
+      "GPT-5.6",
+      "OpenAI",
+      "白宫"
+    ],
+    "source_news_ids": [
+      138,
+      233,
+      240,
+      253,
+      259,
+      736,
+      803,
+      811,
+      824
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0151",
+    "event_label": "智谱模型券补贴",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T06:40:04.966000+00:00",
+    "representative_titles": [
+      "智谱官宣正式推出总额为5000万元的模型券补贴计划。"
+    ],
+    "confidence": 0.95,
+    "event_summary": "智谱宣布推出总额5000万元的模型券补贴计划。",
+    "event_type": "公司政策",
+    "key_entities": [
+      "智谱"
+    ],
+    "source_news_ids": [
+      805
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0152",
+    "event_label": "GitHub Copilot多端应用",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T06:04:49.002000+00:00",
+    "representative_titles": [
+      "在无人在意的角落，Github Copilot也上线了多端的 app 应用"
+    ],
+    "confidence": 0.95,
+    "event_summary": "GitHub Copilot上线多端应用，支持多平台使用",
+    "event_type": "产品更新",
+    "key_entities": [
+      "GitHub Copilot"
+    ],
+    "source_news_ids": [
+      807
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0153",
+    "event_label": "谷歌重组AI编程小组追赶Anthropic",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T05:05:38.465000+00:00",
+    "representative_titles": [
+      "核心研究员接连离职后，消息称谷歌重组 AI 编程小组试图追赶 Anthropic"
+    ],
+    "confidence": 0.9,
+    "event_summary": "谷歌重组AI编程小组以追赶Anthropic",
+    "event_type": "公司重组",
+    "key_entities": [
+      "谷歌",
+      "Anthropic"
+    ],
+    "source_news_ids": [
+      812
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0154",
+    "event_label": "Claude Code CLI reveals Fable 5 credit requirement",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T03:22:48.885000+00:00",
+    "representative_titles": [
+      "Claude Code cli最新版二进制里已经能搜到 Fable 5 的信息： Fable 5 requires usage credits"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Fable 5 requires usage credits, discovered in Claude Code CLI",
+    "event_type": "product discovery",
+    "key_entities": [
+      "Claude Code",
+      "Fable 5"
+    ],
+    "source_news_ids": [
+      815
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0155",
+    "event_label": "广电总局AI微短剧分类标准",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T00:58:47.683000+00:00",
+    "representative_titles": [
+      "广电总局：AI微短剧分类分层标准公布，7月1日起实施"
+    ],
+    "confidence": 1.0,
+    "event_summary": "广电总局发布AI微短剧分类分层标准，7月1日起实施",
+    "event_type": "政策发布",
+    "key_entities": [
+      "广电总局",
+      "AI微短剧"
+    ],
+    "source_news_ids": [
+      829
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0156",
+    "event_label": "Groq升级云服务",
+    "member_count": 1,
+    "platforms": [
+      "linux_do"
+    ],
+    "latest_pubtime": "2026-06-26T00:55:12.426000+00:00",
+    "representative_titles": [
+      "Groq将升级云服务"
+    ],
+    "confidence": 0.8,
+    "event_summary": "Groq将升级其云服务",
+    "event_type": "产品升级",
+    "key_entities": [
+      "Groq"
+    ],
+    "source_news_ids": [
+      830
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0157",
+    "event_label": "美国政府指令暂停访问Fable 5和Mythos 5",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-06-12T00:00:00+00:00",
+    "representative_titles": [
+      "Statement on the US government directive to suspend access to Fable 5 and Mythos 5"
+    ],
+    "confidence": 1.0,
+    "event_summary": "美国政府指令暂停访问Fable 5和Mythos 5，Anthropic发表声明回应。",
+    "event_type": "政策限制",
+    "key_entities": [
+      "美国政府",
+      "Anthropic",
+      "Fable 5",
+      "Mythos 5"
+    ],
+    "source_news_ids": [
+      832
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0158",
+    "event_label": "Anthropic推出Claude Tag",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-06-23T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing Claude Tag"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Anthropic推出Claude Tag",
+    "event_type": "新产品",
+    "key_entities": [
+      "Anthropic",
+      "Claude Tag"
+    ],
+    "source_news_ids": [
+      833
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0159",
+    "event_label": "Anthropic AI指数政策发布",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-06-10T00:00:00+00:00",
+    "representative_titles": [
+      "Policy on the AI Exponential"
+    ],
+    "confidence": 0.9,
+    "event_summary": "Anthropic发布AI指数政策",
+    "event_type": "政策发布",
+    "key_entities": [
+      "Anthropic"
+    ],
+    "source_news_ids": [
+      834
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0160",
+    "event_label": "Anthropic推出Claude Corps",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-06-11T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing Claude Corps"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Anthropic推出Claude Corps",
+    "event_type": "product launch",
+    "key_entities": [
+      "Anthropic",
+      "Claude Corps"
+    ],
+    "source_news_ids": [
+      835
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0161",
+    "event_label": "Anthropic Project Glasswing扩展",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-06-02T00:00:00+00:00",
+    "representative_titles": [
+      "Expanding Project Glasswing"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Anthropic扩大Project Glasswing项目",
+    "event_type": "项目扩展",
+    "key_entities": [
+      "Anthropic",
+      "Project Glasswing"
+    ],
+    "source_news_ids": [
+      836
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0162",
+    "event_label": "Claude Opus 4.8发布",
+    "member_count": 1,
+    "platforms": [
+      "anthropic"
+    ],
+    "latest_pubtime": "2026-05-28T00:00:00+00:00",
+    "representative_titles": [
+      "Introducing Claude Opus 4.8"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Anthropic发布Claude Opus 4.8模型",
+    "event_type": "模型发布",
+    "key_entities": [
+      "Anthropic",
+      "Claude Opus 4.8"
+    ],
+    "source_news_ids": [
+      837
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0163",
+    "event_label": "企业微信'大圆'内测上线",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "企业微信\"大圆\"内测上线：左滑一下，AI就能帮你盘客户、写总结"
+    ],
+    "confidence": 0.9,
+    "event_summary": "企业微信内测AI功能'大圆'，可左滑盘客户、写总结",
+    "event_type": "AI产品内测",
+    "key_entities": [
+      "企业微信",
+      "大圆"
+    ],
+    "source_news_ids": [
+      838
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0164",
+    "event_label": "流形空间融资10亿元",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "前商汤科技高管创立的流形空间融资近 10 亿元，跃升为世界模型独角兽！"
+    ],
+    "confidence": 0.95,
+    "event_summary": "前商汤科技高管创立的流形空间融资近10亿元，成为世界模型独角兽。",
+    "event_type": "融资",
+    "key_entities": [
+      "流形空间",
+      "商汤科技"
+    ],
+    "source_news_ids": [
+      839
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0165",
+    "event_label": "MiniMax 6亿港元全员激励",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "豪掷 6 亿港元激励全员：MiniMax 以“真金白银”提振团队信心"
+    ],
+    "confidence": 1.0,
+    "event_summary": "MiniMax豪掷6亿港元激励全员",
+    "event_type": "内部激励",
+    "key_entities": [
+      "MiniMax"
+    ],
+    "source_news_ids": [
+      840
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0166",
+    "event_label": "字节跳动火山引擎大会发布Seedance 2.5和豆包2.1Pro",
+    "member_count": 2,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "火山引擎发布豆包2.1Pro:日常功能确认免费，将推专业版办公模式",
+      "字节跳动火山引擎 2026 大会重磅发布：Seedance 2.5 直出 30 秒视频，豆包 2.1 Pro 对标 Opus 4.6"
+    ],
+    "confidence": 0.95,
+    "event_summary": "字节跳动火山引擎在2026大会上发布Seedance 2.5视频模型可直出30秒视频，以及豆包2.1Pro对标Opus 4.6",
+    "event_type": "产品发布",
+    "key_entities": [
+      "字节跳动",
+      "火山引擎",
+      "Seedance",
+      "豆包"
+    ],
+    "source_news_ids": [
+      841,
+      846
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0167",
+    "event_label": "版权诉讼",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "​近 400 家地方报纸起诉 OpenAI 和微软，指控侵犯版权"
+    ],
+    "confidence": 1.0,
+    "event_summary": "近400家地方报纸起诉OpenAI和微软侵犯版权",
+    "event_type": "诉讼",
+    "key_entities": [
+      "OpenAI",
+      "微软"
+    ],
+    "source_news_ids": [
+      842
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0168",
+    "event_label": "Amazon Trainium chip spot sale",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "亚马逊AI算力新策略：自研Trainium芯片或将开启“现货”出售"
+    ],
+    "confidence": 0.95,
+    "event_summary": "Amazon plans to sell self-developed Trainium AI chips on the spot market.",
+    "event_type": "芯片策略",
+    "key_entities": [
+      "亚马逊",
+      "Trainium"
+    ],
+    "source_news_ids": [
+      844
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0169",
+    "event_label": "豆包开启付费订阅服务",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "豆包付费时代开启：三档订阅服务落地，性价比对标全球巨头"
+    ],
+    "confidence": 0.9,
+    "event_summary": "字节跳动旗下豆包推出三档付费订阅服务，开启商业化。",
+    "event_type": "商业化",
+    "key_entities": [
+      "豆包",
+      "字节跳动"
+    ],
+    "source_news_ids": [
+      845
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0170",
+    "event_label": "千问高考志愿AI测评发布",
+    "member_count": 1,
+    "platforms": [
+      "aibase"
+    ],
+    "latest_pubtime": "2026-06-26T00:00:00+00:00",
+    "representative_titles": [
+      "首个高考志愿AI测评发布:千问多项表现超过人类志愿咨询师"
+    ],
+    "confidence": 0.95,
+    "event_summary": "阿里千问AI在高考志愿测评中多项表现超过人类咨询师",
+    "event_type": "benchmark",
+    "key_entities": [
+      "千问",
+      "阿里"
+    ],
+    "source_news_ids": [
+      847
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0171",
+    "event_label": "Stanford HAI AI and Organizations Lab launch",
+    "member_count": 1,
+    "platforms": [
+      "stanford_hai"
+    ],
+    "latest_pubtime": "2026-05-13T00:00:00+00:00",
+    "representative_titles": [
+      "Stanford HAI Launches AI and Organizations Lab to Study Science of AI in the Workplace"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Stanford HAI launches AI and Organizations Lab to study AI in the workplace.",
+    "event_type": "实验室成立",
+    "key_entities": [
+      "Stanford HAI",
+      "AI and Organizations Lab"
+    ],
+    "source_news_ids": [
+      850
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0172",
+    "event_label": "Stanford AI Restructuring",
+    "member_count": 2,
+    "platforms": [
+      "stanford_hai"
+    ],
+    "latest_pubtime": "2026-05-04T00:00:00+00:00",
+    "representative_titles": [
+      "Why Stanford Is Restructuring For AI’s Next Era",
+      "Stanford Merges AI and Data Science Efforts Under Single Institute"
+    ],
+    "confidence": 1.0,
+    "event_summary": "Stanford University restructures for the next era of AI.",
+    "event_type": "机构重组",
+    "key_entities": [
+      "Stanford"
+    ],
+    "source_news_ids": [
+      852,
+      853
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  },
+  {
+    "event_id": "evt_20260630_0173",
+    "event_label": "Stanford HAI资助创新研究",
+    "member_count": 1,
+    "platforms": [
+      "stanford_hai"
+    ],
+    "latest_pubtime": "2026-04-29T00:00:00+00:00",
+    "representative_titles": [
+      "Collaborative Coding, Better Scaling, Health Tracking: HAI Awards $2.17M to Innovative Research"
+    ],
+    "confidence": 0.9,
+    "event_summary": "HAI拨款217万美元资助协作编程、扩展、健康追踪等创新研究",
+    "event_type": "科研资助",
+    "key_entities": [
+      "Stanford HAI"
+    ],
+    "source_news_ids": [
+      854
+    ],
+    "last_llm_updated_at": "2026-06-30T10:38:20+08:00"
+  }
+]

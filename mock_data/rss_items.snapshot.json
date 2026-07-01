@@ -1,0 +1,2252 @@
+[
+  {
+    "platform": "openai",
+    "title": "How agents are transforming work",
+    "url": "https://openai.com/index/how-agents-are-transforming-work",
+    "pubtime": "2026-06-25T02:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "OpenAI and Broadcom unveil LLM-optimized inference chip",
+    "url": "https://openai.com/index/openai-broadcom-jalapeno-inference-chip",
+    "pubtime": "2026-06-24T06:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Helping build shared standards for advanced AI",
+    "url": "https://openai.com/index/helping-build-shared-standards-for-advanced-ai",
+    "pubtime": "2026-06-23T13:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "How GPT-5 helped immunologist Derya Unutmaz solve a 3-year-old mystery",
+    "url": "https://openai.com/index/gpt-5-immunology-mystery",
+    "pubtime": "2026-06-23T17:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "How Omio is building the future of conversational travel",
+    "url": "https://openai.com/index/omio",
+    "pubtime": "2026-06-23T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Patch the Planet: a Daybreak initiative to support open source maintainers",
+    "url": "https://openai.com/index/patch-the-planet",
+    "pubtime": "2026-06-22T10:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Daybreak: Tools for securing every organization in the world",
+    "url": "https://openai.com/index/daybreak-securing-the-world",
+    "pubtime": "2026-06-22T10:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Codex-maxxing for long-running work",
+    "url": "https://openai.com/index/codex-maxxing-long-running-work",
+    "pubtime": "2026-06-22T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Samsung Electronics brings ChatGPT and Codex to employees",
+    "url": "https://openai.com/index/samsung-electronics-chatgpt-codex-deployment",
+    "pubtime": "2026-06-21T23:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "New usage analytics and updated spend controls for enterprises",
+    "url": "https://openai.com/index/chatgpt-enterprise-spend-controls",
+    "pubtime": "2026-06-18T17:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Improving health intelligence in ChatGPT",
+    "url": "https://openai.com/index/improving-health-intelligence-in-chatgpt",
+    "pubtime": "2026-06-18T11:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Using AI to help physicians diagnose rare genetic diseases affecting children",
+    "url": "https://openai.com/index/diagnose-rare-childhood-diseases",
+    "pubtime": "2026-06-18T08:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry",
+    "url": "https://openai.com/index/ai-chemist-improves-reaction",
+    "pubtime": "2026-06-17T10:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Introducing LifeSciBench",
+    "url": "https://openai.com/index/introducing-life-sci-bench",
+    "pubtime": "2026-06-17T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Predicting model behavior before release by simulating deployment",
+    "url": "https://openai.com/index/deployment-simulation",
+    "pubtime": "2026-06-16T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Introducing the OpenAI Partner Network",
+    "url": "https://openai.com/index/introducing-openai-partner-network",
+    "pubtime": "2026-06-14T17:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "New OpenAI Academy courses for the next era of work",
+    "url": "https://openai.com/index/academy-courses-applying-ai-at-work",
+    "pubtime": "2026-06-12T10:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "How Preply combines AI and human tutors to personalize learning",
+    "url": "https://openai.com/index/preply",
+    "pubtime": "2026-06-12T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "How an astrophysicist uses Codex to help simulate black holes",
+    "url": "https://openai.com/index/using-codex-to-simulate-black-holes",
+    "pubtime": "2026-06-11T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "openai",
+    "title": "Supporting Europe’s work in ensuring a trustworthy AI ecosystem",
+    "url": "https://openai.com/index/supporting-eu-trustworthy-ai-ecosystem",
+    "pubtime": "2026-06-11T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Introducing computer use in Gemini 3.5 Flash",
+    "url": "https://deepmind.google/blog/introducing-computer-use-in-gemini-3-5-flash/",
+    "pubtime": "2026-06-24T16:30:01+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Unlocking UK house-building with AI-accelerated planning",
+    "url": "https://deepmind.google/blog/unlocking-uk-house-building-with-ai-accelerated-planning/",
+    "pubtime": "2026-06-16T21:29:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Securing the future of AI agents",
+    "url": "https://deepmind.google/blog/securing-the-future-of-ai-agents/",
+    "pubtime": "2026-06-16T15:46:31+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "DiffusionGemma: 4x faster text generation",
+    "url": "https://deepmind.google/blog/diffusiongemma-4x-faster-text-generation/",
+    "pubtime": "2026-06-10T16:24:11+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Investing in multi-agent AI safety research",
+    "url": "https://deepmind.google/blog/investing-in-multi-agent-ai-safety-research/",
+    "pubtime": "2026-06-10T10:21:19+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Fluid, natural voice translation with Gemini 3.5 Live Translate",
+    "url": "https://deepmind.google/blog/fluid-natural-voice-translation-with-gemini-35-live-translate/",
+    "pubtime": "2026-06-09T15:16:25+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Introducing Gemma 4 12B: a unified, encoder-free multimodal model",
+    "url": "https://deepmind.google/blog/introducing-gemma-4-12b-a-unified-encoder-free-multimodal-model/",
+    "pubtime": "2026-06-09T14:10:19+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Powering the future of robotics in Europe",
+    "url": "https://deepmind.google/blog/powering-the-future-of-robotics-in-europe/",
+    "pubtime": "2026-06-09T14:02:33+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Measuring the impact of learning with AI in Sierra Leone and beyond",
+    "url": "https://deepmind.google/blog/measuring-the-impact-of-learning-with-ai-in-sierra-leone-and-beyond/",
+    "pubtime": "2026-06-08T13:04:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "We’re launching the Google DeepMind Accelerator program in Asia Pacific to tackle environmental risks",
+    "url": "https://deepmind.google/blog/were-launching-the-google-deepmind-accelerator-program-in-asia-pacific-to-tackle-environmental-risks/",
+    "pubtime": "2026-05-21T19:46:42+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Fast-tracking genetic leads to reverse cellular aging",
+    "url": "https://deepmind.google/blog/fast-tracking-genetic-leads-to-reverse-cellular-aging/",
+    "pubtime": "2026-05-18T18:21:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Simulate real-world places with Project Genie and Street View",
+    "url": "https://deepmind.google/blog/simulate-real-world-places-with-project-genie-and-street-view/",
+    "pubtime": "2026-05-17T19:53:18+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Introducing Gemini Omni",
+    "url": "https://deepmind.google/blog/introducing-gemini-omni/",
+    "pubtime": "2026-05-17T19:50:57+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Introducing Google Antigravity 2.0",
+    "url": "https://deepmind.google/blog/introducing-google-antigravity-2-0/",
+    "pubtime": "2026-05-17T19:43:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Gemini for Science: AI experiments and tools for a new era of discovery",
+    "url": "https://deepmind.google/blog/gemini-for-science-ai-experiments-and-tools-for-a-new-era-of-discovery/",
+    "pubtime": "2026-05-17T13:50:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Making it easier to understand how content was created and edited",
+    "url": "https://deepmind.google/blog/making-it-easier-to-understand-how-content-was-created-and-edited/",
+    "pubtime": "2026-05-17T13:43:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Strengthening Singapore’s AI Future: A New National Partnership",
+    "url": "https://deepmind.google/blog/strengthening-singapores-ai-future-a-new-national-partnership/",
+    "pubtime": "2026-05-16T09:13:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Finding the molecular switches behind new infectious diseases",
+    "url": "https://deepmind.google/blog/finding-the-molecular-switches-behind-new-infectious-diseases/",
+    "pubtime": "2026-05-16T08:16:06+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Opening new paths in aging research",
+    "url": "https://deepmind.google/blog/opening-new-paths-in-aging-research/",
+    "pubtime": "2026-05-16T08:08:44+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "google-deepmind",
+    "title": "Accelerating discovery of liver disease mechanisms",
+    "url": "https://deepmind.google/blog/accelerating-discovery-of-liver-disease-mechanisms/",
+    "pubtime": "2026-05-16T08:00:15+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "The Ultimate Summer Sale Pairing: Steam Sale Meets GeForce NOW Discounts",
+    "url": "https://blogs.nvidia.com/blog/geforce-now-thursday-steam-summer-sale-2026/",
+    "pubtime": "2026-06-25T13:00:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "NVIDIA and AWS Collaborate to Bring AI to Production at Scale",
+    "url": "https://blogs.nvidia.com/blog/nvidia-aws-ai-production-scale/",
+    "pubtime": "2026-06-24T00:05:37+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "How Businesses Are Building Specialized AI They Can Trust",
+    "url": "https://blogs.nvidia.com/blog/nvidia-agent-toolkit-open-models-tools-skills-secure-runtime-ai-agents/",
+    "pubtime": "2026-06-23T13:00:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "NVIDIA Powers Over 400 of the World’s 500 Fastest Supercomputers",
+    "url": "https://blogs.nvidia.com/blog/top500-green500-supercomputers-isc-2026/",
+    "pubtime": "2026-06-23T09:00:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "NVIDIA Brings Trusted, 24/7 AI Agents to Telecom Operations",
+    "url": "https://blogs.nvidia.com/blog/telecom-ai-agents-dtw-ignite-2026/",
+    "pubtime": "2026-06-23T06:00:09+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "At ISC, JUPITER Shows What Exascale Science Looks Like",
+    "url": "https://blogs.nvidia.com/blog/jupiter-exascale-supercomputing-science/",
+    "pubtime": "2026-06-22T13:00:48+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "NAIRR Science Program Reshapes Scientific Research, Powered by NVIDIA AI Infrastructure",
+    "url": "https://blogs.nvidia.com/blog/nairr-scientific-research-ai-infrastructure/",
+    "pubtime": "2026-06-22T13:00:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "From Materials Simulation to Experimental Astronomy, New NVIDIA AI Software Unlocks Scientific Discoveries",
+    "url": "https://blogs.nvidia.com/blog/ai-for-science-software-cuda/",
+    "pubtime": "2026-06-22T13:00:20+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "NVIDIA Vera CPU Opens the Way for Agentic Scientific AI at Los Alamos National Laboratory",
+    "url": "https://blogs.nvidia.com/blog/nvidia-vera-cpu-los-alamos-national-laboratory/",
+    "pubtime": "2026-06-22T13:00:20+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "Eco Wave Power Turns Waves Into Watts With NVIDIA AI Infrastructure and Digital Twins",
+    "url": "https://blogs.nvidia.com/blog/eco-wave-power-ai-digital-twins/",
+    "pubtime": "2026-06-22T13:00:13+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "Hotter Than a Hot Tub: The 45°C Breakthrough to Cool AI’s Biggest Machines",
+    "url": "https://blogs.nvidia.com/blog/liquid-cooling-ai-factories/",
+    "pubtime": "2026-06-22T05:00:22+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "How FERC’s Large-Load Interconnection Actions Help Address Grid Stress, Improve Affordability",
+    "url": "https://blogs.nvidia.com/blog/ferc-large-load-interconnection/",
+    "pubtime": "2026-06-18T20:00:27+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "At Cannes Lions, NVIDIA Partners Reshape Advertising and Marketing With AI",
+    "url": "https://blogs.nvidia.com/blog/nvidia-ai-marketing-advertising-cannes-lions/",
+    "pubtime": "2026-06-18T13:00:43+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "Sync and Stream: GeForce NOW Connects to Members’ Game Libraries Across Devices",
+    "url": "https://blogs.nvidia.com/blog/geforce-now-thursday-game-stores/",
+    "pubtime": "2026-06-18T13:00:32+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "France Advances Europe’s AI Future With NVIDIA Technologies",
+    "url": "https://blogs.nvidia.com/blog/france-advances-europes-ai-future/",
+    "pubtime": "2026-06-18T06:00:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "Hands Free, AIs Forward: NVIDIA XR AI Brings Agents to AR Glasses",
+    "url": "https://blogs.nvidia.com/blog/nvidia-xr-ai/",
+    "pubtime": "2026-06-16T22:30:41+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "Coherent Breaks Ground on Expanded Texas Facility, Scaling AI’s Optical Backbone",
+    "url": "https://blogs.nvidia.com/blog/coherent-texas-ai-optical/",
+    "pubtime": "2026-06-16T22:10:56+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "nvidia",
+    "title": "HPE AI Factory With NVIDIA Expands for the Era of Agents",
+    "url": "https://blogs.nvidia.com/blog/hpe-ai-factory-agentic-enterprise/",
+    "pubtime": "2026-06-16T16:30:27+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Run a vLLM Server on HF Jobs in One Command",
+    "url": "https://huggingface.co/blog/vllm-jobs",
+    "pubtime": "2026-06-26T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Which tokens does a hybrid model predict better?",
+    "url": "https://huggingface.co/blog/allenai/hybrid-token-prediction",
+    "pubtime": "2026-06-25T16:11:42+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Accelerating Transformers Fine-Tuning with NVIDIA NeMo AutoModel",
+    "url": "https://huggingface.co/blog/nvidia/accelerating-fine-tuning-nvidia-nemo-automodel",
+    "pubtime": "2026-06-24T16:00:13+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Introducing the FFASR Leaderboard: Benchmarking ASR in the Real World",
+    "url": "https://huggingface.co/blog/ffasr-leaderboard",
+    "pubtime": "2026-06-24T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Build real agentic apps using CUGA: two dozen working examples on a lightweight harness",
+    "url": "https://huggingface.co/blog/ibm-research/cuga-apps",
+    "pubtime": "2026-06-23T12:51:55+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Shipping huggingface_hub every week with AI, open tools, and a human in the loop",
+    "url": "https://huggingface.co/blog/huggingface-hub-release-ci",
+    "pubtime": "2026-06-23T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Experimenting with the proposed Cross-Origin Storage API in Transformers.js",
+    "url": "https://huggingface.co/blog/cross-origin-storage",
+    "pubtime": "2026-06-23T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "PP-OCRv6 on Hugging Face: 50-Language OCR from 1.5M to 34.5M Parameters",
+    "url": "https://huggingface.co/blog/PaddlePaddle/pp-ocrv6",
+    "pubtime": "2026-06-22T13:18:56+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "We got local models to triage the OpenClaw repo for FREE!*",
+    "url": "https://huggingface.co/blog/local-models-pr-triage",
+    "pubtime": "2026-06-22T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "MosaicLeaks: Can your research agent keep a secret?",
+    "url": "https://huggingface.co/blog/ServiceNow/mosaicleaks",
+    "pubtime": "2026-06-18T18:13:13+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Beyond LoRA: Can you beat the most popular fine-tuning technique?",
+    "url": "https://huggingface.co/blog/peft-beyond-lora",
+    "pubtime": "2026-06-18T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Is it agentic enough? Benchmarking open models on your own tooling",
+    "url": "https://huggingface.co/blog/is-it-agentic-enough",
+    "pubtime": "2026-06-18T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "From the Hugging Face Hub to robot hardware with Strands Agents and LeRobot",
+    "url": "https://huggingface.co/blog/amazon/strands-lerobot-hub-to-hardware",
+    "pubtime": "2026-06-17T10:18:05+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "GLM-5.2: Built for Long-Horizon Tasks",
+    "url": "https://huggingface.co/blog/zai-org/glm-52-blog",
+    "pubtime": "2026-06-17T09:01:25+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Agentic Resource Discovery: Let agents search",
+    "url": "https://huggingface.co/blog/agentic-resource-discovery-launch",
+    "pubtime": "2026-06-17T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Profiling in PyTorch (Part 2): From nn.Linear to a Fused MLP",
+    "url": "https://huggingface.co/blog/torch-mlp-fusion",
+    "pubtime": "2026-06-11T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "How an Agent Built a 3D Paris Gallery by Chaining Two Hugging Face Spaces",
+    "url": "https://huggingface.co/blog/mishig/spaces-agents-md",
+    "pubtime": "2026-06-09T10:46:19+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Migrating Your GitHub CI to Hugging Face Jobs",
+    "url": "https://huggingface.co/blog/github-ci-hf-jobs",
+    "pubtime": "2026-06-09T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "The Open Source Community is backing OpenEnv for Agentic RL",
+    "url": "https://huggingface.co/blog/openenv-agentic-rl",
+    "pubtime": "2026-06-08T00:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "huggingface",
+    "title": "Nemotron 3.5 Content Safety: Customizable Multimodal Safety for Global Enterprise AI",
+    "url": "https://huggingface.co/blog/nvidia/nemotron-3-5-content-safety",
+    "pubtime": "2026-06-04T18:57:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Bringing more control over your connectors",
+    "url": "https://mistral.ai/news/more-control-over-connectors/",
+    "pubtime": "2026-06-24T12:00:30+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Introducing Mistral OCR 4",
+    "url": "https://mistral.ai/news/ocr-4/",
+    "pubtime": "2026-06-23T12:00:48+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "AI Now Summit 2026",
+    "url": "https://mistral.ai/news/ai-now-summit-2026/",
+    "pubtime": "2026-05-28T12:00:20+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Vibe gets to work.",
+    "url": "https://mistral.ai/news/vibe-agent/",
+    "pubtime": "2026-05-28T12:00:09+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Introducing Search Toolkit",
+    "url": "https://mistral.ai/news/search-toolkit/",
+    "pubtime": "2026-05-28T11:42:21+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Introducing physics AI at Mistral: the foundation for engineering acceleration.",
+    "url": "https://mistral.ai/news/introducing-physics-ai-at-mistral/",
+    "pubtime": "2026-05-27T12:00:55+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Physics AI research that’s shaping the industry.",
+    "url": "https://mistral.ai/news/physics-ai-research/",
+    "pubtime": "2026-05-27T12:00:05+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Emmi joins Mistral to accelerate the AI-native industry",
+    "url": "https://mistral.ai/news/accelerate-ai-native-industry/",
+    "pubtime": "2026-05-23T12:00:26+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Remote agents in Vibe. Powered by Mistral Medium 3.5.",
+    "url": "https://mistral.ai/news/vibe-remote-agents-mistral-medium-3-5/",
+    "pubtime": "2026-05-22T15:01:55+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Connect the dots: Build with built-in and custom MCPs in Studio",
+    "url": "https://mistral.ai/news/connectors/",
+    "pubtime": "2026-05-22T14:48:28+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Workflows for work that runs the business",
+    "url": "https://mistral.ai/news/workflows/",
+    "pubtime": "2026-04-27T12:00:23+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Speaking of Voxtral",
+    "url": "https://mistral.ai/news/voxtral-tts/",
+    "pubtime": "2026-03-23T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Introducing Forge",
+    "url": "https://mistral.ai/news/forge/",
+    "pubtime": "2026-03-17T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Introducing Mistral Small 4",
+    "url": "https://mistral.ai/news/mistral-small-4/",
+    "pubtime": "2026-03-16T21:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Mistral AI partners with NVIDIA to accelerate open frontier models",
+    "url": "https://mistral.ai/news/mistral-ai-and-nvidia-partner-to-accelerate-open-frontier-models/",
+    "pubtime": "2026-03-16T20:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Leanstral: Open-Source foundation for trustworthy vibe-coding",
+    "url": "https://mistral.ai/news/leanstral/",
+    "pubtime": "2026-03-16T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Rails testing on autopilot: Building an agent that writes what developers won't",
+    "url": "https://mistral.ai/news/rails-testing-on-autopilot-building-an-agent-that-writes-what-developers-wont/",
+    "pubtime": "2026-03-11T12:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Voxtral transcribes at the speed of sound.",
+    "url": "https://mistral.ai/news/voxtral-transcribe-2/",
+    "pubtime": "2026-02-04T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Terminally online Mistral Vibe.",
+    "url": "https://mistral.ai/news/mistral-vibe-2-0/",
+    "pubtime": "2026-01-27T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mistral",
+    "title": "Heaps do lie: debugging a memory leak in vLLM.",
+    "url": "https://mistral.ai/news/debugging-memory-leak-in-vllm/",
+    "pubtime": "2026-01-21T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Rethinking open source mentorship in the AI era",
+    "url": "https://github.blog/open-source/maintainers/rethinking-open-source-mentorship-in-the-ai-era/",
+    "pubtime": "2026-03-19T18:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "How Squad runs coordinated AI agents inside your repository",
+    "url": "https://github.blog/ai-and-ml/github-copilot/how-squad-runs-coordinated-ai-agents-inside-your-repository/",
+    "pubtime": "2026-03-19T16:09:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Scaling AI opportunity across the globe: Learnings from GitHub and Andela",
+    "url": "https://github.blog/developer-skills/career-growth/scaling-ai-opportunity-across-the-globe-learnings-from-github-and-andela/",
+    "pubtime": "2026-03-05T17:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Welcome to the Eternal September of open source. Here’s what we plan to do for maintainers.",
+    "url": "https://github.blog/open-source/maintainers/welcome-to-the-eternal-september-of-open-source-heres-what-we-plan-to-do-for-maintainers/",
+    "pubtime": "2026-02-12T20:14:11+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Agentic AI, MCP, and spec-driven development: Top blog posts of 2025",
+    "url": "https://github.blog/developer-skills/agentic-ai-mcp-and-spec-driven-development-top-blog-posts-of-2025/",
+    "pubtime": "2025-12-30T17:20:10+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "The new identity of a developer: What changes and what doesn’t in the AI era",
+    "url": "https://github.blog/news-insights/octoverse/the-new-identity-of-a-developer-what-changes-and-what-doesnt-in-the-ai-era/",
+    "pubtime": "2025-12-08T18:15:17+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Evolving GitHub Copilot’s next edit suggestions through custom model training",
+    "url": "https://github.blog/ai-and-ml/github-copilot/evolving-github-copilots-next-edit-suggestions-through-custom-model-training/",
+    "pubtime": "2025-11-20T18:02:21+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "TypeScript, Python, and the AI feedback loop changing software development",
+    "url": "https://github.blog/news-insights/octoverse/typescript-python-and-the-ai-feedback-loop-changing-software-development/",
+    "pubtime": "2025-11-13T16:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "The developer role is evolving. Here’s how to stay ahead.",
+    "url": "https://github.blog/ai-and-ml/the-developer-role-is-evolving-heres-how-to-stay-ahead/",
+    "pubtime": "2025-10-06T20:12:49+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "github-blog-ai",
+    "title": "Gartner positions GitHub as a Leader in the 2025 Magic Quadrant for AI Code Assistants for the second year in a row",
+    "url": "https://github.blog/ai-and-ml/github-copilot/gartner-positions-github-as-a-leader-in-the-2025-magic-quadrant-for-ai-code-assistants-for-the-second-year-in-a-row/",
+    "pubtime": "2025-09-22T18:24:17+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Retrofit, don’t rebuild: Agentic overlays for transforming legacy enterprise services",
+    "url": "https://aws.amazon.com/blogs/machine-learning/retrofit-dont-rebuild-agentic-overlays-for-transforming-legacy-enterprise-services/",
+    "pubtime": "2026-06-25T17:55:10+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Optimize model training on Amazon SageMaker AI with NVIDIA Blackwell",
+    "url": "https://aws.amazon.com/blogs/machine-learning/optimize-model-training-on-amazon-sagemaker-ai-with-nvidia-blackwell/",
+    "pubtime": "2026-06-25T16:41:47+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Implementing super resolution by deploying SeedVR2 on Amazon SageMaker AI",
+    "url": "https://aws.amazon.com/blogs/machine-learning/implementing-super-resolution-by-deploying-seedvr2-on-amazon-sagemaker-ai/",
+    "pubtime": "2026-06-25T16:40:13+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Build self-service AWS Health analytics to find actionable health insights with AI agents powered by Amazon Bedrock",
+    "url": "https://aws.amazon.com/blogs/machine-learning/build-self-service-aws-health-analytics-to-find-actionable-health-insights-with-ai-agents-powered-by-amazon-bedrock/",
+    "pubtime": "2026-06-25T16:38:12+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Building agentic AI applications with a modern data mesh strategy on AWS",
+    "url": "https://aws.amazon.com/blogs/machine-learning/building-agentic-ai-applications-with-a-modern-data-mesh-strategy-on-aws/",
+    "pubtime": "2026-06-25T16:35:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Huntington Bank: Redacting sensitive data from 400M+ documents with AWS",
+    "url": "https://aws.amazon.com/blogs/machine-learning/huntington-bank-redacting-sensitive-data-from-400m-documents-with-aws/",
+    "pubtime": "2026-06-24T18:24:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Build a healthcare appointment agent with Amazon Nova 2 Sonic",
+    "url": "https://aws.amazon.com/blogs/machine-learning/build-a-healthcare-appointment-agent-with-amazon-nova-2-sonic/",
+    "pubtime": "2026-06-24T18:20:27+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "AI-powered BI with Snowflake and Amazon Quick",
+    "url": "https://aws.amazon.com/blogs/machine-learning/ai-powered-bi-with-snowflake-and-amazon-quick/",
+    "pubtime": "2026-06-24T18:19:35+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "How Loka Built a Natural, Low-Latency Voice Agent with Amazon Nova 2 Sonic",
+    "url": "https://aws.amazon.com/blogs/machine-learning/how-loka-built-a-natural-low-latency-voice-agent-with-amazon-nova-2-sonic/",
+    "pubtime": "2026-06-24T16:56:24+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Build a protein research copilot with Amazon Bedrock AgentCore",
+    "url": "https://aws.amazon.com/blogs/machine-learning/build-a-protein-research-copilot-with-amazon-bedrock-agentcore/",
+    "pubtime": "2026-06-23T16:39:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Shared infrastructure, isolated tenants: Pool model multi-tenancy with Amazon Bedrock AgentCore",
+    "url": "https://aws.amazon.com/blogs/machine-learning/shared-infrastructure-isolated-tenants-pool-model-multi-tenancy-with-amazon-bedrock-agentcore/",
+    "pubtime": "2026-06-23T15:43:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Building pay-per-intelligence for AI agents: How Ampersend uses Amazon Bedrock AgentCore Payments",
+    "url": "https://aws.amazon.com/blogs/machine-learning/building-pay-per-intelligence-for-ai-agents-how-ampersend-uses-amazon-bedrock-agentcore-payments/",
+    "pubtime": "2026-06-22T17:53:40+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Embed the world: Multimodal AI for searchable aerial imagery at scale",
+    "url": "https://aws.amazon.com/blogs/machine-learning/embed-the-world-multimodal-ai-for-searchable-aerial-imagery-at-scale/",
+    "pubtime": "2026-06-22T16:32:15+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Running ComfyUI workflows on Amazon SageMaker AI processing jobs",
+    "url": "https://aws.amazon.com/blogs/machine-learning/running-comfyui-workflows-on-amazon-sagemaker-ai-processing-jobs/",
+    "pubtime": "2026-06-22T16:28:46+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Introducing Web Search on Amazon Bedrock AgentCore",
+    "url": "https://aws.amazon.com/blogs/machine-learning/introducing-web-search-on-amazon-bedrock-agentcore/",
+    "pubtime": "2026-06-19T14:15:24+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Accelerate campaign workflow with insights from Adobe Marketing Agent for Amazon Quick",
+    "url": "https://aws.amazon.com/blogs/machine-learning/accelerate-campaign-workflow-with-insights-from-adobe-marketing-agent-for-amazon-quick/",
+    "pubtime": "2026-06-19T14:05:04+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Monitor and debug generative AI inference with SageMaker detailed metrics and Insights dashboard on CloudWatch",
+    "url": "https://aws.amazon.com/blogs/machine-learning/monitor-and-debug-generative-ai-inference-with-sagemaker-detailed-metrics-and-insights-dashboard-on-cloudwatch/",
+    "pubtime": "2026-06-18T23:31:58+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Amazon Bedrock AgentCore harness is now generally available: Go from idea to production-grade agent in minutes",
+    "url": "https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-agentcore-harness-is-now-generally-available-go-from-idea-to-production-grade-agent-in-minutes/",
+    "pubtime": "2026-06-18T17:32:22+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Amazon SageMaker AI Async Inference now supports inline request payloads",
+    "url": "https://aws.amazon.com/blogs/machine-learning/amazon-sagemaker-ai-async-inference-now-supports-inline-request-payloads/",
+    "pubtime": "2026-06-17T20:56:36+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "aws-ml",
+    "title": "Get back hours every day with autonomous agents in Amazon Quick",
+    "url": "https://aws.amazon.com/blogs/machine-learning/get-back-hours-every-day-with-autonomous-agents-in-amazon-quick/",
+    "pubtime": "2026-06-17T20:35:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "从需求到设计到代码，一个软件全搞定！TRAE Work Design实测来了",
+    "url": "https://www.qbitai.com/2026/06/438750.html",
+    "pubtime": "2026-06-26T05:12:46+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "华勤技术与正行创新达成战略合作，加速机器人“走进工厂、走上产线”",
+    "url": "https://www.qbitai.com/2026/06/438741.html",
+    "pubtime": "2026-06-26T04:00:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "让机器人学会“预判接触”：它石智航牵头四大顶尖机构发布TacForeSight，破解精细操作难题",
+    "url": "https://www.qbitai.com/2026/06/438701.html",
+    "pubtime": "2026-06-26T03:47:08+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "英伟达MoE新开源：一行import，微调加速3.7倍",
+    "url": "https://www.qbitai.com/2026/06/438703.html",
+    "pubtime": "2026-06-26T03:23:35+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "WAVES 2026：今年盛夏，在创投浪潮里，做迎风而立的少数人！",
+    "url": "https://www.qbitai.com/2026/06/438698.html",
+    "pubtime": "2026-06-26T02:58:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "库克临走给苹果涨价！电脑iPad全线上调，iPhone 18也跑不了",
+    "url": "https://www.qbitai.com/2026/06/438690.html",
+    "pubtime": "2026-06-26T01:26:27+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "WAIC UP!｜AI圈都在聊参数，我们偏不",
+    "url": "https://www.qbitai.com/2026/06/438364.html",
+    "pubtime": "2026-06-25T09:59:40+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "三体问世20周年，光帆科技与三体宇宙联合发布联名款AI全感穿戴设备及重磅视频《破晓》",
+    "url": "https://www.qbitai.com/2026/06/438658.html",
+    "pubtime": "2026-06-25T09:46:44+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "科大讯飞发布企业服务Claw平台：一句话搞定需求到方案全流程",
+    "url": "https://www.qbitai.com/2026/06/438638.html",
+    "pubtime": "2026-06-25T08:32:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "qbitai",
+    "title": "4秒出百万面！突破千万面精度+12K高清贴图，手握数亿的3D生成公司下一局怎么打？",
+    "url": "https://www.qbitai.com/2026/06/438468.html",
+    "pubtime": "2026-06-25T08:00:24+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "The White House is asking OpenAI to slow roll the release of its new model over safety concerns",
+    "url": "https://techcrunch.com/2026/06/25/the-white-house-is-asking-openai-to-slow-roll-the-release-of-its-new-model-over-safety-concerns/",
+    "pubtime": "2026-06-25T23:34:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Patronus AI lands $50M to build ‘digital worlds’ that stress-test AI agents",
+    "url": "https://techcrunch.com/2026/06/25/patronus-ai-lands-50m-to-build-digital-worlds-that-stress-test-ai-agents/",
+    "pubtime": "2026-06-25T20:19:25+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Anthropic’s Claude is winning over paid consumers, a market owned by ChatGPT",
+    "url": "https://techcrunch.com/2026/06/25/anthropics-claude-is-winning-over-paid-consumers-a-market-owned-by-chatgpt/",
+    "pubtime": "2026-06-25T17:38:27+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "General Intuition’s $2.3B bet that video games can train AI agents for the real world",
+    "url": "https://techcrunch.com/2026/06/25/general-intuitions-2-3b-bet-that-video-games-can-train-ai-agents-for-the-real-world/",
+    "pubtime": "2026-06-25T16:55:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Databricks’ former AI chief thinks he can cut AI’s power bill by 1,000x",
+    "url": "https://techcrunch.com/2026/06/25/databricks-former-ai-chief-thinks-he-can-cut-ais-power-bill-by-1000x/",
+    "pubtime": "2026-06-25T16:48:11+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Netris raises $15M Series A from a16z to help AI neoclouds go live faster",
+    "url": "https://techcrunch.com/2026/06/25/netris-raises-15m-series-a-from-a16z-to-help-ai-neoclouds-go-live-faster/",
+    "pubtime": "2026-06-25T14:55:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "2 days left to save up to $190: Join 1,000+ founders and investors at TechCrunch Founder Summit",
+    "url": "https://techcrunch.com/2026/06/25/2-days-left-to-save-up-to-190-join-1000-founders-and-investors-at-techcrunch-founder-summit/",
+    "pubtime": "2026-06-25T14:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Adobe acquires image and video enhancement tool maker Topaz Labs",
+    "url": "https://techcrunch.com/2026/06/25/adobe-acquires-image-and-video-enhancement-tool-maker-topaz-labs/",
+    "pubtime": "2026-06-25T13:30:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Amazon ups India bet with fresh $13B AI infrastructure investment",
+    "url": "https://techcrunch.com/2026/06/25/amazon-ups-india-bet-with-fresh-13b-ai-infrastructure-investment/",
+    "pubtime": "2026-06-25T12:00:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Europe is pushing back on Washington’s chip war",
+    "url": "https://techcrunch.com/2026/06/24/europe-is-pushing-back-on-washingtons-chip-war/",
+    "pubtime": "2026-06-25T00:08:36+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Former Infosys chief has a new startup that wants to challenge the IT services world",
+    "url": "https://techcrunch.com/2026/06/24/former-infosys-chief-has-a-new-startup-that-wants-to-challenge-the-it-services-world/",
+    "pubtime": "2026-06-24T23:26:52+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Cerebras stock plunges after earnings as CEO says margin outlook was misunderstood",
+    "url": "https://techcrunch.com/2026/06/24/cerebras-stock-plunges-after-earnings-as-ceo-says-margin-outlook-was-misunderstood/",
+    "pubtime": "2026-06-24T22:41:41+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "AI was supposed to kill engineering jobs, but new data suggests they’re the most resilient",
+    "url": "https://techcrunch.com/2026/06/24/ai-was-supposed-to-kill-engineering-jobs-but-new-data-suggests-theyre-the-most-resilient/",
+    "pubtime": "2026-06-24T21:56:41+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "AI researchers continue to leave Google for its rivals",
+    "url": "https://techcrunch.com/2026/06/24/ai-researchers-continue-to-leave-google-for-its-rivals/",
+    "pubtime": "2026-06-24T21:42:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "The memory chip crunch is paying off for this US company",
+    "url": "https://techcrunch.com/2026/06/24/the-memory-chip-crunch-is-paying-off-for-this-u-s-company/",
+    "pubtime": "2026-06-24T21:30:55+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Companies are scrambling to stop employees from maxing out AI budgets with small tasks",
+    "url": "https://techcrunch.com/2026/06/24/companies-are-scrambling-to-stop-employees-from-maxing-out-ai-budgets-with-small-tasks/",
+    "pubtime": "2026-06-24T20:09:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Facebook rolls out an AI companion app for creators",
+    "url": "https://techcrunch.com/2026/06/24/facebook-rolls-out-an-ai-companion-app-for-creators/",
+    "pubtime": "2026-06-24T17:16:24+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Agility Robotics plans to go public via SPAC in a $2.5B deal",
+    "url": "https://techcrunch.com/2026/06/24/agility-robotics-plans-to-go-public-via-spac-in-a-2-5b-deal/",
+    "pubtime": "2026-06-24T16:48:43+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "Figma adds code layers, support for animations, more AI features in new update",
+    "url": "https://techcrunch.com/2026/06/24/figma-adds-code-layers-support-for-animations-more-ai-features-in-new-update/",
+    "pubtime": "2026-06-24T16:15:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "techcrunch-ai",
+    "title": "OpenAI unveils its first custom chip, built by Broadcom",
+    "url": "https://techcrunch.com/2026/06/24/openai-unveils-its-first-custom-chip-built-by-broadcom/",
+    "pubtime": "2026-06-24T14:54:46+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Google just redesigned the search box for the first time in 25 years — here’s why it matters more than you think.",
+    "url": "https://venturebeat.com/technology/google-just-redesigned-the-search-box-for-the-first-time-in-25-years-heres-why-it-matters-more-than-you-think",
+    "pubtime": "2026-05-19T17:45:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Railway secures $100 million to challenge AWS with AI-native cloud infrastructure",
+    "url": "https://venturebeat.com/infrastructure/railway-secures-usd100-million-to-challenge-aws-with-ai-native-cloud",
+    "pubtime": "2026-01-22T14:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Claude Code costs up to $200 a month. Goose does the same thing for free.",
+    "url": "https://venturebeat.com/infrastructure/claude-code-costs-up-to-usd200-a-month-goose-does-the-same-thing-for-free",
+    "pubtime": "2026-01-19T14:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Listen Labs raises $69M after viral billboard hiring stunt to scale AI customer interviews",
+    "url": "https://venturebeat.com/technology/listen-labs-raises-usd69m-after-viral-billboard-hiring-stunt-to-scale-ai",
+    "pubtime": "2026-01-16T14:01:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Salesforce rolls out new Slackbot AI agent as it battles Microsoft and Google in workplace AI",
+    "url": "https://venturebeat.com/technology/salesforce-rolls-out-new-slackbot-ai-agent-as-it-battles-microsoft-and",
+    "pubtime": "2026-01-13T13:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Anthropic launches Cowork, a Claude Desktop agent that works in your files — no coding required",
+    "url": "https://venturebeat.com/technology/anthropic-launches-cowork-a-claude-desktop-agent-that-works-in-your-files-no",
+    "pubtime": "2026-01-12T11:30:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "venturebeat",
+    "title": "Nous Research's NousCoder-14B is an open-source coding model landing right in the Claude Code moment",
+    "url": "https://venturebeat.com/technology/nous-researchs-nouscoder-14b-is-an-open-source-coding-model-landing-right-in",
+    "pubtime": "2026-01-07T20:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "Anthropic Thinks Its Own Success Is Key to Making AI Safe",
+    "url": "https://www.wired.com/story/anthropic-thinks-ai-can-only-be-safe-under-its-control/",
+    "pubtime": "2026-06-26T00:49:13+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "Why Amazon Dropped Its OpenAI Movie, Data Center Workers Fight Back, and Meta Leaks Employee Data",
+    "url": "https://www.wired.com/story/uncanny-valley-podcast-amazon-mgm-openai-movie-data-center-workers-fight-back-meta-leaks-employee-data/",
+    "pubtime": "2026-06-25T23:13:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "World Cup Teams Are in a Race for AI Dominance",
+    "url": "https://www.wired.com/story/fifa-world-cup-2026-artificial-intelligence-tools/",
+    "pubtime": "2026-06-25T11:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "British Police Built a Sprawling Crime-Prediction Machine. Some Results Couldn’t Be Trusted",
+    "url": "https://www.wired.com/story/british-police-built-a-sprawling-crime-prediction-machine-some-results-couldnt-be-trusted/",
+    "pubtime": "2026-06-25T10:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "How to Opt Out of Google Search’s New AI Data Training Feature",
+    "url": "https://www.wired.com/story/how-to-opt-out-of-google-search-new-ai-data-training/",
+    "pubtime": "2026-06-24T22:36:16+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "A24 Knows You’re Mad About the Google AI Collab",
+    "url": "https://www.wired.com/story/a24-knows-youre-mad-about-the-google-ai-collab/",
+    "pubtime": "2026-06-24T21:05:51+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "I Met With China’s Top AI Experts. They’re Freaking Out, Too",
+    "url": "https://www.wired.com/story/ai-arms-race-china-us-cooperation/",
+    "pubtime": "2026-06-24T18:45:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "The Trump White House Is Over Anthropic CEO Dario Amodei",
+    "url": "https://www.wired.com/story/the-trump-white-house-is-over-anthropics-dario-amodei/",
+    "pubtime": "2026-06-24T15:15:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "Qualcomm Buys Buzzy Chip Startup Modular for Nearly $4 Billion",
+    "url": "https://www.wired.com/story/qualcomm-buys-buzzy-chip-startup-modular-for-nearly-dollar4-billion/",
+    "pubtime": "2026-06-24T12:36:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "wired-ai",
+    "title": "Meta Pauses Employee-Tracking Program Following Internal Data Leak",
+    "url": "https://www.wired.com/story/meta-pauses-employee-tracking-program-following-internal-security-breach/",
+    "pubtime": "2026-06-22T21:08:09+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Microsoft adds another year to Windows 10 extended update program",
+    "url": "https://arstechnica.com/gadgets/2026/06/microsoft-adds-another-year-to-windows-10-extended-update-program/",
+    "pubtime": "2026-06-25T20:24:09+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "FCC may kill $2B program that connects schools and libraries to Internet",
+    "url": "https://arstechnica.com/tech-policy/2026/06/fcc-may-kill-2b-program-that-connects-schools-and-libraries-to-internet/",
+    "pubtime": "2026-06-25T20:01:08+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Notion killing Skiff-influenced email app since most users use AI agents instead",
+    "url": "https://arstechnica.com/gadgets/2026/06/notion-killing-skiff-influenced-email-app-since-most-users-use-ai-agents-instead/",
+    "pubtime": "2026-06-25T19:04:57+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Google finally releases a Finance Android app, promises iOS version later in 2026",
+    "url": "https://arstechnica.com/google/2026/06/google-finance-finally-gets-a-mobile-app-as-ai-powered-overhaul-leaves-beta/",
+    "pubtime": "2026-06-25T18:38:51+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Anthropic says Alibaba must be punished for largest Claude cloning attack",
+    "url": "https://arstechnica.com/tech-policy/2026/06/anthropic-claims-alibaba-defied-trump-to-attack-claude-and-steal-capabilities/",
+    "pubtime": "2026-06-25T18:01:48+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Planet orbits so close to its star that their magnetic fields connect",
+    "url": "https://arstechnica.com/science/2026/06/planet-orbits-so-close-to-its-star-that-their-magnetic-fields-connect/",
+    "pubtime": "2026-06-25T18:00:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Feds deny Polestar authorization to sell cars in US from model year 2027",
+    "url": "https://arstechnica.com/cars/2026/06/feds-deny-polestar-authorization-to-sell-cars-in-us-from-model-year-2027/",
+    "pubtime": "2026-06-25T14:40:23+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Apple ratchets up prices, blames the cost of memory",
+    "url": "https://arstechnica.com/apple/2026/06/apple-ratchets-up-prices-blames-the-cost-of-memory/",
+    "pubtime": "2026-06-25T14:14:37+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "The \"sad inevitability\" of Europe's heat wave",
+    "url": "https://arstechnica.com/science/2026/06/the-sad-inevitability-of-europes-heat-wave/",
+    "pubtime": "2026-06-25T13:54:46+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "New effort will get genome sequences for entire Endangered Species list",
+    "url": "https://arstechnica.com/science/2026/06/new-effort-will-get-genome-sequences-for-entire-endangered-species-list/",
+    "pubtime": "2026-06-25T13:40:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Every Homo naledi we know of is female, and the implications are fascinating",
+    "url": "https://arstechnica.com/science/2026/06/every-homo-naledi-we-know-of-is-female-and-the-implications-are-fascinating/",
+    "pubtime": "2026-06-25T13:28:54+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "IBM claims world’s first sub-1 nanometer chip technology",
+    "url": "https://arstechnica.com/gadgets/2026/06/ibm-claims-worlds-first-sub-1-nanometer-chip-technology/",
+    "pubtime": "2026-06-25T10:00:55+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Hotly anticipated Grand Theft Auto VI will cost more than other AAA games",
+    "url": "https://arstechnica.com/gaming/2026/06/grand-theft-auto-vi-will-cost-80-without-a-physical-disc/",
+    "pubtime": "2026-06-24T22:47:03+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "OpenAI and Broadcom announce chip designed for LLM inference at scale",
+    "url": "https://arstechnica.com/gadgets/2026/06/openai-and-broadcom-announce-chip-designed-for-llm-inference-at-scale/",
+    "pubtime": "2026-06-24T22:28:18+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "13 years and $500 million for a stage adapter? Report justifies NASA cancellations.",
+    "url": "https://arstechnica.com/space/2026/06/analysis-finds-the-exploration-programs-nasa-recently-canceled-were-running-way-late/",
+    "pubtime": "2026-06-24T21:41:03+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "US ends hantavirus outbreak response with no answers on draconian quarantines",
+    "url": "https://arstechnica.com/health/2026/06/us-ends-hantavirus-outbreak-response-with-no-answers-on-draconian-quarantines/",
+    "pubtime": "2026-06-24T21:28:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "One-two punch delivered in global operation disrupts cybercrime \"assembly line\"",
+    "url": "https://arstechnica.com/security/2026/06/one-two-punch-delivered-in-global-operation-disrupts-cybercrime-assembly-line/",
+    "pubtime": "2026-06-24T21:03:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Underpromise, overdeliver? Hands-on with the $24,950 Slate auto.",
+    "url": "https://arstechnica.com/features/2026/06/we-take-a-ride-in-slates-24950-electric-pickup/",
+    "pubtime": "2026-06-24T20:28:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Disney agreed to $50M settlement over claims it made live-TV streaming expensive",
+    "url": "https://arstechnica.com/tech-policy/2026/06/disney-agreed-to-50m-settlement-over-claims-it-made-live-tv-streaming-expensive/",
+    "pubtime": "2026-06-24T20:22:58+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "ars-technica",
+    "title": "Experimental wine bottle tracks oxygen moving through the cork",
+    "url": "https://arstechnica.com/science/2026/06/experimental-wine-bottle-tracks-oxygen-moving-through-the-cork/",
+    "pubtime": "2026-06-24T20:04:32+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Gemini Spark",
+    "url": "https://www.producthunt.com/products/gemini-spark",
+    "pubtime": "2026-06-25T05:47:05+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Basedash for Excel",
+    "url": "https://www.producthunt.com/products/basedash",
+    "pubtime": "2026-06-26T04:15:50+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "AI Slide Editor by CubeOne",
+    "url": "https://www.producthunt.com/products/cubeone",
+    "pubtime": "2026-06-24T23:07:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Sleek Analytics",
+    "url": "https://www.producthunt.com/products/sleek-analytics",
+    "pubtime": "2026-06-25T05:52:23+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "note.md",
+    "url": "https://www.producthunt.com/products/note-md",
+    "pubtime": "2026-06-23T12:07:40+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Atlas",
+    "url": "https://www.producthunt.com/products/nanonets",
+    "pubtime": "2026-06-19T14:21:35+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Animdock Motion Templates in the Browser",
+    "url": "https://www.producthunt.com/products/animdock-motion-templates-in-the-browser",
+    "pubtime": "2026-06-21T07:07:34+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "SquidHub",
+    "url": "https://www.producthunt.com/products/squidhub",
+    "pubtime": "2026-06-16T13:38:17+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "DMV by Agent Community",
+    "url": "https://www.producthunt.com/products/dmv-department-of-machine-verification",
+    "pubtime": "2026-06-18T19:14:03+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Agent Arena",
+    "url": "https://www.producthunt.com/products/agent-arena",
+    "pubtime": "2026-06-16T16:16:18+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Group Subscriptions by beehiiv",
+    "url": "https://www.producthunt.com/products/beehiiv",
+    "pubtime": "2026-06-26T01:59:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Cewsco",
+    "url": "https://www.producthunt.com/products/cewsco",
+    "pubtime": "2026-06-25T20:33:39+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "ModuleX",
+    "url": "https://www.producthunt.com/products/modulex",
+    "pubtime": "2026-06-14T12:41:09+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "LockIn MCP",
+    "url": "https://www.producthunt.com/products/lockin-mcp",
+    "pubtime": "2026-06-25T09:35:32+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Sidegent",
+    "url": "https://www.producthunt.com/products/sidegent",
+    "pubtime": "2026-06-24T14:34:41+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "BrowserAct",
+    "url": "https://www.producthunt.com/products/browseract",
+    "pubtime": "2026-06-16T10:15:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Signspell",
+    "url": "https://www.producthunt.com/products/signspell",
+    "pubtime": "2026-06-24T13:43:37+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Nashra",
+    "url": "https://www.producthunt.com/products/nashra-turn-followers-into-clients",
+    "pubtime": "2026-06-24T06:23:42+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Polygraph",
+    "url": "https://www.producthunt.com/products/polygraph",
+    "pubtime": "2026-06-24T07:52:07+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "producthunt",
+    "title": "Tough Tongue AI for Sales",
+    "url": "https://www.producthunt.com/products/tough-tongue-ai-2",
+    "pubtime": "2026-05-25T12:52:38+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Repositioning retail for the AI era",
+    "url": "https://www.technologyreview.com/2026/06/25/1137848/repositioning-retail-for-the-ai-era/",
+    "pubtime": "2026-06-25T14:22:59+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "The emergence of the web data infrastructure layer for AI",
+    "url": "https://www.technologyreview.com/2026/06/24/1139202/the-emergence-of-the-web-data-infrastructure-layer-for-ai/",
+    "pubtime": "2026-06-24T11:59:54+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "The $400 million machine powering the future of chipmaking",
+    "url": "https://www.technologyreview.com/2026/06/23/1138837/asml-400-million-dollar-machine-powering-future-of-chipmaking/",
+    "pubtime": "2026-06-23T09:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Three things to watch amid Anthropic’s latest feud with the government",
+    "url": "https://www.technologyreview.com/2026/06/22/1139424/three-things-to-watch-amid-anthropics-latest-feud-with-the-government/",
+    "pubtime": "2026-06-22T18:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "A startup claims it broke through a bottleneck that’s holding back LLMs",
+    "url": "https://www.technologyreview.com/2026/06/19/1139313/a-startup-claims-it-broke-through-a-bottleneck-thats-holding-back-llms/",
+    "pubtime": "2026-06-19T10:40:24+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Want to get a data center online quickly? Give it some flex.",
+    "url": "https://www.technologyreview.com/2026/06/16/1138591/data-center-online-quickly-electric-grid-flex/",
+    "pubtime": "2026-06-16T09:00:00+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Why do South Koreans love AI so much?",
+    "url": "https://www.technologyreview.com/2026/06/15/1138983/why-do-south-koreans-love-ai-so-much/",
+    "pubtime": "2026-06-15T18:46:08+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Google DeepMind is worried about what happens when millions of agents start to interact",
+    "url": "https://www.technologyreview.com/2026/06/11/1138794/google-deepmind-is-worried-about-what-happens-when-millions-of-agents-start-to-interact/",
+    "pubtime": "2026-06-11T11:00:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Learning to lead in a hybrid human-AI enterprise",
+    "url": "https://www.technologyreview.com/2026/06/09/1137830/learning-to-lead-in-a-hybrid-human-ai-enterprise/",
+    "pubtime": "2026-06-09T10:20:06+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  },
+  {
+    "platform": "mit-tech-review",
+    "title": "Five things you need to know about AI",
+    "url": "https://www.technologyreview.com/2026/06/09/1138582/five-things-you-need-to-know-about-ai/",
+    "pubtime": "2026-06-09T09:16:45+00:00",
+    "scrape_date": "2026-06-26T15:34:42+08:00",
+    "event_id": null,
+    "event_label": null,
+    "event_confidence": null
+  }
+]

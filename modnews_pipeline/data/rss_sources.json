@@ -1,0 +1,72 @@
+[
+  {
+    "id": "openai",
+    "name": "OpenAI News",
+    "url": "https://openai.com/news/rss.xml"
+  },
+  {
+    "id": "google-deepmind",
+    "name": "Google DeepMind",
+    "url": "https://deepmind.google/blog/rss.xml"
+  },
+  {
+    "id": "nvidia",
+    "name": "NVIDIA AI Blog",
+    "url": "https://blogs.nvidia.com/feed/"
+  },
+  {
+    "id": "huggingface",
+    "name": "Hugging Face Blog",
+    "url": "https://huggingface.co/blog/feed.xml"
+  },
+  {
+    "id": "mistral",
+    "name": "Mistral AI News",
+    "url": "https://mistral.ai/rss.xml"
+  },
+  {
+    "id": "github-blog-ai",
+    "name": "GitHub Blog AI",
+    "url": "https://github.blog/tag/ai/feed/"
+  },
+  {
+    "id": "aws-ml",
+    "name": "AWS Machine Learning Blog",
+    "url": "https://aws.amazon.com/blogs/machine-learning/feed/"
+  },
+  {
+    "id": "qbitai",
+    "name": "量子位",
+    "url": "https://www.qbitai.com/feed"
+  },
+  {
+    "id": "techcrunch-ai",
+    "name": "TechCrunch AI",
+    "url": "https://techcrunch.com/category/artificial-intelligence/feed/"
+  },
+  {
+    "id": "venturebeat",
+    "name": "VentureBeat AI",
+    "url": "https://venturebeat.com/category/ai/feed/"
+  },
+  {
+    "id": "wired-ai",
+    "name": "Wired AI",
+    "url": "https://www.wired.com/feed/tag/ai/latest/rss"
+  },
+  {
+    "id": "ars-technica",
+    "name": "ArsTechnica IT",
+    "url": "https://feeds.arstechnica.com/arstechnica/index"
+  },
+  {
+    "id": "producthunt",
+    "name": "Product Hunt",
+    "url": "https://www.producthunt.com/feed"
+  },
+  {
+    "id": "mit-tech-review",
+    "name": "MIT Technology Review AI",
+    "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/"
+  }
+]
