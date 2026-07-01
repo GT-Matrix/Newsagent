@@ -33,6 +33,17 @@
       "limit_per_site": 10
     }
   ],
+  "paper_attach": {
+    "enabled": true,
+    "source": "arxiv",
+    "limit": 40,
+    "query": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML OR all:\"large language model\" OR all:\"LLM\" OR all:\"agent\"",
+    "sort_by": "submittedDate",
+    "sort_order": "descending",
+    "output_path": "output/arxiv_papers.json",
+    "decisions_output_path": "output/paper_attach_decisions.json",
+    "max_summary_chars": 700
+  },
   "classification": {
     "enabled": true,
     "output_path": "output/news_with_events.json",

@@ -3,4 +3,12 @@ output/
 data/output*/
 __pycache__/
 *.pyc
-
+.DS_Store
+.venv/
+.env
+.env.*
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+modnews/

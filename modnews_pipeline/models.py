@@ -29,6 +29,23 @@ class NewsItem:
 
 
 @dataclass(slots=True)
+class PaperItem:
+    platform: str
+    title: str
+    url: str
+    pubtime: str | None
+    scrape_date: str
+    summary: str | None = None
+    authors: list[str] = field(default_factory=list)
+    categories: list[str] = field(default_factory=list)
+    primary_category: str | None = None
+    paper_id: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
 class EventRecord:
     event_id: str
     event_label: str
@@ -66,6 +83,7 @@ class PipelineResult:
     events: list[EventRecord]
     steps: list[StepResult]
     output_path: Path
+    papers: list[PaperItem] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -73,6 +91,7 @@ class PipelineResult:
             "total": len(self.items),
             "items": [item.to_dict() for item in self.items],
             "events": [event.to_dict() for event in self.events],
+            "papers": [paper.to_dict() for paper in self.papers],
             "steps": [step.to_dict() for step in self.steps],
             "output_path": str(self.output_path),
         }

@@ -66,6 +66,22 @@ class ClassificationConfig:
 
 
 @dataclass(slots=True)
+class PaperAttachConfig:
+    enabled: bool = True
+    output_path: Path = field(default_factory=lambda: Path("output/arxiv_papers.json"))
+    decisions_output_path: Path = field(default_factory=lambda: Path("output/paper_attach_decisions.json"))
+    source: str = "arxiv"
+    limit: int = 40
+    query: str = (
+        "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML "
+        'OR all:"large language model" OR all:"LLM" OR all:"agent"'
+    )
+    sort_by: str = "submittedDate"
+    sort_order: str = "descending"
+    max_summary_chars: int = 700
+
+
+@dataclass(slots=True)
 class PipelineConfig:
     output_path: Path
     proxy_url: str | None
@@ -78,6 +94,7 @@ class PipelineConfig:
     rss_sources_path: Path
     ingest_steps: list[StepConfig]
     classification: ClassificationConfig
+    paper_attach: PaperAttachConfig
 
 
 def apply_runtime_overrides(
@@ -94,6 +111,7 @@ def apply_runtime_overrides(
         ]
     if disable_classification:
         config.classification.enabled = False
+        config.paper_attach.enabled = False
     return config
 
 
@@ -125,6 +143,7 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
         )
     ]
     classification_raw = raw.get("classification", {})
+    paper_attach_raw = raw.get("paper_attach", {})
     llm_raw = classification_raw.get("llm", {})
     embedding_raw = classification_raw.get("embedding", {})
 
@@ -233,6 +252,25 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
                 if classification_raw.get("checkpoint_path", "output/classification_progress.json")
                 else None
             ),
+        ),
+        paper_attach=PaperAttachConfig(
+            enabled=paper_attach_raw.get("enabled", True),
+            output_path=(project_root / paper_attach_raw.get("output_path", "output/arxiv_papers.json")).resolve(),
+            decisions_output_path=(
+                project_root / paper_attach_raw.get("decisions_output_path", "output/paper_attach_decisions.json")
+            ).resolve(),
+            source=paper_attach_raw.get("source", "arxiv"),
+            limit=int(paper_attach_raw.get("limit", 40)),
+            query=paper_attach_raw.get(
+                "query",
+                (
+                    "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML "
+                    'OR all:"large language model" OR all:"LLM" OR all:"agent"'
+                ),
+            ),
+            sort_by=paper_attach_raw.get("sort_by", "submittedDate"),
+            sort_order=paper_attach_raw.get("sort_order", "descending"),
+            max_summary_chars=int(paper_attach_raw.get("max_summary_chars", 700)),
         ),
     )
 
