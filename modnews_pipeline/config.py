@@ -54,8 +54,8 @@ class ClassificationConfig:
     output_path: Path = field(default_factory=lambda: Path("output/news_with_events.json"))
     events_output_path: Path = field(default_factory=lambda: Path("output/events.json"))
     discarded_output_path: Path = field(default_factory=lambda: Path("output/discarded_news.json"))
-    batch_size: int = 25
-    batch_concurrency: int = 8
+    batch_size: int = 40
+    batch_concurrency: int = 20
     event_candidate_count: int = 5
     merge_candidate_count: int = 5
     time_window_hours: int = 72
@@ -160,10 +160,10 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
             discarded_output_path=(
                 project_root / classification_raw.get("discarded_output_path", "output/discarded_news.json")
             ).resolve(),
-            batch_size=classification_raw.get("batch_size", 25),
+            batch_size=classification_raw.get("batch_size", 40),
             batch_concurrency=classification_raw.get(
                 "batch_concurrency",
-                int(os.environ.get("CLASSIFICATION_BATCH_CONCURRENCY", "8")),
+                int(os.environ.get("CLASSIFICATION_BATCH_CONCURRENCY", "20")),
             ),
             event_candidate_count=classification_raw.get("event_candidate_count", 5),
             merge_candidate_count=classification_raw.get("merge_candidate_count", 5),

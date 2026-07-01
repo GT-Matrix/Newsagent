@@ -34,6 +34,7 @@ class LlmClient:
                 request_id=request_id,
                 task=task,
                 status="cached",
+                response=cached,
                 **descriptor,
             )
             if self.config.simulate_cache_stream:
@@ -112,7 +113,58 @@ class LlmClient:
         raise last_error
 
     def _request_content(self, url: str, messages: list[dict[str, str]], request_id: str, attempt: int) -> str:
-        return self._request_content_without_stream(url, messages)
+        body = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+            "response_format": {"type": "json_object"},
+            "stream": True,
+        }
+        response = self.session.post(
+            url,
+            headers={"Authorization": f"Bearer {self.config.api_key}"},
+            json=body,
+            timeout=self.config.timeout_seconds,
+            stream=True,
+        )
+        if response.status_code >= 400:
+            return self._request_content_without_stream(url, messages)
+        chunks: list[str] = []
+        non_stream_lines: list[str] = []
+        saw_stream = False
+        for raw_line in response.iter_lines(decode_unicode=False):
+            if not raw_line:
+                continue
+            line = raw_line.decode("utf-8", errors="replace").strip()
+            if not line.startswith("data:"):
+                non_stream_lines.append(line)
+                continue
+            data = line[5:].strip()
+            if data == "[DONE]":
+                break
+            saw_stream = True
+            try:
+                payload = json.loads(data)
+            except json.JSONDecodeError:
+                return self._request_content_without_stream(url, messages)
+            choices = payload.get("choices") or []
+            if not choices:
+                continue
+            delta = choices[0].get("delta", {}).get("content")
+            if delta:
+                chunks.append(delta)
+                emit("llm_stream_delta", request_id=request_id, attempt=attempt, delta=delta)
+        if saw_stream:
+            content = "".join(chunks)
+            if not content.strip():
+                raise ValueError("LLM stream returned no content")
+            return content
+        payload = json.loads("\n".join(non_stream_lines))
+        choices = payload.get("choices") or []
+        if not choices:
+            raise ValueError(f"LLM returned empty choices: {payload}")
+        return choices[0]["message"]["content"]
+
     def _request_content_without_stream(self, url: str, messages: list[dict[str, str]]) -> str:
         response = self.session.post(
             url,
@@ -127,7 +179,10 @@ class LlmClient:
         )
         response.raise_for_status()
         payload = response.json()
-        return payload["choices"][0]["message"]["content"]
+        choices = payload.get("choices") or []
+        if not choices:
+            raise ValueError(f"LLM returned empty choices: {payload}")
+        return choices[0]["message"]["content"]
 
     def _cache_key(self, task: str, messages: list[dict[str, str]]) -> str:
         payload = {

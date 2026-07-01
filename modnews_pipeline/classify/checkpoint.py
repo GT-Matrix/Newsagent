@@ -53,6 +53,10 @@ def load_resume_state(checkpoint_path: Path | None, items: list[NewsItem]) -> Re
     if not checkpoint_path or not checkpoint_path.exists():
         return ResumeState(items=items, events=[], discarded=[], stage="started")
     payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    meta = payload.get("meta", {})
+    stage = str(meta.get("stage", "started"))
+    if stage not in {"started", "after_clustered_event_extraction"}:
+        return ResumeState(items=items, events=[], discarded=[], stage="started")
     rows = payload.get("items", [])
     restored_items = [
         NewsItem(
@@ -103,12 +107,11 @@ def load_resume_state(checkpoint_path: Path | None, items: list[NewsItem]) -> Re
         )
         for row in payload.get("discarded", [])
     ]
-    meta = payload.get("meta", {})
     return ResumeState(
         items=restored_items,
         events=restored_events,
         discarded=discarded,
-        stage=str(meta.get("stage", "started")),
+        stage=stage,
         processed_candidates=int(meta.get("processed_candidates") or 0),
     )
 

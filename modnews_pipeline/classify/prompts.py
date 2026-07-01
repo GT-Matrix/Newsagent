@@ -28,6 +28,24 @@ Use concise Chinese for summaries and reasons. Prefer stable entity names.
 """.strip()
 
 
+def clustered_event_extraction_system_prompt() -> str:
+    return f"""
+You classify a clustered batch of news titles and create AI news events in one pass.
+Output only valid JSON:
+{{"events":[{{"event_label":"","event_summary":"","event_type":"","key_entities":[],"confidence":0.0,"source_news_ids":[0],"member_reasons":{{"0":""}}}}],"suspects":[{{"index":0,"reason":"","relevance_score":0}}],"discards":[{{"index":0,"reason":"","relevance_score":0}}]}}
+
+Rules:
+- Use source_news_ids from the input item index values only.
+- Put clearly AI-related news into events. Merge multiple titles into one event only when they describe the same concrete news event.
+- Put title-only uncertain but possibly high-value AI items into suspects.
+- Put unrelated, generic, low-signal, market-noise, entertainment, or weak opinion items into discards with concise reasons.
+- Every input item must appear exactly once across events.source_news_ids, suspects, or discards.
+- confidence must be a decimal probability from 0.0 to 1.0, never a percentage or 0-100 score.
+- Use concise Chinese for event labels, summaries, and reasons. Prefer stable entity names.
+{_event_type_rules()}
+""".strip()
+
+
 def suspect_review_system_prompt() -> str:
     return f"""
 You review a suspected AI news article using title plus article excerpts from the beginning, middle, and end.
@@ -66,4 +84,21 @@ Rules:
 - Return multiple ids if multiple candidates describe the same concrete event as seed_event.
 - Return an empty list if candidates are only the same company, same product line, same topic, or uncertain.
 - Merge only if they describe the same concrete AI news event.
+""".strip()
+
+
+def clustered_event_merge_system_prompt() -> str:
+    return """
+You merge a clustered batch of AI news events.
+Output only valid JSON:
+{"merge_groups":[{"target_event_id":"","source_event_ids":[],"event_label":"","event_summary":"","reason":""}]}
+
+Rules:
+- Use only event_id values from the input events.
+- A merge group means all source_event_ids describe the same concrete AI news event as target_event_id.
+- Do not merge items that are only the same company, same product line, same topic, or uncertain.
+- Choose the clearest existing event_id as target_event_id.
+- source_event_ids must not include target_event_id.
+- Return an empty merge_groups array when nothing should merge.
+- Use concise Chinese for improved labels, summaries, and reasons.
 """.strip()

@@ -144,6 +144,24 @@ def describe_llm_request(task: str, messages: list[dict[str, str]]) -> dict[str,
             "summary": "\uff1b".join(titles),
             "payload": user_payload,
         }
+    if task == "clustered_event_extraction":
+        items = user_payload.get("items", []) if isinstance(user_payload, dict) else []
+        titles = [_news_brief(row) for row in items[:5]]
+        return {
+            "name": "标题聚类抽取",
+            "goal": f"从 {len(items)} 条聚类标题中抽取 AI 事件、疑似项和丢弃原因。",
+            "summary": "；".join(titles),
+            "payload": user_payload,
+        }
+    if task == "clustered_event_merge":
+        events = user_payload.get("events", []) if isinstance(user_payload, dict) else []
+        labels = [_event_brief(row) for row in events[:5]]
+        return {
+            "name": "事件聚类合并",
+            "goal": f"判断 {len(events)} 个聚类事件中哪些描述同一具体 AI 事件。",
+            "summary": "；".join(labels),
+            "payload": user_payload,
+        }
     if task == "event_membership":
         news = user_payload.get("news", {}) if isinstance(user_payload, dict) else {}
         candidates = user_payload.get("candidate_events", []) if isinstance(user_payload, dict) else []

@@ -72,8 +72,7 @@ Current env variables:
 - `EMBEDDING_MODEL=...`
 - `EMBEDDING_BASE_URL=...`
 - `EMBEDDING_API_KEY=...`
-- `CLASSIFICATION_SUSPECT_MODE=discard|article`
-- `CLASSIFICATION_BATCH_CONCURRENCY=8`
+- `CLASSIFICATION_BATCH_CONCURRENCY=20`
 - `SOURCE_LAB_PROXY=...`
 
 When `NEWS_MODE=mock`, the helper script auto-starts the mock server if needed and routes all news-source ingestion to local mock endpoints.
@@ -149,7 +148,7 @@ config = build_config(
         ],
         "classification": {
           "enabled": True,
-          "batch_size": 25,
+          "batch_size": 40,
           "event_candidate_count": 5,
           "merge_candidate_count": 5,
           "llm": {
@@ -234,15 +233,13 @@ Each event record looks like:
 
 ## Classification
 
-Current classification step is an LLM-driven stage.
+Current classification step is an LLM-driven clustered stage.
 
-- Every title is sent to the LLM in batches of 25; title batches can run concurrently
-- The LLM marks each item as `candidate`, `suspect`, or `discard`
-- `suspect` items fetch article excerpts from the beginning, middle, and end before a second LLM review
-- Candidate events are recalled with local SQLite-cached vectors plus a time-window filter
-- One news item plus up to 5 candidate events are sent to the LLM for `assign`, `create`, or `discard`
-- Similar event pairs get a final LLM merge check
-- `CLASSIFICATION_SUSPECT_MODE=discard` skips article fetching and discards suspected items
+- Every title is embedded, clustered locally, and sent to the LLM in clustered batches of 40
+- Each title-cluster LLM call directly outputs AI event records plus suspected AI items; unrelated items are omitted
+- `discarded_news.json` contains suspected items for separate review, not every unrelated title
+- Event labels and summaries are embedded, clustered locally, and sent to the LLM in clustered batches of 40 for one merge pass
+- Title extraction and event merge LLM calls both use `batch_concurrency`, defaulting to 20
 
 `event_type` is fixed to:
 `model`, `product`, `research`, `infrastructure`, `hardware`, `funding`, `partnership`, `policy`, `safety`, `security`, `open_source`, `company`, `acquisition`, `litigation`, `application`, `benchmark`, `other`.
@@ -254,11 +251,10 @@ Minimal config for an OpenAI-compatible chat endpoint:
 ```json
 {
   "classification": {
-    "batch_size": 25,
-    "batch_concurrency": 8,
+    "batch_size": 40,
+    "batch_concurrency": 20,
     "event_candidate_count": 5,
     "merge_candidate_count": 5,
-    "suspect_mode": "discard",
     "llm": {
       "model": "qwen-plus",
       "base_url": "https://api.openai.com/v1",

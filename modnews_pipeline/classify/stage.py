@@ -9,7 +9,7 @@ from .llm_client import LlmClient
 from .retriever import EventVectorRetriever
 from .runner import ClassifyRuntime, ClassifyStepRunner
 from .state import ClassifyState
-from .steps import BatchRelevanceStep, EventMembershipStep, EventMergeStep, StartCheckpointStep, SuspectHandlingStep
+from .steps import ClusteredEventExtractionStep, ClusteredEventMergeStep, StartCheckpointStep
 from .utils import prepare_item
 
 
@@ -61,9 +61,7 @@ def _build_runner() -> ClassifyStepRunner:
     return ClassifyStepRunner(
         [
             StartCheckpointStep(),
-            BatchRelevanceStep(),
-            SuspectHandlingStep(),
-            EventMembershipStep(),
-            EventMergeStep(),
+            ClusteredEventExtractionStep(),
+            ClusteredEventMergeStep(),
         ]
     )

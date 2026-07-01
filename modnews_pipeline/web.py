@@ -1,10 +1,11 @@
-
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import subprocess
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -15,17 +16,40 @@ from .config import apply_runtime_overrides, load_config
 from .pipeline import run_pipeline
 from .progress import BUS, emit, sse
 
+
 app = Flask(__name__)
 _RUN_LOCK = threading.Lock()
 _RUN_THREAD: threading.Thread | None = None
+
 
 @app.get("/")
 def index() -> str:
     return INDEX_HTML
 
+
 @app.get("/api/state")
 def state() -> Response:
-    return jsonify(BUS.snapshot())
+    payload = BUS.snapshot()
+    payload["outputs"] = _output_state()
+    return jsonify(payload)
+
+
+@app.get("/api/outputs")
+def outputs() -> Response:
+    return jsonify(_output_state())
+
+
+@app.post("/api/cache/clear")
+def clear_cache() -> Response:
+    config = load_config((request.get_json(silent=True) or {}).get("config"))
+    removed = []
+    for path in [config.classification.llm.cache_path, config.classification.embedding.cache_path]:
+        if path and path.exists():
+            path.unlink()
+            removed.append(str(path))
+            emit("cache_cleared", path=str(path))
+    return jsonify({"ok": True, "removed": removed, "outputs": _output_state(config)})
+
 
 @app.post("/api/run")
 def run() -> Response:
@@ -39,6 +63,7 @@ def run() -> Response:
         _RUN_THREAD.start()
     return jsonify({"ok": True})
 
+
 @app.get("/api/events")
 def events() -> Response:
     def stream():
@@ -51,29 +76,147 @@ def events() -> Response:
                 yield sse(listener.get())
         finally:
             BUS.unlisten(listener)
+
     return Response(stream(), mimetype="text/event-stream")
 
+
 def _run_pipeline_thread(payload: dict[str, Any]) -> None:
-    config_path = payload.get("config") or "config.local.json"
-    emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), config_path=config_path)
+    global _RUN_THREAD
+    started_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    emit("pipeline_start", started_at=started_at, config_path=payload.get("config"))
     try:
-        config = load_config(config_path)
+        _load_runtime_env()
+        config = load_config(payload.get("config"))
         if payload.get("resume_from_checkpoint"):
             config.classification.checkpoint_path = Path(payload["resume_from_checkpoint"]).resolve()
+        news_mode = str(payload.get("news_mode") or os.environ.get("NEWS_MODE") or "")
+        if news_mode:
+            _apply_news_mode(config, news_mode)
         if payload.get("reset_classification", True):
             _reset_classification_outputs(config)
-        apply_runtime_overrides(config, only_ingest_steps=payload.get("only_ingest_steps") or None, disable_classification=bool(payload.get("disable_classification")))
+        apply_runtime_overrides(
+            config,
+            only_ingest_steps=payload.get("only_ingest_steps") or None,
+            disable_classification=bool(payload.get("disable_classification")),
+        )
         result = run_pipeline(config)
-        emit("pipeline_done", finished_at=datetime.now().astimezone().isoformat(timespec="seconds"), output_path=str(result.output_path), stats={"total": len(result.items), "events": len(result.events), "classified": sum(1 for item in result.items if item.event_id)})
+        emit(
+            "pipeline_done",
+            finished_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+            output_path=str(result.output_path),
+            stats={
+                "total": len(result.items),
+                "events": len(result.events),
+                "classified": sum(1 for item in result.items if item.event_id),
+            },
+        )
     except Exception as exc:
-        emit("pipeline_error", error=f"{type(exc).__name__}: {exc}")
+        emit("pipeline_error", error=str(exc))
+    finally:
+        with _RUN_LOCK:
+            if _RUN_THREAD is threading.current_thread():
+                _RUN_THREAD = None
+
+
+def _output_state(config: Any | None = None) -> dict[str, Any]:
+    config = config or load_config()
+    paths = {
+        "news_with_events": config.classification.output_path,
+        "events": config.classification.events_output_path,
+        "discarded_news": config.classification.discarded_output_path,
+        "checkpoint": config.classification.checkpoint_path,
+        "llm_cache": config.classification.llm.cache_path,
+        "embedding_cache": config.classification.embedding.cache_path,
+    }
+    result: dict[str, Any] = {}
+    for key, path in paths.items():
+        if not path:
+            result[key] = {"path": None, "exists": False}
+            continue
+        info = {"path": str(path), "exists": path.exists()}
+        if path.exists():
+            info["size_bytes"] = path.stat().st_size
+            if path.suffix == ".json":
+                try:
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                    info["count"] = len(data) if isinstance(data, list) else len(data.get("items", []))
+                    if key == "checkpoint" and isinstance(data, dict):
+                        info["meta"] = data.get("meta", {})
+                except Exception as exc:
+                    info["error"] = str(exc)
+        result[key] = info
+    return result
+
+
+def _apply_news_mode(config: Any, mode: str) -> None:
+    if mode != "mock":
+        return
+    host = os.environ.get("MODNEWS_MOCK_HOST", "127.0.0.1")
+    port = os.environ.get("MODNEWS_MOCK_PORT", "8123")
+    _ensure_mock_server(host, port)
+    base_url = f"http://{host}:{port}"
+    config.newsnow_api_url = f"{base_url}/api/s"
+    config.rss_api_url = f"{base_url}/api/rss"
+    config.site_lists_api_url = f"{base_url}/api/site-lists"
+    config.linux_do_api_url = f"{base_url}/api/linux-do"
+
+
+def _ensure_mock_server(host: str, port: str) -> None:
+    url = f"http://{host}:{port}/health"
+    try:
+        import requests
+
+        requests.get(url, timeout=1).raise_for_status()
+        return
+    except Exception:
+        pass
+
+    script = Path(__file__).resolve().parents[2] / "scripts" / "run_mock_server.sh"
+    subprocess.Popen(
+        [str(script)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    import requests
+
+    for _ in range(20):
+        try:
+            requests.get(url, timeout=1).raise_for_status()
+            return
+        except Exception:
+            time.sleep(0.2)
+    raise RuntimeError(f"mock server failed to start at {url}")
+
+
+def _load_runtime_env() -> None:
+    env_file = Path(os.environ.get("MODNEWS_ENV_FILE", Path(__file__).resolve().parents[2] / ".env.runtime"))
+    if not env_file.exists():
+        return
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
 
 def _reset_classification_outputs(config: Any) -> None:
     keep_names = {"llm_classification_cache.sqlite3", "event_vector_cache.sqlite3"}
-    for path in [config.classification.output_path, config.classification.events_output_path, config.classification.discarded_output_path, config.classification.checkpoint_path]:
+    paths = [
+        config.classification.output_path,
+        config.classification.events_output_path,
+        config.classification.discarded_output_path,
+        config.classification.checkpoint_path,
+    ]
+    for path in paths:
         if path and path.exists() and path.name not in keep_names:
             path.unlink()
             emit("output_reset", path=str(path))
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the modnews progress web UI.")
@@ -83,18 +226,477 @@ def main() -> None:
     print(f"modnews progress listening on http://{args.host}:{args.port}", flush=True)
     app.run(host=args.host, port=args.port, threaded=True)
 
+
 INDEX_HTML = r"""
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Modnews Console</title><style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#111827;--panel2:#172033;--line:#2b364a;--text:#e5e7eb;--muted:#93a4b8;--green:#22c55e;--blue:#38bdf8;--red:#ef4444}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:#090f1d;position:sticky;top:0;z-index:5}.brand{display:flex;gap:10px;align-items:center}.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--blue))}.brand b{display:block;font-size:16px}.brand span{display:block;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;align-items:center}input,button{height:34px;border-radius:6px;border:1px solid var(--line);background:#101827;color:var(--text);padding:0 10px;font:inherit}input{width:220px}button{cursor:pointer}button:hover{border-color:var(--blue)}button.primary{background:var(--green);border-color:var(--green);color:#04130a;font-weight:700}.summary{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:#0d1424}.status,.metric{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:12px}.run{display:flex;gap:9px;align-items:center;font-weight:700}.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}.dot.running{background:var(--blue);animation:pulse 1.2s infinite}.dot.done{background:var(--green)}.dot.error{background:var(--red)}@keyframes pulse{to{box-shadow:0 0 0 9px rgba(56,189,248,0)}}.current{margin-top:8px;color:var(--muted);min-height:20px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:23px;margin-top:4px}.main{display:grid;grid-template-columns:250px minmax(0,1fr) 340px;min-height:calc(100vh - 150px)}.rail,.side{background:#090f1d;padding:14px;overflow:auto}.rail{border-right:1px solid var(--line)}.side{border-left:1px solid var(--line)}.phases{display:grid;gap:8px}.phase{display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:8px;border:1px solid var(--line);background:#101827;border-radius:8px;padding:9px;color:var(--muted)}.phase i{font-style:normal;width:24px;height:24px;border-radius:50%;background:#1f2937;display:grid;place-items:center;font-size:12px}.phase b{color:var(--text)}.phase.running{border-color:var(--blue);color:#bae6fd;background:#102238}.phase.done{border-color:rgba(34,197,94,.6);color:#bbf7d0}.phase.error{border-color:var(--red);color:#fecaca}
-.work{padding:14px;overflow:auto}.board{display:grid;grid-template-columns:repeat(2,minmax(330px,1fr));gap:12px}.step{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:180px;overflow:hidden}.step.running{border-color:var(--blue)}.step.done{border-color:rgba(34,197,94,.6)}.step.error{border-color:var(--red)}.stepHead{height:42px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-weight:700}.badge{border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--muted);font-size:12px;font-weight:400}.badge.running{border-color:var(--blue);color:#bae6fd}.badge.done,.badge.cached{border-color:var(--green);color:#bbf7d0}.badge.error,.badge.llm_request_error{border-color:var(--red);color:#fecaca}.cards{display:grid;gap:9px;padding:10px}.empty{color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:24px;text-align:center;background:#0d1424}.card{border:1px solid var(--line);background:#0d1424;border-radius:7px;overflow:hidden}.card summary{list-style:none;cursor:pointer;padding:9px}.cardTop{display:flex;justify-content:space-between;gap:8px}.title{font-weight:650;word-break:break-word}.sub{color:var(--muted);font-size:12px;margin-top:3px;word-break:break-word}.body{padding:0 9px 9px}.label{margin-top:8px;color:var(--muted);font-size:12px}pre{margin:5px 0 0;padding:8px;background:#070c16;border:1px solid #1b2638;border-radius:6px;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;color:#dbeafe;font-size:12px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.stat{border:1px solid var(--line);background:#101827;border-radius:8px;padding:9px}.stat span{color:var(--muted);font-size:12px}.stat b{display:block;font-size:18px}.side h2{font-size:13px;margin:0 0 8px}@media(max-width:1180px){.summary{grid-template-columns:1fr 1fr}.main{grid-template-columns:220px 1fr}.side{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}.board{grid-template-columns:1fr}}@media(max-width:760px){.top{height:auto;display:block;padding:12px}.actions{margin-top:10px;flex-wrap:wrap}.summary,.main{grid-template-columns:1fr}.rail{border-right:0;border-bottom:1px solid var(--line)}input{width:100%}.board{grid-template-columns:1fr}}
-</style></head><body><div class="top"><div class="brand"><div class="logo"></div><div><b>Modnews Pipeline Console</b><span>&#37319;&#38598; / &#36807;&#28388; / &#32858;&#31867; / &#20998;&#31867;&#36827;&#24230;</span></div></div><div class="actions"><input id="configPath" value="config.local.json"><button id="resumeBtn">&#20174;&#26029;&#28857;&#32487;&#32493;</button><button id="runBtn" class="primary">&#37325;&#36305;&#20998;&#31867;</button></div></div><section class="summary"><div class="status"><div class="run"><span id="runDot" class="dot"></span><span id="runText">&#26410;&#36816;&#34892;</span></div><div id="currentText" class="current">&#25171;&#24320;&#39029;&#38754;&#19981;&#20250;&#33258;&#21160;&#36305;&#65292;&#28857;&#20987;&#21491;&#19978;&#35282;&#25353;&#38062;&#24320;&#22987;&#12290;</div></div><div class="metric"><span>&#32791;&#26102;</span><b id="elapsed">00:00</b></div><div class="metric"><span>&#20107;&#20214;</span><b id="eventCount">0</b></div><div class="metric"><span>LLM</span><b id="llmCount">0</b></div><div class="metric"><span>&#38169;&#35823;</span><b id="errorCount">0</b></div></section><div class="main"><aside class="rail"><div class="phases" id="phaseList"></div></aside><main class="work"><div class="board" id="board"></div></main><aside class="side"><h2>&#24635;&#20307;&#32479;&#35745;</h2><div id="stats" class="stats"></div><h2>&#26368;&#36817;&#20107;&#20214;</h2><pre id="recent"></pre></aside></div><script>
-const T={ingest:"\u6570\u636e\u6293\u53d6",classification:"\u5206\u7c7b\u603b\u9636\u6bb5",start_checkpoint:"Checkpoint",batch_relevance:"\u6279\u91cf\u76f8\u5173\u6027",suspect_handling:"\u7591\u4f3c\u5904\u7406",event_membership:"\u4e8b\u4ef6\u5f52\u5e76",event_merge:"\u4e8b\u4ef6\u5408\u5e76",outputs:"\u8f93\u51fa",pipeline:"Pipeline",total:"\u603b\u65b0\u95fb",classified:"\u5df2\u5206\u7c7b",events:"\u4e8b\u4ef6",discarded:"\u4e22\u5f03",progress:"\u5019\u9009\u8fdb\u5ea6",merged:"\u5408\u5e76"};
-const steps=[["pipeline",T.pipeline],["ingest",T.ingest],["classification",T.classification],["start_checkpoint",T.start_checkpoint],["batch_relevance",T.batch_relevance],["suspect_handling",T.suspect_handling],["event_membership",T.event_membership],["event_merge",T.event_merge],["outputs",T.outputs]],ingestSources=new Set(["rss","newsnow","linux_do","site_lists"]),state={cards:new Map(),stats:{},recent:[],eventCount:0,llmCount:0,errorCount:0,startMs:null,timer:null};
-function init(){steps.forEach(([k,t],i)=>{phaseList.insertAdjacentHTML("beforeend",`<div class="phase" id="phase-${k}"><i>${i+1}</i><b>${t}</b><span id="phase-status-${k}">idle</span></div>`);board.insertAdjacentHTML("beforeend",`<section class="step" id="step-${k}"><div class="stepHead"><span>${t}</span><span class="badge" id="badge-${k}">idle</span></div><div class="cards" id="cards-${k}"><div class="empty">Waiting for events</div></div></section>`)});fetch("/api/state").then(r=>r.json()).then(p=>{(p.events||[]).forEach(applyEvent);state.stats=p.stats||{};renderStats();renderTop()});const es=new EventSource("/api/events");es.onmessage=e=>applyEvent(JSON.parse(e.data));es.addEventListener("replay",e=>applyEvent(JSON.parse(e.data)));["pipeline_start","pipeline_done","pipeline_error","step_start","step_done","step_skip","checkpoint","output_reset","ingest_source_start","ingest_source_done","llm_request_start","llm_stream_delta","llm_request_done","llm_cache_hit","llm_request_retry","llm_request_error","embedding_request_start","embedding_cache_hit","embedding_request_done","membership_candidates","membership_decision","merge_candidates","merge_decision","merge_round_start","merge_round_done","batch_relevance_start","batch_relevance_request","batch_relevance_done"].forEach(x=>es.addEventListener(x,e=>applyEvent(JSON.parse(e.data))))}
-function applyEvent(ev){state.eventCount++;if(ev.type==="llm_request_start"||ev.type==="llm_cache_hit")state.llmCount++;if((ev.type||"").includes("error"))state.errorCount++;state.recent.push(`${new Date((ev.ts||Date.now()/1000)*1000).toLocaleTimeString()} ${ev.type}`);state.recent=state.recent.slice(-40);recent.textContent=state.recent.join("\n");if(ev.type==="pipeline_start"){state.startMs=Date.now();timer();run("running","\u8fd0\u884c\u4e2d");step("pipeline","running");cur(`\u5df2\u542f\u52a8\uff1a${ev.config_path||"config.local.json"}`)}if(ev.type==="pipeline_done"){run("done","\u5df2\u5b8c\u6210");step("pipeline","done");step("outputs","done");Object.assign(state.stats,ev.stats||{});cur(`\u5b8c\u6210\uff1a${ev.output_path||""}`);clearInterval(state.timer)}if(ev.type==="pipeline_error"){run("error","\u51fa\u9519");step("pipeline","error");card("pipeline","Pipeline error",ev.error||"",ev,true);cur(ev.error||"error");clearInterval(state.timer)}if(ev.type==="step_start"){let s=norm(ev.step);step(s,"running");cur(`\u6b63\u5728\u6267\u884c\uff1a${T[s]||s}`)}if(ev.type==="step_done"){let s=norm(ev.step);step(s,"done");if(ev.item_count!=null)state.stats.item_count=ev.item_count;if(ev.event_count!=null)state.stats.event_count=ev.event_count}if(ev.type==="checkpoint")Object.assign(state.stats,ev.meta||{});if(ev.type==="ingest_source_start"){step("ingest","running");card("ingest",`\u5f00\u59cb\u6293\u53d6 ${ev.source}`,"",ev,true);cur(`\u6b63\u5728\u6293\u53d6\uff1a${ev.source}`)}if(ev.type==="ingest_source_done"){card("ingest",`\u5b8c\u6210\u6293\u53d6 ${ev.source}`,`${ev.item_count||0} \u6761`,ev)}if(ev.type==="batch_relevance_start")card("batch_relevance","\u6279\u91cf\u76f8\u5173\u6027\u5f00\u59cb",`${ev.batch_count||0} batches`,ev,true);if(ev.type==="batch_relevance_request")card("batch_relevance",`Batch ${ev.batch_index}/${ev.batch_count}`,(ev.items||[]).map(x=>x.title).slice(0,2).join(" / "),ev);if(ev.type==="llm_request_start")llm(ev,true);if(ev.type==="llm_cache_hit")llm(ev,false,"cached");if(ev.type==="llm_request_done")finish(ev);if(ev.type==="llm_stream_delta")stream(ev);if(ev.type==="membership_candidates")card("event_membership",`#${ev.index} \u5019\u9009\u4e8b\u4ef6`,ev.news?.title||"",ev);if(ev.type==="membership_decision")card("event_membership",`#${ev.index} ${ev.decision||"decision"}`,ev.event_id||ev.reason||"",ev);if(ev.type==="merge_round_start")step("event_merge","running");if(ev.type==="merge_candidates")card("event_merge",`${ev.round||""} \u8f6e\u5408\u5e76\u5019\u9009`,ev.seed_event?.event_label||ev.seed_event?.event_id||"",ev);if(ev.type==="merge_decision")card("event_merge",`${ev.round||""} \u8f6e\u5408\u5e76\u51b3\u7b56`,(ev.merge_event_ids||[]).join(", ")||"no merge",ev);renderStats();renderTop()}
-function norm(s){return ingestSources.has(s)?"ingest":(steps.some(x=>x[0]===s)?s:"pipeline")}function run(s,t){runDot.className=`dot ${s}`;runText.textContent=t}function cur(t){currentText.textContent=t}function timer(){if(state.timer)clearInterval(state.timer);state.timer=setInterval(renderTop,1000)}function renderTop(){eventCount.textContent=state.eventCount;llmCount.textContent=state.llmCount;errorCount.textContent=state.errorCount;let sec=state.startMs?Math.floor((Date.now()-state.startMs)/1000):0;elapsed.textContent=`${String(Math.floor(sec/60)).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`}function step(s,status){s=norm(s);for(const el of [document.getElementById(`step-${s}`),document.getElementById(`phase-${s}`)]){el?.classList.remove("running","done","error");if(status!=="idle")el?.classList.add(status)}let b=document.getElementById(`badge-${s}`),p=document.getElementById(`phase-status-${s}`);if(b){b.textContent=status;b.className=`badge ${status}`}if(p)p.textContent=status}function clearEmpty(s){document.querySelector(`#cards-${norm(s)} .empty`)?.remove()}function card(s,title,sub,payload,open=false){s=norm(s);clearEmpty(s);let id=`${payload.type||title}-${payload.id||payload.request_id||Math.random()}`;if(state.cards.has(id))return state.cards.get(id);let d=document.createElement("details");d.className="card";d.open=open;d.innerHTML=`<summary><div class="cardTop"><div><div class="title">${esc(title)}</div><div class="sub">${esc(sub||"")}</div></div><span class="badge status">${esc(payload.type||"event")}</span></div></summary><div class="body"><div class="label">Payload</div><pre class="payload"></pre><div class="label">Stream</div><pre class="stream"></pre><div class="label">Response</div><pre class="response"></pre></div>`;d.querySelector(".payload").textContent=JSON.stringify(payload,null,2);document.getElementById(`cards-${s}`).prepend(d);state.cards.set(id,d);return d}function llm(ev,open,status="running"){let s=ev.task==="batch_ai_relevance"?"batch_relevance":ev.task==="event_membership"?"event_membership":ev.task==="event_merge_group"?"event_merge":"pipeline";let c=card(s,ev.name||ev.task,ev.summary||ev.goal||"",ev,open);c.querySelector(".status").textContent=status;cur(`LLM: ${ev.name||ev.task}`)}function finish(ev){let c=state.cards.get(ev.request_id);if(c){c.querySelector(".status").textContent="done";c.querySelector(".response").textContent=JSON.stringify(ev.response||{},null,2)}}function stream(ev){let c=state.cards.get(ev.request_id);if(c)c.querySelector(".stream").textContent+=ev.delta||""}function renderStats(){let rows=[[T.total,state.stats.total??state.stats.item_count],[T.classified,state.stats.classified],[T.events,state.stats.events??state.stats.event_count],[T.discarded,state.stats.discarded_count],[T.progress,state.stats.total_candidates?`${state.stats.processed_candidates||0}/${state.stats.total_candidates}`:""],[T.merged,state.stats.merged_event_count]];stats.innerHTML=rows.map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v??""}</b></div>`).join("")}function esc(x){return String(x||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}function reset(){state.cards.clear();state.stats={};state.recent=[];state.eventCount=0;state.llmCount=0;state.errorCount=0;state.startMs=Date.now();steps.forEach(([s])=>{document.getElementById(`cards-${s}`).innerHTML='<div class="empty">Waiting for events</div>';step(s,"idle")});recent.textContent="";run("running","\u542f\u52a8\u4e2d");cur("\u5df2\u63d0\u4ea4\u8fd0\u884c\u8bf7\u6c42...");timer();renderTop();renderStats()}function start(payload){reset();payload.config=configPath.value||"config.local.json";fetch("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).then(r=>r.json()).then(p=>{if(!p.ok){run("error","\u542f\u52a8\u5931\u8d25");cur(p.error||"start failed")}})}runBtn.onclick=()=>start({reset_classification:true});resumeBtn.onclick=()=>start({reset_classification:false});init();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Modnews Pipeline Progress</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d9dee7;
+      --text: #1e2633;
+      --muted: #667085;
+      --accent: #0f766e;
+      --warn: #b45309;
+      --bad: #b42318;
+      --good: #147a3c;
+      --code: #101828;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    h1 { font-size: 16px; margin: 0; font-weight: 700; }
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 6px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      min-height: calc(100vh - 54px);
+    }
+    .layout.sidebar-collapsed { grid-template-columns: minmax(0, 1fr) 42px; }
+    main { min-width: 0; padding: 16px; }
+    aside {
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+      padding: 14px;
+      position: sticky;
+      top: 54px;
+      height: calc(100vh - 54px);
+      overflow: auto;
+    }
+    .sidebar-collapsed aside .side-content { display: none; }
+    .flow {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step {
+      width: 390px;
+      min-width: 390px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .step-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .step-title { font-weight: 700; }
+    .badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #eef2f6;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .badge.running { color: #fff; background: var(--accent); }
+    .badge.done { color: #fff; background: var(--good); }
+    .badge.error { color: #fff; background: var(--bad); }
+    .cards {
+      max-height: calc(100vh - 150px);
+      overflow: auto;
+      padding: 8px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      margin-bottom: 8px;
+      background: #fff;
+    }
+    .card summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .card summary::-webkit-details-marker { display: none; }
+    .card-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 650;
+    }
+    .card-sub {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .card-body {
+      border-top: 1px solid var(--line);
+      padding: 10px;
+    }
+    .label { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    pre {
+      margin: 6px 0 0;
+      padding: 8px;
+      max-height: 260px;
+      overflow: auto;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+    }
+    .stream {
+      background: #0b1220;
+      color: #d1e7ff;
+      min-height: 34px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+    }
+    .stat b { display: block; font-size: 18px; }
+    .muted { color: var(--muted); }
+    @media (max-width: 900px) {
+      .layout, .layout.sidebar-collapsed { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; border-left: 0; border-top: 1px solid var(--line); }
+      .step { width: 86vw; min-width: 86vw; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Modnews Pipeline Progress</h1>
+    <div>
+      <button id="toggleSide">统计</button>
+      <button id="resumeBtn">从断点继续</button>
+      <button id="mockRssBtn">Mock RSS</button>
+      <button id="clearCacheBtn">清缓存</button>
+      <button class="primary" id="runBtn">重跑分类</button>
+    </div>
+  </header>
+  <div class="layout" id="layout">
+    <main>
+      <div class="flow" id="flow"></div>
+    </main>
+    <aside>
+      <button id="collapseBtn">折叠</button>
+      <div class="side-content">
+        <h2 style="font-size:14px;margin:14px 0 6px;">总体统计</h2>
+        <div class="muted" id="status">连接中</div>
+        <div class="stats" id="stats"></div>
+        <h2 style="font-size:14px;margin:16px 0 6px;">输出文件</h2>
+        <pre id="outputs"></pre>
+        <h2 style="font-size:14px;margin:16px 0 6px;">最近事件</h2>
+        <pre id="recent"></pre>
+      </div>
+    </aside>
+  </div>
+  <script>
+    const steps = [
+      ["pipeline", "Pipeline"],
+      ["start_checkpoint", "Checkpoint"],
+      ["clustered_event_extraction", "标题聚类抽取"],
+      ["clustered_event_merge", "事件聚类合并"],
+      ["outputs", "输出"]
+    ];
+    const state = { stepStatus: {}, cards: new Map(), stats: {}, recent: [], outputs: {} };
+    const flow = document.getElementById("flow");
+
+    function init() {
+      for (const [key, title] of steps) {
+        const el = document.createElement("section");
+        el.className = "step";
+        el.id = `step-${key}`;
+        el.innerHTML = `<div class="step-header"><div class="step-title">${title}</div><span class="badge" id="badge-${key}">idle</span></div><div class="cards" id="cards-${key}"></div>`;
+        flow.appendChild(el);
+      }
+      fetch("/api/state").then(r => r.json()).then(payload => {
+        (payload.events || []).forEach(applyEvent);
+        state.stats = payload.stats || {};
+        state.outputs = payload.outputs || {};
+        renderStats();
+        renderOutputs();
+      });
+      const es = new EventSource("/api/events");
+      es.onmessage = e => applyEvent(JSON.parse(e.data));
+      es.addEventListener("replay", e => applyEvent(JSON.parse(e.data)));
+      ["pipeline_start","pipeline_done","pipeline_error","step_start","step_done","step_skip","checkpoint","output_reset","cache_cleared","llm_request_start","llm_stream_delta","llm_request_done","llm_cache_hit","llm_request_retry","llm_request_error","embedding_request_start","embedding_cache_hit","embedding_request_done","clustered_embedding_start","clustered_embedding_done","clustered_extraction_start","clustered_extraction_request","clustered_extraction_batch_done","clustered_extraction_done","clustered_merge_start","clustered_merge_request","clustered_merge_batch_done","clustered_merge_decision","clustered_merge_done"].forEach(type => {
+        es.addEventListener(type, e => applyEvent(JSON.parse(e.data)));
+      });
+      es.onerror = () => document.getElementById("status").textContent = "SSE 断开，浏览器会自动重连";
+    }
+
+    function applyEvent(ev) {
+      state.recent.push(`${new Date((ev.ts || Date.now()/1000)*1000).toLocaleTimeString()} ${ev.type}`);
+      state.recent = state.recent.slice(-30);
+      document.getElementById("recent").textContent = state.recent.join("\n");
+      if (ev.type === "pipeline_start") setStep("pipeline", "running");
+      if (ev.type === "pipeline_done") { setStep("pipeline", "done"); setStep("outputs", "done"); Object.assign(state.stats, ev.stats || {}); refreshOutputs(); }
+      if (ev.type === "pipeline_error") {
+        setStep("pipeline", "error");
+        if (state.stats.current_step) setStep(state.stats.current_step, "error");
+        refreshOutputs();
+      }
+      if (ev.type === "step_start") setStep(ev.step, "running");
+      if (ev.type === "step_done") setStep(ev.step, "done");
+      if (ev.type === "checkpoint") { Object.assign(state.stats, ev.meta || {}); refreshOutputs(); }
+      if (ev.type === "output_reset") addInfoCard("pipeline", "清理分类产物", ev.path || "", ev);
+      if (ev.type === "cache_cleared") { addInfoCard("pipeline", "清理缓存", ev.path || "", ev); refreshOutputs(); }
+      if (ev.type === "llm_request_start") upsertLlmCard(ev, true);
+      if (ev.type === "llm_stream_delta") appendStream(ev.request_id, ev.delta);
+      if (ev.type === "llm_request_done") finishLlmCard(ev);
+      if (ev.type === "llm_cache_hit") upsertCacheCard(ev);
+      if (ev.type === "llm_request_retry" || ev.type === "llm_request_error") markCard(ev.request_id, ev.type, ev.error);
+      if (ev.type === "embedding_request_start" || ev.type === "embedding_cache_hit") upsertEmbeddingCard(ev);
+      if (ev.type === "embedding_request_done") finishEmbeddingCard(ev);
+      if (ev.type === "clustered_embedding_start") addInfoCard(ev.target === "events" ? "clustered_event_merge" : "clustered_event_extraction", "Embedding 预计算开始", `${ev.item_count} 条，并发 ${ev.concurrency}`, ev);
+      if (ev.type === "clustered_embedding_done") addInfoCard(ev.target === "events" ? "clustered_event_merge" : "clustered_event_extraction", "Embedding 预计算完成", `${ev.item_count} 条`, ev);
+      if (ev.type === "clustered_extraction_start") addInfoCard("clustered_event_extraction", "标题聚类抽取开始", `${ev.item_count} 条，${ev.batch_count} 批，并发 ${ev.concurrency}`, ev);
+      if (ev.type === "clustered_extraction_request") addInfoCard("clustered_event_extraction", `Batch ${ev.batch_index}/${ev.batch_count}`, (ev.items || []).map(x => x.title).slice(0, 2).join(" / "), ev);
+      if (ev.type === "clustered_extraction_batch_done") addInfoCard("clustered_event_extraction", `Batch ${ev.batch_index} 完成`, "", ev);
+      if (ev.type === "clustered_extraction_done") addInfoCard("clustered_event_extraction", "标题聚类抽取完成", `${ev.event_count} 个事件，${ev.discarded_count} 条疑似`, ev);
+      if (ev.type === "clustered_merge_start") addInfoCard("clustered_event_merge", "事件聚类合并开始", `${ev.event_count} 个事件，${ev.batch_count} 批，并发 ${ev.concurrency}`, ev);
+      if (ev.type === "clustered_merge_request") addInfoCard("clustered_event_merge", `Batch ${ev.batch_index}/${ev.batch_count}`, (ev.events || []).map(x => x.event_label).slice(0, 2).join(" / "), ev);
+      if (ev.type === "clustered_merge_batch_done") addInfoCard("clustered_event_merge", `Batch ${ev.batch_index} 完成`, "", ev);
+      if (ev.type === "clustered_merge_decision") addInfoCard("clustered_event_merge", "合并决策", `${ev.target_event_id}: ${(ev.source_event_ids || []).join(", ")}`, ev);
+      if (ev.type === "clustered_merge_done") addInfoCard("clustered_event_merge", "事件聚类合并完成", `${ev.event_count} 个事件，合并 ${ev.merged_event_count}`, ev);
+      renderStats();
+    }
+
+    function resetUi() {
+      state.cards.clear();
+      state.stats = {};
+      state.recent = [];
+      state.outputs = {};
+      for (const [key] of steps) {
+        document.getElementById(`cards-${key}`).innerHTML = "";
+        setStep(key, "idle");
+      }
+      renderStats();
+      renderOutputs();
+    }
+
+    function setStep(step, status) {
+      const key = steps.some(x => x[0] === step) ? step : "pipeline";
+      const badge = document.getElementById(`badge-${key}`);
+      if (!badge) return;
+      badge.textContent = status;
+      badge.className = `badge ${status}`;
+    }
+
+    function stepForTask(task) {
+      if (task === "batch_ai_relevance") return "batch_relevance";
+      if (task === "suspect_article_review") return "suspect_handling";
+      if (task === "event_membership") return "event_membership";
+      if (task === "event_merge_group") return "event_merge";
+      if (task === "clustered_event_extraction") return "clustered_event_extraction";
+      if (task === "clustered_event_merge") return "clustered_event_merge";
+      return "pipeline";
+    }
+
+    function upsertLlmCard(ev, open) {
+      const step = stepForTask(ev.task);
+      const card = createCard(step, ev.request_id, ev.name || ev.task, ev.goal || ev.summary || "", open);
+      card.querySelector(".summaryText").textContent = ev.summary || "";
+      card.querySelector(".payload").textContent = JSON.stringify(ev.payload || ev.messages || {}, null, 2);
+      card.querySelector(".status").textContent = "running";
+    }
+
+    function upsertCacheCard(ev) {
+      const step = stepForTask(ev.task);
+      const card = createCard(step, ev.request_id, `${ev.name || ev.task} · cache`, ev.goal || "", false);
+      card.querySelector(".summaryText").textContent = ev.summary || "";
+      card.querySelector(".payload").textContent = JSON.stringify(ev.payload || {}, null, 2);
+      card.querySelector(".response").textContent = JSON.stringify(ev.response || {}, null, 2);
+      card.querySelector(".status").textContent = "cached";
+    }
+
+    function upsertEmbeddingCard(ev) {
+      const step = ev.text_preview && ev.text_preview.includes("evt_") ? "clustered_event_merge" : "clustered_event_extraction";
+      const card = createCard(step, ev.request_id, ev.type === "embedding_cache_hit" ? "Embedding · cache" : "Embedding", ev.text_preview || "", false);
+      card.querySelector(".summaryText").textContent = ev.text_preview || "";
+      card.querySelector(".payload").textContent = JSON.stringify(ev, null, 2);
+      card.querySelector(".status").textContent = ev.type === "embedding_cache_hit" ? "cached" : "running";
+    }
+
+    function finishEmbeddingCard(ev) {
+      const card = state.cards.get(ev.request_id);
+      if (!card) return;
+      card.querySelector(".status").textContent = ev.cached ? "cached done" : "done";
+      card.querySelector(".response").textContent = JSON.stringify(ev, null, 2);
+    }
+
+    function appendStream(id, delta) {
+      const card = state.cards.get(id);
+      if (!card) return;
+      const stream = card.querySelector(".stream");
+      stream.textContent += delta;
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function finishLlmCard(ev) {
+      const card = state.cards.get(ev.request_id);
+      if (!card) return;
+      card.querySelector(".status").textContent = "done";
+      card.querySelector(".response").textContent = JSON.stringify(ev.response || {}, null, 2);
+    }
+
+    function markCard(id, status, message) {
+      const card = state.cards.get(id);
+      if (!card) return;
+      card.querySelector(".status").textContent = status;
+      card.querySelector(".error").textContent = message || "";
+    }
+
+    function addInfoCard(step, title, summary, payload) {
+      const id = `${payload.type || title}-${payload.id || Math.random()}`;
+      const card = createCard(step, id, title, summary, false);
+      card.querySelector(".payload").textContent = JSON.stringify(payload, null, 2);
+      card.querySelector(".status").textContent = payload.type || "event";
+    }
+
+    function createCard(step, id, title, goal, open) {
+      if (state.cards.has(id)) return state.cards.get(id);
+      const container = document.getElementById(`cards-${step}`) || document.getElementById("cards-pipeline");
+      const details = document.createElement("details");
+      details.className = "card";
+      details.open = !!open;
+      details.innerHTML = `
+        <summary>
+          <div class="card-title">${escapeHtml(title)}</div>
+          <span class="badge status">new</span>
+          <div class="card-sub">${escapeHtml(goal || "")}</div>
+        </summary>
+        <div class="card-body">
+          <div class="label">核心信息</div>
+          <div class="summaryText muted"></div>
+          <div class="label">结构化 Payload</div>
+          <pre class="payload"></pre>
+          <div class="label">LLM 流式输出</div>
+          <pre class="stream"></pre>
+          <div class="label">最终响应</div>
+          <pre class="response"></pre>
+          <pre class="error" style="color:#fecaca"></pre>
+        </div>`;
+      container.prepend(details);
+      state.cards.set(id, details);
+      return details;
+    }
+
+    function renderStats() {
+      document.getElementById("status").textContent = state.stats.status || state.stats.stage || "ready";
+      const stats = document.getElementById("stats");
+      const rows = [
+        ["总新闻", state.stats.total ?? state.stats.item_count],
+        ["已分类", state.stats.classified],
+        ["事件", state.stats.events ?? state.stats.event_count],
+        ["疑似", state.stats.discarded_count],
+        ["当前步骤", state.stats.current_step || state.stats.last_step],
+        ["合并", state.stats.merged_event_count]
+      ];
+      stats.innerHTML = rows.map(([k,v]) => `<div class="stat"><span class="muted">${k}</span><b>${v ?? ""}</b></div>`).join("");
+    }
+
+    function renderOutputs() {
+      const rows = Object.entries(state.outputs || {}).map(([key, info]) => {
+        const count = info.count == null ? "" : ` count=${info.count}`;
+        const size = info.size_bytes == null ? "" : ` size=${Math.round(info.size_bytes / 1024)}KB`;
+        return `${key}: ${info.exists ? "ok" : "missing"}${count}${size}\n${info.path || ""}`;
+      });
+      document.getElementById("outputs").textContent = rows.join("\n\n");
+    }
+
+    function refreshOutputs() {
+      fetch("/api/outputs").then(r => r.json()).then(payload => {
+        state.outputs = payload || {};
+        renderOutputs();
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text || "").replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+    }
+
+    document.getElementById("runBtn").onclick = () => {
+      startRun({reset_classification:true});
+    };
+    document.getElementById("mockRssBtn").onclick = () => {
+      startRun({reset_classification:true, news_mode:"mock", only_ingest_steps:["rss"]});
+    };
+    document.getElementById("resumeBtn").onclick = () => {
+      startRun({reset_classification:false});
+    };
+    document.getElementById("clearCacheBtn").onclick = () => {
+      fetch("/api/cache/clear", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"})
+        .then(r => r.json()).then(payload => {
+          state.outputs = payload.outputs || {};
+          renderOutputs();
+          if (!payload.ok) alert(payload.error || "清理失败");
+        });
+    };
+    function startRun(payload) {
+      resetUi();
+      fetch("/api/run", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)})
+        .then(r => r.json()).then(payload => {
+          if (!payload.ok) {
+            document.getElementById("status").textContent = payload.error || "启动失败";
+            alert(payload.error || "启动失败");
+          }
+        });
+    }
+    document.getElementById("collapseBtn").onclick = document.getElementById("toggleSide").onclick = () => {
+      document.getElementById("layout").classList.toggle("sidebar-collapsed");
+    };
+    init();
+  </script>
+</body>
+</html>
 """
+
 
 if __name__ == "__main__":
     main()
