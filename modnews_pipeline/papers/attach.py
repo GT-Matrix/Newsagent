@@ -161,11 +161,12 @@ Output only valid JSON:
 Rules:
 - Every input paper_index must appear exactly once.
 - Use assign when the paper is clearly about the same concrete event, model, benchmark, release, or research result as one existing event.
-- Use create only when the paper itself is notable enough to become a concrete AI research event.
-- Use skip for ordinary incremental papers, weakly related papers, unclear papers, or papers that do not deserve an event today.
+- The paper feed is already pre-filtered for AI research. Prefer create for concrete AI/ML papers with a named method, benchmark, dataset, framework, evaluation, or empirical finding.
+- Create is allowed for incremental but specific research contributions. Do not require industry newsworthiness, a product launch, citations, or external coverage.
+- Use skip only when the paper is clearly outside AI/ML, too vague to summarize, duplicated by another paper decision, or impossible to understand from the provided title and abstract.
 - Do not output discard.
 - matched_event_id must be null unless decision is assign.
-- For create, write concise Chinese event_label and event_summary.
+- For create, write concise Chinese event_label and event_summary focused on the paper's concrete contribution.
 - confidence must be a decimal probability from 0.0 to 1.0.
 """.strip()
 
