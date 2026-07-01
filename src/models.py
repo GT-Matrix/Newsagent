@@ -46,6 +46,9 @@ class ScoreBreakdown:
     source_score: float
     freshness_score: float
     relevance_score: float
+    actionability_score: float
+    novelty_score: float
+    risk_penalty: float
     final_score: float
     score_reason: str
 
@@ -70,6 +73,9 @@ class EnrichedEvent:
     source_score: float
     freshness_score: float
     relevance_score: float
+    actionability_score: float
+    novelty_score: float
+    risk_penalty: float
     final_score: float
     score_reason: str
     verify_status: VerifyStatus
@@ -78,6 +84,9 @@ class EnrichedEvent:
     report_section: ReportSection | None = None
     should_include_report: bool = False
     report_reason: str = ""
+    report_tags: list[str] = field(default_factory=list)
+    section_scores: dict[str, float] = field(default_factory=dict)
+    evidence_summary: dict[str, Any] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     original_event: dict[str, Any] = field(default_factory=dict)
 

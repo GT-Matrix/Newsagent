@@ -56,17 +56,37 @@ class TopicSummary:
         }
 
 
-def _run_curl(url: str, proxy_url: str | None = None) -> str:
-    cmd = ["curl", "-sS", "-L", "--max-time", "30", url]
+def _run_curl(url: str, proxy_url: str | None = None, cookie: str | None = None) -> str:
+    cmd = [
+        "curl",
+        "-sS",
+        "-L",
+        "--max-time",
+        "30",
+        "-H",
+        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+        "-H",
+        "Accept: application/json,text/plain,*/*",
+        "-H",
+        "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8",
+        url,
+    ]
     if proxy_url:
         cmd[1:1] = ["--proxy", proxy_url]
+    if cookie:
+        cmd[1:1] = ["-H", f"Cookie: {cookie}"]
     return subprocess.check_output(cmd, text=True)
 
 
-def _fetch_json(url: str, proxy_url: str | None = None) -> dict[str, Any]:
-    raw = _run_curl(url, proxy_url=proxy_url)
+def _fetch_json(url: str, proxy_url: str | None = None, cookie: str | None = None) -> dict[str, Any]:
+    raw = _run_curl(url, proxy_url=proxy_url, cookie=cookie)
+    text = raw.lstrip()
+    if not text.startswith("{"):
+        lowered = raw.lower()
+        if "cf-chl" in lowered or "just a moment" in lowered or "enable javascript and cookies" in lowered:
+            raise RuntimeError("linux.do blocked by Cloudflare challenge; use a browser-verified cookie or disable linux_do")
+        raise RuntimeError(f"linux.do returned non-JSON response: {raw[:160]}")
     return json.loads(raw)
-
 
 def _strip_html(html: str | None) -> str:
     if not html:

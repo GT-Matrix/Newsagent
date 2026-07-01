@@ -62,7 +62,8 @@
   {
     "id": "producthunt",
     "name": "Product Hunt",
-    "url": "https://www.producthunt.com/feed"
+    "url": "https://www.producthunt.com/feed",
+    "enabled": false
   },
   {
     "id": "mit-tech-review",
