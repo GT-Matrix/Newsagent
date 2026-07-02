@@ -427,6 +427,7 @@ def _load_runtime_env() -> None:
 
 def _reset_classification_outputs(config: Any) -> None:
     keep_names = {"llm_classification_cache.sqlite3", "event_vector_cache.sqlite3"}
+    config.classification.checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     paths = [
         config.classification.output_path,
         config.classification.events_output_path,

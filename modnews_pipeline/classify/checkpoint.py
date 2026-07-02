@@ -36,6 +36,7 @@ def write_outputs(
         encoding="utf-8",
     )
     checkpoint_path = config.checkpoint_path or (config.output_path.parent / "classification_progress.json")
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     checkpoint_payload = {
         "meta": checkpoint_meta or {},
         "items": [item.to_dict() for item in items],
