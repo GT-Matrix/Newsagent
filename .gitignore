@@ -1,6 +1,7 @@
 config.local.json
 output/
 data/output*/
+var/
 __pycache__/
 *.pyc
 .DS_Store
@@ -12,3 +13,5 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 modnews/
+.agent_work/
+runtime/

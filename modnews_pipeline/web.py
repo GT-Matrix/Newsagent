@@ -13,8 +13,15 @@ from typing import Any
 from flask import Flask, Response, jsonify, request
 
 from .config import apply_runtime_overrides, load_config
+from .extractors.registry import registry_from_project
+from .extractors.repair import RepairManager
 from .pipeline import run_pipeline
+from .paths import runtime_paths
 from .progress import BUS, emit, sse
+from .sources import source_config_store
+from .web_extraction.contract import WebSource
+from .web_extraction.job_store import WebJobStore
+from .web_extraction.orchestrator import WebExtractionOrchestrator
 
 
 app = Flask(__name__)
@@ -37,6 +44,180 @@ def state() -> Response:
 @app.get("/api/outputs")
 def outputs() -> Response:
     return jsonify(_output_state())
+
+
+@app.get("/api/source-config")
+def source_config() -> Response:
+    return jsonify(_source_config_store().load())
+
+
+@app.get("/api/runtime-config")
+def runtime_config() -> Response:
+    payload = _source_config_store().load()
+    payload["paths"] = _runtime_paths_payload()
+    return jsonify(payload)
+
+
+@app.patch("/api/runtime-config/steps/<step_id>")
+def update_runtime_step(step_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"ok": True, "config": _source_config_store().update_step(step_id, payload)})
+
+
+@app.patch("/api/runtime-config/classification")
+def update_runtime_classification() -> Response:
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"ok": True, "config": _source_config_store().update_classification(payload)})
+
+
+@app.patch("/api/runtime-config/paper-attach")
+def update_runtime_paper_attach() -> Response:
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"ok": True, "config": _source_config_store().update_paper_attach(payload)})
+
+
+@app.put("/api/source-config/rss")
+def update_rss_sources() -> Response:
+    payload = request.get_json(silent=True) or {}
+    items = payload.get("items")
+    if not isinstance(items, list):
+        return jsonify({"ok": False, "error": "items must be a list"}), 400
+    return jsonify({"ok": True, "config": _source_config_store().update_rss(items)})
+
+
+@app.put("/api/source-config/rss/<source_id>")
+def update_rss_source(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"ok": True, "config": _source_config_store().update_rss_item(source_id, payload)})
+
+
+@app.delete("/api/source-config/rss/<source_id>")
+def delete_rss_source(source_id: str) -> Response:
+    return jsonify({"ok": True, "config": _source_config_store().delete_rss_item(source_id)})
+
+
+@app.patch("/api/source-config/newsnow/<source_id>")
+def update_newsnow_source(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    if not any(key in payload for key in ("enabled", "content_type")):
+        return jsonify({"ok": False, "error": "enabled or content_type is required"}), 400
+    return jsonify({"ok": True, "config": _source_config_store().update_newsnow_item(source_id, payload)})
+
+
+@app.patch("/api/source-config/site-lists/<source_id>")
+def update_site_list_source(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"ok": True, "config": _source_config_store().update_site_list_item(source_id, payload)})
+
+
+@app.get("/api/web-jobs")
+def web_jobs() -> Response:
+    return jsonify({"items": _web_job_store().list()})
+
+
+@app.get("/api/web-jobs/<job_id>")
+def web_job(job_id: str) -> Response:
+    try:
+        return jsonify({"item": _web_job_store().get_dict(job_id, include_events=True)})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+
+
+@app.get("/api/web-jobs/<job_id>/events")
+def web_job_events(job_id: str) -> Response:
+    try:
+        return jsonify({"items": _web_job_store().events(job_id)})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+
+
+@app.post("/api/web-sources/<source_id>/run")
+def run_web_source(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    config = _source_config_store().load()
+    raw = config.get("sources", {}).get("site_lists", {}).get(source_id)
+    if not isinstance(raw, dict):
+        return jsonify({"ok": False, "error": "source not found"}), 404
+    source = WebSource.from_config(source_id, raw)
+    if not source.enabled:
+        return jsonify({"ok": False, "error": "source is disabled"}), 400
+    limit = int(payload.get("limit") or config.get("steps", {}).get("site_lists", {}).get("limit_per_site", 10))
+    scrape_date = str(payload.get("scrape_date") or datetime.now().astimezone().isoformat(timespec="seconds"))
+    job = _web_orchestrator().run_source(source, scrape_date=scrape_date, limit=limit)
+    emit("web_job_done", job_id=job.id, source_id=source_id, state=job.state, item_count=job.item_count)
+    return jsonify({"ok": True, "item": job.to_dict()})
+
+
+@app.get("/api/extractors")
+def extractors() -> Response:
+    registry = _extractor_registry()
+    return jsonify({"items": [record.to_dict() for record in registry.list()]})
+
+
+@app.patch("/api/extractors/<source_id>")
+def update_extractor(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    registry = _extractor_registry()
+    if "enabled" not in payload:
+        return jsonify({"ok": False, "error": "enabled is required"}), 400
+    record = registry.set_enabled(source_id, bool(payload["enabled"]))
+    return jsonify({"ok": True, "item": record.to_dict()})
+
+
+@app.delete("/api/extractors/<source_id>")
+def delete_extractor(source_id: str) -> Response:
+    _extractor_registry().delete(source_id)
+    return jsonify({"ok": True})
+
+
+@app.get("/api/repair-tasks")
+def repair_tasks() -> Response:
+    return jsonify({"items": _repair_manager().list_tasks()})
+
+
+@app.get("/api/repair-tasks/<task_id>")
+def repair_task(task_id: str) -> Response:
+    try:
+        return jsonify({"item": _repair_manager().get_task(task_id)})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+
+
+@app.post("/api/repair-tasks/<task_id>/retry")
+def retry_repair_task(task_id: str) -> Response:
+    try:
+        task = _repair_manager().retry_task(task_id)
+        emit("repair_task_retry", task_id=task.id, source_id=task.source_id, status=task.status)
+        return jsonify({"ok": True, "item": task.to_dict()})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+
+
+@app.delete("/api/repair-tasks/<task_id>")
+def delete_repair_task(task_id: str) -> Response:
+    try:
+        _repair_manager().delete_task(task_id)
+        emit("repair_task_deleted", task_id=task_id)
+        return jsonify({"ok": True})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+
+
+@app.post("/api/repair-tasks")
+def create_repair_task() -> Response:
+    payload = request.get_json(silent=True) or {}
+    source_id = str(payload.get("source_id") or "").strip()
+    if not source_id:
+        return jsonify({"ok": False, "error": "source_id is required"}), 400
+    extractor_id, metadata = _resolve_repair_source(source_id)
+    task = _repair_manager().create_task(
+        source_id=extractor_id,
+        reason=str(payload.get("reason") or "manual repair request"),
+        auto_start=bool(payload.get("auto_start", True)),
+        source_metadata=metadata,
+    )
+    emit("repair_task_created", task_id=task.id, source_id=extractor_id, status=task.status)
+    return jsonify({"ok": True, "item": task.to_dict()})
 
 
 @app.post("/api/cache/clear")
@@ -148,6 +329,28 @@ def _output_state(config: Any | None = None) -> dict[str, Any]:
     return result
 
 
+def _runtime_paths_payload() -> dict[str, str]:
+    paths = runtime_paths(_project_root())
+    return {
+        "runtime_dir": str(paths.runtime_dir),
+        "config_path": str(paths.config_path),
+        "output_dir": str(paths.output_dir),
+        "process_dir": str(paths.process_dir),
+        "cache_dir": str(paths.cache_dir),
+        "agent_work_dir": str(paths.agent_work_dir),
+        "combined_news": str(paths.combined_news_path),
+        "news_with_events": str(paths.news_with_events_path),
+        "events": str(paths.events_path),
+        "discarded_news": str(paths.discarded_news_path),
+        "papers": str(paths.papers_path),
+        "paper_attach_decisions": str(paths.paper_attach_decisions_path),
+        "classification_checkpoint": str(paths.classification_checkpoint_path),
+        "llm_cache": str(paths.llm_cache_path),
+        "embedding_cache": str(paths.embedding_cache_path),
+        "newsnow_cache_dir": str(paths.newsnow_cache_dir),
+    }
+
+
 def _apply_news_mode(config: Any, mode: str) -> None:
     if mode != "mock":
         return
@@ -216,6 +419,40 @@ def _reset_classification_outputs(config: Any) -> None:
         if path and path.exists() and path.name not in keep_names:
             path.unlink()
             emit("output_reset", path=str(path))
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _extractor_registry():
+    return registry_from_project(_project_root())
+
+
+def _repair_manager() -> RepairManager:
+    return RepairManager(_project_root(), _extractor_registry())
+
+
+def _source_config_store():
+    return source_config_store(_project_root())
+
+
+def _web_job_store() -> WebJobStore:
+    return WebJobStore(_project_root())
+
+
+def _web_orchestrator() -> WebExtractionOrchestrator:
+    return WebExtractionOrchestrator(_project_root())
+
+
+def _resolve_repair_source(source_id: str) -> tuple[str, dict[str, Any]]:
+    config = _source_config_store().load()
+    web_sources = config.get("sources", {}).get("site_lists", {})
+    raw = web_sources.get(source_id) if isinstance(web_sources, dict) else None
+    if isinstance(raw, dict):
+        extractor_id = str(raw.get("extractor_id") or source_id)
+        return extractor_id, {"id": source_id, **raw}
+    return source_id, {}
 
 
 def main() -> None:

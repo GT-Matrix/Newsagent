@@ -98,8 +98,8 @@ Available endpoints:
 - `GET /health` or `GET /api/health`: local cache status
 - `GET /api/latest`: lightweight version payload
 - `GET /api/sources`: available cached `newsnow` source ids
-- `GET /api/s?id=hackernews`: one cached `newsnow` source
-- `POST /api/s/entire`: batch read cached `newsnow` sources, body `{"sources":["hackernews","producthunt"]}`
+- `GET /api/s?id=github-trending-today`: one cached `newsnow` source
+- `POST /api/s/entire`: batch read cached `newsnow` sources, body `{"sources":["github-trending-today","aihot"]}`
 - `GET /api/news`: `combined_news.json`
 - `GET /api/news-with-events`: `news_with_events.json`
 - `GET /api/events`: `events.json`
@@ -191,7 +191,7 @@ Each news item uses the normalized shape:
 
 ```json
 {
-  "platform": "sspai",
+  "platform": "github-trending-today",
   "title": "Example title",
   "url": "https://example.com/post/1",
   "pubtime": "2026-06-26T10:00:00+00:00",

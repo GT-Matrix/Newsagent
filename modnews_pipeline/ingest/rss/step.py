@@ -9,6 +9,7 @@ import requests
 
 from modnews_pipeline.context import PipelineContext
 from modnews_pipeline.models import NewsItem, StepResult
+from modnews_pipeline.sources import source_config_store
 
 from ..base import IngestStep
 
@@ -21,7 +22,9 @@ class RssStep(IngestStep):
         if mock_url:
             return _run_via_mock(ctx, mock_url)
 
-        feeds = json.loads(ctx.config.rss_sources_path.read_text(encoding="utf-8"))
+        store = source_config_store(ctx.config.project_root)
+        feeds = store.enabled_rss_sources()
+        limit_per_feed = int(store.load()["steps"]["rss"].get("limit_per_feed", 20))
         items: list[NewsItem] = []
         errors: list[str] = []
 
@@ -33,7 +36,7 @@ class RssStep(IngestStep):
                 resp = ctx.session.get(url, timeout=20)
                 resp.raise_for_status()
                 parsed = feedparser.parse(resp.content)
-                for entry in parsed.entries[: self.options.get("limit_per_feed", 20)]:
+                for entry in parsed.entries[: self.options.get("limit_per_feed", limit_per_feed)]:
                     items.append(
                         NewsItem(
                             platform=feed["id"],

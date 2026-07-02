@@ -12,6 +12,7 @@ from modnews_pipeline.models import EventRecord, NewsItem, PaperItem, StepResult
 from modnews_pipeline.progress import emit
 
 from .arxiv import fetch_arxiv_papers
+from .huggingface import fetch_huggingface_papers
 
 
 def attach_papers_to_events(
@@ -24,10 +25,12 @@ def attach_papers_to_events(
     if not config.enabled:
         return items, events, [], StepResult(step="paper_attach", item_count=0, meta={"enabled": False})
 
-    if config.source != "arxiv":
+    if config.source == "arxiv":
+        papers, fetch_result = fetch_arxiv_papers(ctx, config)
+    elif config.source == "huggingface":
+        papers, fetch_result = fetch_huggingface_papers(ctx, config)
+    else:
         raise ValueError(f"Unsupported paper source: {config.source}")
-
-    papers, fetch_result = fetch_arxiv_papers(ctx, config)
     if not papers or fetch_result.errors:
         return items, events, papers, StepResult(
             step="paper_attach",

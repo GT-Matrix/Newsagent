@@ -17,16 +17,12 @@ AUTHORITY_MEDIA = {
     "the-verge-ai",
     "mit-technology-review",
     "venturebeat",
-    "ars-technica",
     "reuters",
     "wired",
 }
 
 CHINESE_MEDIA = {
     "aibase",
-    "wallstreetcn-news",
-    "cls-depth",
-    "solidot",
     "infoq",
     "jiqizhixin",
     "qbitai",
@@ -35,8 +31,6 @@ CHINESE_MEDIA = {
 COMMUNITY_PLATFORMS = {
     "linux_do",
     "aihot",
-    "hacker-news",
-    "product-hunt",
     "reddit",
     "github-trending",
 }
