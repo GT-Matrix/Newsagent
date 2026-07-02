@@ -154,9 +154,13 @@ class RepairManager:
                     text=True,
                     timeout=1800,
                     check=False,
-                )
-            task.status = "succeeded" if process.returncode == 0 else "failed"
-            if process.returncode != 0:
+            )
+            if process.returncode == 0:
+                result_error = self._validate_final_result(task.result_path)
+                task.status = "failed" if result_error else "succeeded"
+                task.error = result_error
+            else:
+                task.status = "failed"
                 task.error = f"codex exited with code {process.returncode}"
         except Exception as exc:
             task.status = "failed"
@@ -180,22 +184,49 @@ class RepairManager:
             command.extend(["--config", f"model_provider={json.dumps(provider)}"])
         for item in shlex.split(os.environ.get("MODNEWS_CODEX_CONFIG", "")):
             command.extend(["--config", item])
+        bypass_sandbox = _env_bool("MODNEWS_CODEX_BYPASS_SANDBOX", False)
+        if bypass_sandbox:
+            command.append("--dangerously-bypass-approvals-and-sandbox")
         command.extend(
             [
                 "--cd",
                 str(task.work_dir),
                 "--skip-git-repo-check",
-                "--sandbox",
-                os.environ.get("MODNEWS_CODEX_SANDBOX", "workspace-write"),
                 "--json",
                 "--output-last-message",
                 str(task.result_path),
-                "--output-schema",
-                str(task.work_dir / "schema" / "final_message.schema.json"),
-                "Read TASK.md. Fix current/extractor.py until it satisfies the contract and tests, then return structured JSON.",
+                (
+                    "Read TASK.md. Fix current/extractor.py until it satisfies the contract and tests. "
+                    "Your final answer must be exactly one JSON object with keys: "
+                    "status, summary, files_changed, next_steps. "
+                    "Allowed status values: fixed, failed, needs_review, skipped_unrepairable."
+                ),
             ]
         )
+        if not bypass_sandbox:
+            command[command.index("--json") : command.index("--json")] = [
+                "--sandbox",
+                os.environ.get("MODNEWS_CODEX_SANDBOX", "danger-full-access"),
+            ]
         return command
+
+    def _validate_final_result(self, path: Path) -> str | None:
+        if not path.exists():
+            return "codex did not write result.json"
+        try:
+            raw = path.read_text(encoding="utf-8")
+            payload = _extract_json_object(raw)
+        except Exception as exc:
+            return f"invalid final result JSON: {exc}"
+        status = payload.get("status")
+        if status not in {"fixed", "failed", "needs_review", "skipped_unrepairable"}:
+            return "final result status is missing or invalid"
+        if not isinstance(payload.get("summary"), str) or not payload["summary"].strip():
+            return "final result summary is missing"
+        if not isinstance(payload.get("files_changed"), list):
+            return "final result files_changed must be a list"
+        _write_json(path, payload)
+        return None
 
     def _load_task(self, task_id: str) -> RepairTask:
         for raw in self.list_tasks():
@@ -371,6 +402,28 @@ def _read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _extract_json_object(raw: str) -> dict[str, Any]:
+    text = raw.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            raise
+        data = json.loads(text[start : end + 1])
+    if not isinstance(data, dict):
+        raise ValueError("expected JSON object")
+    return data
 
 
 def _now() -> str:
