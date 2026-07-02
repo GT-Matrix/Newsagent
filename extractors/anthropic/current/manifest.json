@@ -1,0 +1,8 @@
+{
+  "id": "anthropic",
+  "status": "enabled",
+  "created_at": "2026-07-02T16:54:32+08:00",
+  "updated_at": "2026-07-02T17:22:15+08:00",
+  "bootstrap": true,
+  "promoted_from_task": "anthropic-20260702165432"
+}

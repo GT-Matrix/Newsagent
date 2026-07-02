@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -32,17 +33,27 @@ class RuntimeConfigStore:
     def load(self) -> dict[str, Any]:
         if not self.path.exists():
             self.save(self._initial_config())
-        data = _read_json(self.path)
+            return _read_json(self.path)
+        original = _read_json(self.path)
+        data = original
         if _needs_migration(data):
             data = self._migrate(data)
         data = _normalize_config(data)
-        self.save(data)
+        if data != original:
+            self.save(data)
         return data
 
     def save(self, data: dict[str, Any]) -> dict[str, Any]:
         data = _normalize_config(data)
         data.setdefault("meta", {})["updated_at"] = _now()
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.path.exists():
+            current = self.path.read_text(encoding="utf-8")
+            next_text = json.dumps(data, ensure_ascii=False, indent=2)
+            if current != next_text:
+                _backup_config(self.path)
+                self.path.write_text(next_text, encoding="utf-8")
+                return data
         self.path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         return data
 
@@ -123,6 +134,12 @@ class RuntimeConfigStore:
                 sites = step.setdefault("sites", [])
                 if isinstance(sites, list) and source_id not in sites:
                     sites.append(source_id)
+        return self.save(data)
+
+    def restore_builtin_sources(self) -> dict[str, Any]:
+        data = self.load()
+        _merge_builtin_rss(data["sources"], self.rss_seed_path)
+        _merge_builtin_newsnow(data["sources"], self.newsnow_seed_path)
         return self.save(data)
 
     def enabled_rss_sources(self) -> list[dict[str, Any]]:
@@ -325,6 +342,52 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     return config
 
 
+def _merge_builtin_rss(sources: dict[str, Any], seed_path: Path) -> None:
+    existing = {
+        row.get("id"): _rss_row(row)
+        for row in sources.get("rss", [])
+        if isinstance(row, dict) and row.get("id")
+    }
+    for row in _read_json(seed_path, default=[]):
+        if not isinstance(row, dict):
+            continue
+        seed = _rss_row(row)
+        if not seed["id"]:
+            continue
+        current = existing.get(seed["id"])
+        if current:
+            seed["enabled"] = current.get("enabled", seed["enabled"])
+            seed["content_type"] = current.get("content_type", seed["content_type"])
+            seed["name"] = current.get("name") or seed["name"]
+            seed["url"] = current.get("url") or seed["url"]
+        existing[seed["id"]] = seed
+    sources["rss"] = sorted(existing.values(), key=lambda item: item["id"])
+
+
+def _merge_builtin_newsnow(sources: dict[str, Any], seed_path: Path) -> None:
+    newsnow = sources.setdefault("newsnow", {})
+    if not isinstance(newsnow, dict):
+        newsnow = {}
+        sources["newsnow"] = newsnow
+    for source_id, meta in _read_json(seed_path, default={}).items():
+        if not isinstance(meta, dict):
+            continue
+        current = newsnow.get(source_id)
+        if not isinstance(current, dict):
+            current = {}
+        newsnow[source_id] = {
+            "enabled": current.get("enabled", not bool(meta.get("disabled") or meta.get("redirect"))),
+            "name": current.get("name") or meta.get("name") or source_id,
+            "title": current.get("title", meta.get("title")),
+            "column": current.get("column") or meta.get("column", ""),
+            "type": current.get("type") or meta.get("type", ""),
+            "home": current.get("home") or meta.get("home", ""),
+            "color": current.get("color") or meta.get("color", ""),
+            "redirect": current.get("redirect", meta.get("redirect")),
+            "content_type": current.get("content_type", "news"),
+        }
+
+
 def _rss_row(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(row.get("id") or "").strip(),
@@ -379,6 +442,13 @@ def _read_json(path: Path, default: Any | None = None) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return default
+
+
+def _backup_config(path: Path) -> None:
+    backup_dir = path.parent / "config.backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().astimezone().strftime("%Y%m%d%H%M%S%f")
+    shutil.copy2(path, backup_dir / f"{path.stem}-{stamp}{path.suffix}")
 
 
 def _now() -> str:

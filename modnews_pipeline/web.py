@@ -76,6 +76,11 @@ def update_runtime_classification() -> Response:
     return jsonify({"ok": True, "config": _source_config_store().update_classification(payload)})
 
 
+@app.post("/api/source-config/restore-builtins")
+def restore_builtin_sources() -> Response:
+    return jsonify({"ok": True, "config": _source_config_store().restore_builtin_sources()})
+
+
 @app.put("/api/source-config/rss")
 def update_rss_sources() -> Response:
     payload = request.get_json(silent=True) or {}
@@ -411,8 +416,13 @@ def _ensure_mock_server(host: str, port: str) -> None:
 
 
 def _load_runtime_env() -> None:
-    env_file = Path(os.environ.get("MODNEWS_ENV_FILE", Path(__file__).resolve().parents[2] / ".env.runtime"))
-    if not env_file.exists():
+    explicit = os.environ.get("MODNEWS_ENV_FILE")
+    candidates = [Path(explicit)] if explicit else [
+        _project_root() / ".env.runtime",
+        _project_root() / "modnews" / ".env.runtime",
+    ]
+    env_file = next((path for path in candidates if path.exists()), None)
+    if env_file is None:
         return
     for raw_line in env_file.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
