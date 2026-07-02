@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import shlex
 import shutil
 import subprocess
 import threading
@@ -136,22 +138,7 @@ class RepairManager:
 
     def run_task(self, task_id: str) -> None:
         task = self._load_task(task_id)
-        command = [
-            "codex",
-            "exec",
-            "--cd",
-            str(task.work_dir),
-            "--sandbox",
-            "workspace-write",
-            "--ask-for-approval",
-            "never",
-            "--json",
-            "--output-last-message",
-            str(task.result_path),
-            "--output-schema",
-            str(task.work_dir / "schema" / "final_message.schema.json"),
-            "Read TASK.md. Fix current/extractor.py until it satisfies the contract and tests, then return structured JSON.",
-        ]
+        command = self._build_codex_command(task)
         task.status = "running"
         task.updated_at = _now()
         task.command = command
@@ -163,6 +150,7 @@ class RepairManager:
                     cwd=task.work_dir,
                     stdout=log,
                     stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
                     text=True,
                     timeout=1800,
                     check=False,
@@ -176,6 +164,38 @@ class RepairManager:
         finally:
             task.updated_at = _now()
             self._save_task(task)
+
+    def _build_codex_command(self, task: RepairTask) -> list[str]:
+        command = ["codex", "exec"]
+        if _env_bool("MODNEWS_CODEX_IGNORE_USER_CONFIG", False):
+            command.append("--ignore-user-config")
+        profile = os.environ.get("MODNEWS_CODEX_PROFILE")
+        if profile:
+            command.extend(["--profile", profile])
+        model = os.environ.get("MODNEWS_CODEX_MODEL")
+        if model:
+            command.extend(["--model", model])
+        provider = os.environ.get("MODNEWS_CODEX_PROVIDER")
+        if provider:
+            command.extend(["--config", f"model_provider={json.dumps(provider)}"])
+        for item in shlex.split(os.environ.get("MODNEWS_CODEX_CONFIG", "")):
+            command.extend(["--config", item])
+        command.extend(
+            [
+                "--cd",
+                str(task.work_dir),
+                "--skip-git-repo-check",
+                "--sandbox",
+                os.environ.get("MODNEWS_CODEX_SANDBOX", "workspace-write"),
+                "--json",
+                "--output-last-message",
+                str(task.result_path),
+                "--output-schema",
+                str(task.work_dir / "schema" / "final_message.schema.json"),
+                "Read TASK.md. Fix current/extractor.py until it satisfies the contract and tests, then return structured JSON.",
+            ]
+        )
+        return command
 
     def _load_task(self, task_id: str) -> RepairTask:
         for raw in self.list_tasks():
@@ -289,6 +309,7 @@ Required contract:
 - `ok: true` requires at least one item.
 - Each item needs `platform`, `title`, `url`, and `scrape_date`.
 - Use `status: "blocked"` and final status `skipped_unrepairable` when the failure is Cloudflare, CAPTCHA, login, rate limiting, or network blocking rather than parser breakage.
+- If live requests are blocked by access policy, stop after documenting the blocker. Do not keep changing selectors just to satisfy live validation.
 
 Useful commands:
 ```bash
@@ -360,3 +381,10 @@ def _optional_str(value: Any) -> str | None:
     if value in (None, ""):
         return None
     return str(value)
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
