@@ -74,8 +74,6 @@ class RuntimeConfigStore:
             "merge_candidate_count",
             "time_window_hours",
             "suspect_mode",
-            "llm",
-            "embedding",
         ):
             if key in patch:
                 target[key] = patch[key]
@@ -271,8 +269,6 @@ def _default_classification() -> dict[str, Any]:
         "merge_candidate_count": 5,
         "time_window_hours": 72,
         "suspect_mode": "discard",
-        "llm": {"model": "qwen-plus", "temperature": 0, "timeout_seconds": 90, "max_retries": 5},
-        "embedding": {"model": "text-embedding-v4", "timeout_seconds": 60},
     }
 
 
@@ -351,6 +347,8 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(classification, dict):
         classification = {}
         config["classification"] = classification
+    classification.pop("llm", None)
+    classification.pop("embedding", None)
     _deep_defaults(classification, _default_classification())
     paper_attach = config.setdefault("paper_attach", {})
     if not isinstance(paper_attach, dict):

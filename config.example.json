@@ -47,16 +47,6 @@
     "event_candidate_count": 5,
     "merge_candidate_count": 5,
     "time_window_hours": 72,
-    "suspect_mode": "discard",
-    "llm": {
-      "model": "qwen-plus",
-      "temperature": 0,
-      "timeout_seconds": 90,
-      "max_retries": 5
-    },
-    "embedding": {
-      "model": "text-embedding-v4",
-      "timeout_seconds": 60
-    }
+    "suspect_mode": "discard"
   }
 }

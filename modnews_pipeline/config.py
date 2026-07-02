@@ -151,9 +151,6 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
         ]
     classification_raw = merged.get("classification", {})
     paper_attach_raw = merged.get("paper_attach", {})
-    llm_raw = classification_raw.get("llm", {})
-    embedding_raw = classification_raw.get("embedding", {})
-
     return PipelineConfig(
         project_root=project_root,
         output_path=paths.combined_news_path,
@@ -194,52 +191,26 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
                 os.environ.get("CLASSIFICATION_SUSPECT_MODE", "discard"),
             ),
             llm=LlmConfig(
-                model=llm_raw.get("model", os.environ.get("LLM_MODEL", "qwen-plus")),
-                base_url=llm_raw.get("base_url", os.environ.get("LLM_BASE_URL")),
-                api_key=llm_raw.get("api_key", os.environ.get("LLM_API_KEY")),
+                model=os.environ.get("LLM_MODEL", "qwen-plus"),
+                base_url=os.environ.get("LLM_BASE_URL"),
+                api_key=os.environ.get("LLM_API_KEY"),
                 cache_path=paths.llm_cache_path,
-                temperature=llm_raw.get("temperature", 0.0),
-                timeout_seconds=llm_raw.get("timeout_seconds", 90),
-                max_retries=llm_raw.get("max_retries", int(os.environ.get("LLM_MAX_RETRIES", "5"))),
-                simulate_cache_stream=llm_raw.get(
-                    "simulate_cache_stream",
-                    _env_bool("CACHE_SIMULATION_ENABLED", False),
-                ),
-                cache_first_token_delay_seconds=float(
-                    llm_raw.get(
-                        "cache_first_token_delay_seconds",
-                        os.environ.get("CACHE_SIMULATION_FIRST_TOKEN_DELAY_SECONDS", "1.0"),
-                    )
-                ),
-                cache_tokens_per_second=float(
-                    llm_raw.get(
-                        "cache_tokens_per_second",
-                        os.environ.get("CACHE_SIMULATION_TOKENS_PER_SECOND", "120"),
-                    )
-                ),
+                temperature=float(os.environ.get("LLM_TEMPERATURE", "0.0")),
+                timeout_seconds=int(os.environ.get("LLM_TIMEOUT_SECONDS", "90")),
+                max_retries=int(os.environ.get("LLM_MAX_RETRIES", "5")),
+                simulate_cache_stream=_env_bool("CACHE_SIMULATION_ENABLED", False),
+                cache_first_token_delay_seconds=float(os.environ.get("CACHE_SIMULATION_FIRST_TOKEN_DELAY_SECONDS", "1.0")),
+                cache_tokens_per_second=float(os.environ.get("CACHE_SIMULATION_TOKENS_PER_SECOND", "120")),
             ),
             embedding=EmbeddingConfig(
-                model=embedding_raw.get("model", os.environ.get("EMBEDDING_MODEL", "text-embedding-v4")),
-                base_url=embedding_raw.get("base_url", os.environ.get("EMBEDDING_BASE_URL")),
-                api_key=embedding_raw.get("api_key", os.environ.get("EMBEDDING_API_KEY")),
+                model=os.environ.get("EMBEDDING_MODEL", "text-embedding-v4"),
+                base_url=os.environ.get("EMBEDDING_BASE_URL"),
+                api_key=os.environ.get("EMBEDDING_API_KEY"),
                 cache_path=paths.embedding_cache_path,
-                timeout_seconds=embedding_raw.get("timeout_seconds", 60),
-                simulate_cache_stream=embedding_raw.get(
-                    "simulate_cache_stream",
-                    _env_bool("CACHE_SIMULATION_ENABLED", False),
-                ),
-                cache_first_token_delay_seconds=float(
-                    embedding_raw.get(
-                        "cache_first_token_delay_seconds",
-                        os.environ.get("CACHE_SIMULATION_FIRST_TOKEN_DELAY_SECONDS", "1.0"),
-                    )
-                ),
-                cache_tokens_per_second=float(
-                    embedding_raw.get(
-                        "cache_tokens_per_second",
-                        os.environ.get("CACHE_SIMULATION_TOKENS_PER_SECOND", "120"),
-                    )
-                ),
+                timeout_seconds=int(os.environ.get("EMBEDDING_TIMEOUT_SECONDS", "60")),
+                simulate_cache_stream=_env_bool("CACHE_SIMULATION_ENABLED", False),
+                cache_first_token_delay_seconds=float(os.environ.get("CACHE_SIMULATION_FIRST_TOKEN_DELAY_SECONDS", "1.0")),
+                cache_tokens_per_second=float(os.environ.get("CACHE_SIMULATION_TOKENS_PER_SECOND", "120")),
             ),
             checkpoint_path=paths.classification_checkpoint_path,
         ),
