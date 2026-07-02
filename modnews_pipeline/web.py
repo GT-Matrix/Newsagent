@@ -76,12 +76,6 @@ def update_runtime_classification() -> Response:
     return jsonify({"ok": True, "config": _source_config_store().update_classification(payload)})
 
 
-@app.patch("/api/runtime-config/paper-attach")
-def update_runtime_paper_attach() -> Response:
-    payload = request.get_json(silent=True) or {}
-    return jsonify({"ok": True, "config": _source_config_store().update_paper_attach(payload)})
-
-
 @app.put("/api/source-config/rss")
 def update_rss_sources() -> Response:
     payload = request.get_json(silent=True) or {}
@@ -369,8 +363,6 @@ def _runtime_paths_payload() -> dict[str, str]:
         "news_with_events": str(paths.news_with_events_path),
         "events": str(paths.events_path),
         "discarded_news": str(paths.discarded_news_path),
-        "papers": str(paths.papers_path),
-        "paper_attach_decisions": str(paths.paper_attach_decisions_path),
         "classification_checkpoint": str(paths.classification_checkpoint_path),
         "llm_cache": str(paths.llm_cache_path),
         "embedding_cache": str(paths.embedding_cache_path),

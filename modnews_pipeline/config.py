@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .paths import runtime_paths
-from .runtime_config import DEFAULT_PAPER_QUERY, runtime_config_store
+from .runtime_config import runtime_config_store
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
@@ -68,22 +68,6 @@ class ClassificationConfig:
 
 
 @dataclass(slots=True)
-class PaperAttachConfig:
-    enabled: bool = True
-    output_path: Path = field(default_factory=lambda: Path("output/arxiv_papers.json"))
-    decisions_output_path: Path = field(default_factory=lambda: Path("output/paper_attach_decisions.json"))
-    source: str = "arxiv"
-    limit: int = 40
-    query: str = (
-        "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML "
-        'OR all:"large language model" OR all:"LLM" OR all:"agent"'
-    )
-    sort_by: str = "submittedDate"
-    sort_order: str = "descending"
-    max_summary_chars: int = 700
-
-
-@dataclass(slots=True)
 class PipelineConfig:
     project_root: Path
     output_path: Path
@@ -96,7 +80,6 @@ class PipelineConfig:
     rss_sources_path: Path
     ingest_steps: list[StepConfig]
     classification: ClassificationConfig
-    paper_attach: PaperAttachConfig
 
 
 def apply_runtime_overrides(
@@ -113,7 +96,6 @@ def apply_runtime_overrides(
         ]
     if disable_classification:
         config.classification.enabled = False
-        config.paper_attach.enabled = False
     return config
 
 
@@ -149,7 +131,6 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
             if isinstance(step, dict) and step.get("type")
         ]
     classification_raw = merged.get("classification", {})
-    paper_attach_raw = merged.get("paper_attach", {})
     return PipelineConfig(
         project_root=project_root,
         output_path=paths.combined_news_path,
@@ -212,17 +193,6 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
             ),
             checkpoint_path=paths.classification_checkpoint_path,
         ),
-        paper_attach=PaperAttachConfig(
-            enabled=paper_attach_raw.get("enabled", True),
-            output_path=paths.papers_path,
-            decisions_output_path=paths.paper_attach_decisions_path,
-            source=paper_attach_raw.get("source", "arxiv"),
-            limit=int(paper_attach_raw.get("limit", 40)),
-            query=paper_attach_raw.get("query", DEFAULT_PAPER_QUERY),
-            sort_by=paper_attach_raw.get("sort_by", "submittedDate"),
-            sort_order=paper_attach_raw.get("sort_order", "descending"),
-            max_summary_chars=int(paper_attach_raw.get("max_summary_chars", 700)),
-        ),
     )
 
 
@@ -243,7 +213,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 def _merge_runtime_override(runtime_raw: dict[str, Any], override_raw: dict[str, Any]) -> dict[str, Any]:
     merged = json.loads(json.dumps(runtime_raw, ensure_ascii=False))
-    for key in ("steps", "classification", "paper_attach"):
+    for key in ("steps", "classification"):
         if isinstance(override_raw.get(key), dict):
             _deep_update(merged.setdefault(key, {}), override_raw[key])
     return merged

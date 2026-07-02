@@ -39,14 +39,6 @@ class RuntimePaths:
         return self.output_dir / "discarded_news.json"
 
     @property
-    def papers_path(self) -> Path:
-        return self.output_dir / "papers.json"
-
-    @property
-    def paper_attach_decisions_path(self) -> Path:
-        return self.process_dir / "paper_attach_decisions.json"
-
-    @property
     def classification_checkpoint_path(self) -> Path:
         return self.process_dir / "classification_progress.json"
 

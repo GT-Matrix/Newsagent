@@ -7,7 +7,6 @@ from .config import PipelineConfig, load_config
 from .context import PipelineContext
 from .ingest import run_ingest
 from .models import EventRecord, NewsItem, PipelineResult
-from .papers import attach_papers_to_events
 from .progress import emit
 
 
@@ -23,31 +22,15 @@ def run_pipeline(config: PipelineConfig) -> PipelineResult:
     classified_items, events, classify_result = run_classification(ctx, all_items, config.classification)
     emit("step_done", step="classification", stage="pipeline", item_count=len(classified_items), event_count=len(events))
 
-    emit("step_start", step="paper_attach", stage="pipeline", event_count=len(events))
-    classified_items, events, papers, paper_result = attach_papers_to_events(
-        ctx,
-        classified_items,
-        events,
-        config.classification,
-        config.paper_attach,
-    )
-    emit(
-        "step_done",
-        step="paper_attach",
-        stage="pipeline",
-        item_count=len(classified_items),
-        event_count=len(events),
-        paper_count=len(papers),
-    )
     _write_classification_outputs(config, classified_items, events)
 
     output = PipelineResult(
         scrape_date=ctx.scrape_date,
         items=classified_items,
         events=events,
-        steps=[*ingest_results, classify_result, paper_result],
+        steps=[*ingest_results, classify_result],
         output_path=config.output_path,
-        papers=papers,
+        papers=[],
     )
     config.output_path.write_text(
         json.dumps(output.to_dict(), ensure_ascii=False, indent=2),

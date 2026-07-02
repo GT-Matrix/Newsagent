@@ -9,12 +9,6 @@ from typing import Any
 from .paths import runtime_paths
 
 
-DEFAULT_PAPER_QUERY = (
-    "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML "
-    'OR all:"large language model" OR all:"LLM" OR all:"agent"'
-)
-
-
 @dataclass(slots=True)
 class RuntimeConfigStore:
     project_root: Path
@@ -75,14 +69,6 @@ class RuntimeConfigStore:
             "time_window_hours",
             "suspect_mode",
         ):
-            if key in patch:
-                target[key] = patch[key]
-        return self.save(data)
-
-    def update_paper_attach(self, patch: dict[str, Any]) -> dict[str, Any]:
-        data = self.load()
-        target = data.setdefault("paper_attach", {})
-        for key in ("enabled", "source", "limit", "query", "sort_by", "sort_order", "max_summary_chars"):
             if key in patch:
                 target[key] = patch[key]
         return self.save(data)
@@ -193,7 +179,6 @@ class RuntimeConfigStore:
             },
             "steps": _default_steps(),
             "classification": _default_classification(),
-            "paper_attach": _default_paper_attach(),
             "sources": {
                 "rss": rss_rows,
                 "newsnow": newsnow_sources,
@@ -211,7 +196,6 @@ class RuntimeConfigStore:
             },
             "steps": _default_steps(),
             "classification": _default_classification(),
-            "paper_attach": _default_paper_attach(),
             "sources": {"rss": [], "newsnow": {}, "site_lists": _default_site_lists()},
         }
         if isinstance(data.get("steps"), dict):
@@ -220,8 +204,6 @@ class RuntimeConfigStore:
                     base["steps"].setdefault(key, {}).update(value)
         if isinstance(data.get("classification"), dict):
             base["classification"].update(_strip_path_keys(data["classification"]))
-        if isinstance(data.get("paper_attach"), dict):
-            base["paper_attach"].update(_strip_path_keys(data["paper_attach"]))
         sources = data.get("sources")
         if isinstance(sources, dict):
             if isinstance(sources.get("rss"), list):
@@ -262,7 +244,6 @@ def _default_steps() -> dict[str, Any]:
             "sites": [],
             "limit_per_site": 10,
         },
-        "paper_attach": {"enabled": True, "source": "huggingface", "limit": 40},
     }
 
 
@@ -278,24 +259,16 @@ def _default_classification() -> dict[str, Any]:
     }
 
 
-def _default_paper_attach() -> dict[str, Any]:
-    return {
-        "enabled": True,
-        "source": "huggingface",
-        "limit": 40,
-        "query": DEFAULT_PAPER_QUERY,
-        "sort_by": "submittedDate",
-        "sort_order": "descending",
-        "max_summary_chars": 700,
-    }
-
-
 def _default_site_lists() -> dict[str, Any]:
     return {}
 
 
 def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
-    config = dict(data)
+    config = {
+        key: data[key]
+        for key in ("version", "meta", "steps", "classification", "sources")
+        if key in data
+    }
     config["version"] = 2
     meta = config.setdefault("meta", {})
     if not isinstance(meta, dict):
@@ -307,6 +280,8 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(steps, dict):
         steps = {}
         config["steps"] = steps
+    steps = {key: value for key, value in steps.items() if key in _default_steps()}
+    config["steps"] = steps
     for key, value in _default_steps().items():
         row = steps.setdefault(key, {})
         if isinstance(row, dict):
@@ -319,11 +294,6 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     classification.pop("llm", None)
     classification.pop("embedding", None)
     _deep_defaults(classification, _default_classification())
-    paper_attach = config.setdefault("paper_attach", {})
-    if not isinstance(paper_attach, dict):
-        paper_attach = {}
-        config["paper_attach"] = paper_attach
-    _deep_defaults(paper_attach, _default_paper_attach())
     sources = config.setdefault("sources", {})
     if not isinstance(sources, dict):
         sources = {}
@@ -366,7 +336,7 @@ def _rss_row(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _needs_migration(data: dict[str, Any]) -> bool:
-    return data.get("version") != 2 or "classification" not in data or "paper_attach" not in data or "sources" not in data
+    return data.get("version") != 2 or "classification" not in data or "sources" not in data
 
 
 def _strip_path_keys(data: dict[str, Any]) -> dict[str, Any]:
@@ -385,7 +355,6 @@ def _editable_step_keys(step_id: str) -> set[str]:
         "rss": {"enabled", "limit_per_feed"},
         "newsnow": {"enabled", "include_all", "columns", "limit_per_source", "retries", "retry_delay"},
         "site_lists": {"enabled", "sites", "limit_per_site"},
-        "paper_attach": {"enabled", "source", "limit"},
     }.get(step_id, {"enabled"})
 
 
