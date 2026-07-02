@@ -10,6 +10,7 @@ OFFICIAL_PLATFORMS = {
     "meta-ai",
     "huggingface",
     "stanford_hai",
+    "arxiv",
 }
 
 AUTHORITY_MEDIA = {

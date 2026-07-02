@@ -4,7 +4,8 @@ import hashlib
 import json
 import math
 import sqlite3
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -14,11 +15,18 @@ from modnews_pipeline.config import EmbeddingConfig
 from modnews_pipeline.models import EventRecord, NewsItem
 from modnews_pipeline.progress import emit, new_request_id, simulate_cached_latency
 
+_VECTOR_CACHE_LOCK = threading.Lock()
+
 
 @dataclass(slots=True)
 class EventVectorRetriever:
     config: EmbeddingConfig
     session: requests.Session
+    _memory_cache: dict[str, list[float]] = field(default_factory=dict)
+    _memory_lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def embed_text_for_clustering(self, text: str) -> list[float]:
+        return self._embed_text(text)
 
     def search(
         self,
@@ -67,9 +75,17 @@ class EventVectorRetriever:
         return [event for _, event in scored[:limit]]
 
     def _embed_text(self, text: str) -> list[float]:
+        memory_key = self._cache_key(text)
+        with self._memory_lock:
+            memory_cached = self._memory_cache.get(memory_key)
+        if memory_cached is not None:
+            return memory_cached
+
         request_id = new_request_id("embedding")
         cached = self._read_cache(text)
         if cached is not None:
+            with self._memory_lock:
+                self._memory_cache[memory_key] = cached
             emit(
                 "embedding_cache_hit",
                 request_id=request_id,
@@ -108,6 +124,8 @@ class EventVectorRetriever:
         response.raise_for_status()
         payload = response.json()
         vector = payload["data"][0]["embedding"]
+        with self._memory_lock:
+            self._memory_cache[memory_key] = vector
         self._write_cache(text, vector)
         emit(
             "embedding_request_done",
@@ -125,30 +143,32 @@ class EventVectorRetriever:
     def _read_cache(self, text: str) -> list[float] | None:
         if not self.config.cache_path:
             return None
-        self._ensure_cache()
         key = self._cache_key(text)
-        with sqlite3.connect(self.config.cache_path) as conn:
-            row = conn.execute("SELECT vector_json FROM vector_cache WHERE cache_key = ?", (key,)).fetchone()
+        with _VECTOR_CACHE_LOCK:
+            self._ensure_cache()
+            with sqlite3.connect(self.config.cache_path) as conn:
+                row = conn.execute("SELECT vector_json FROM vector_cache WHERE cache_key = ?", (key,)).fetchone()
         return json.loads(row[0]) if row else None
 
     def _write_cache(self, text: str, vector: list[float]) -> None:
         if not self.config.cache_path:
             return
-        self._ensure_cache()
         key = self._cache_key(text)
-        with sqlite3.connect(self.config.cache_path) as conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO vector_cache (cache_key, model, text_hash, vector_json)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    key,
-                    self.config.model,
-                    hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                    json.dumps(vector, ensure_ascii=False),
-                ),
-            )
+        with _VECTOR_CACHE_LOCK:
+            self._ensure_cache()
+            with sqlite3.connect(self.config.cache_path) as conn:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO vector_cache (cache_key, model, text_hash, vector_json)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        key,
+                        self.config.model,
+                        hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                        json.dumps(vector, ensure_ascii=False),
+                    ),
+                )
 
     def _ensure_cache(self) -> None:
         assert self.config.cache_path is not None

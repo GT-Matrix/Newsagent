@@ -127,7 +127,10 @@ def assign_item_to_event(entry: PreparedItem, state: EventState, confidence: flo
     if record.confidence is None or (confidence is not None and confidence > record.confidence):
         record.confidence = confidence
     if entry.pubtime:
+        first = parse_datetime(record.first_pubtime)
         latest = parse_datetime(record.latest_pubtime)
+        if first is None or entry.pubtime < first:
+            record.first_pubtime = entry.pubtime.isoformat()
         if latest is None or entry.pubtime > latest:
             record.latest_pubtime = entry.pubtime.isoformat()
 
@@ -272,6 +275,10 @@ def _merge_event_records(target: EventRecord, source: EventRecord) -> None:
     target.key_entities = sorted(set(target.key_entities) | set(source.key_entities))
     if source.confidence is not None and (target.confidence is None or source.confidence > target.confidence):
         target.confidence = source.confidence
+    first_left = parse_datetime(target.first_pubtime)
+    first_right = parse_datetime(source.first_pubtime)
+    if first_right and (first_left is None or first_right < first_left):
+        target.first_pubtime = source.first_pubtime
     latest_left = parse_datetime(target.latest_pubtime)
     latest_right = parse_datetime(source.latest_pubtime)
     if latest_right and (latest_left is None or latest_right > latest_left):

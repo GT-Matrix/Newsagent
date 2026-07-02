@@ -23,6 +23,8 @@ EVENT_TYPE_ALIASES = {
     "投资": "funding",
     "收购": "acquisition",
     "research": "research",
+    "paper": "research",
+    "arxiv": "research",
     "AI研究": "research",
     "技术突破": "research",
     "科研资助": "research",

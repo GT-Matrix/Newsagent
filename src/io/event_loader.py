@@ -36,6 +36,8 @@ def load_processed_candidates(path: Path) -> list[EventCandidate]:
         if warnings:
             original["_validation_warnings"] = warnings
 
+        if item.get("is_duplicate") is True:
+            continue
         event_id = str(item.get("event_id") or f"event_{index:04d}")
         source_items = source_map.get(event_id, [])
         source_news_ids = as_int_list(item.get("source_news_ids"))

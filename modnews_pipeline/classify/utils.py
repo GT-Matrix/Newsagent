@@ -45,6 +45,7 @@ def event_payload(event: EventRecord) -> dict:
         "member_count": event.member_count,
         "platforms": event.platforms,
         "latest_pubtime": event.latest_pubtime,
+        "first_pubtime": event.first_pubtime,
         "representative_titles": event.representative_titles,
     }
 

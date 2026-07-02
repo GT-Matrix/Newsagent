@@ -37,8 +37,8 @@
     "output_path": "output/news_with_events.json",
     "events_output_path": "output/events.json",
     "discarded_output_path": "output/discarded_news.json",
-    "batch_size": 25,
-    "batch_concurrency": 8,
+    "batch_size": 40,
+    "batch_concurrency": 20,
     "event_candidate_count": 5,
     "merge_candidate_count": 5,
     "time_window_hours": 72,
@@ -56,5 +56,22 @@
       "cache_path": "output/event_vector_cache.sqlite3",
       "timeout_seconds": 60
     }
+  },
+  "paper_attach": {
+    "enabled": true,
+    "source": "arxiv",
+    "limit": 40,
+    "query": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML OR all:\"large language model\" OR all:\"LLM\" OR all:\"agent\"",
+    "sort_by": "submittedDate",
+    "sort_order": "descending",
+    "output_path": "output/arxiv_papers.json",
+    "decisions_output_path": "output/paper_attach_decisions.json",
+    "max_summary_chars": 700
+  },
+  "history_dedupe": {
+    "enabled": true,
+    "history_path": "output/event_history.json",
+    "lookback_days": 14,
+    "similarity_threshold": 0.72
   }
 }

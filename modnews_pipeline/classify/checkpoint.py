@@ -53,6 +53,10 @@ def load_resume_state(checkpoint_path: Path | None, items: list[NewsItem]) -> Re
     if not checkpoint_path or not checkpoint_path.exists():
         return ResumeState(items=items, events=[], discarded=[], stage="started")
     payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    meta = payload.get("meta", {})
+    stage = str(meta.get("stage", "started"))
+    if stage not in {"started", "after_clustered_event_extraction"}:
+        return ResumeState(items=items, events=[], discarded=[], stage="started")
     rows = payload.get("items", [])
     restored_items = [
         NewsItem(
@@ -83,12 +87,16 @@ def load_resume_state(checkpoint_path: Path | None, items: list[NewsItem]) -> Re
                 platforms=row.get("platforms") or [],
                 latest_pubtime=row.get("latest_pubtime"),
                 representative_titles=row.get("representative_titles") or [],
+                first_pubtime=row.get("first_pubtime"),
                 confidence=normalize_confidence(row.get("confidence")),
                 event_summary=row.get("event_summary"),
                 event_type=clean_event_type(row.get("event_type")),
                 key_entities=row.get("key_entities") or [],
                 source_news_ids=row.get("source_news_ids") or [],
                 last_llm_updated_at=row.get("last_llm_updated_at"),
+                is_duplicate=bool(row.get("is_duplicate", False)),
+                duplicate_of_event_id=row.get("duplicate_of_event_id"),
+                first_seen_date=row.get("first_seen_date"),
             )
         )
         for row in payload.get("events", [])
@@ -103,12 +111,11 @@ def load_resume_state(checkpoint_path: Path | None, items: list[NewsItem]) -> Re
         )
         for row in payload.get("discarded", [])
     ]
-    meta = payload.get("meta", {})
     return ResumeState(
         items=restored_items,
         events=restored_events,
         discarded=discarded,
-        stage=str(meta.get("stage", "started")),
+        stage=stage,
         processed_candidates=int(meta.get("processed_candidates") or 0),
     )
 
