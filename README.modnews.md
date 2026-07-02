@@ -21,7 +21,6 @@ src/modnews_pipeline/
 │   ├── base.py
 │   ├── rss/
 │   ├── newsnow/
-│   ├── linux_do/
 │   └── site_lists/
 └── classify/
     ├── article.py
@@ -72,8 +71,7 @@ Current env variables:
 - `EMBEDDING_MODEL=...`
 - `EMBEDDING_BASE_URL=...`
 - `EMBEDDING_API_KEY=...`
-- `CLASSIFICATION_SUSPECT_MODE=discard|article`
-- `CLASSIFICATION_BATCH_CONCURRENCY=8`
+- `CLASSIFICATION_BATCH_CONCURRENCY=20`
 - `SOURCE_LAB_PROXY=...`
 
 When `NEWS_MODE=mock`, the helper script auto-starts the mock server if needed and routes all news-source ingestion to local mock endpoints.
@@ -99,14 +97,13 @@ Available endpoints:
 - `GET /health` or `GET /api/health`: local cache status
 - `GET /api/latest`: lightweight version payload
 - `GET /api/sources`: available cached `newsnow` source ids
-- `GET /api/s?id=hackernews`: one cached `newsnow` source
-- `POST /api/s/entire`: batch read cached `newsnow` sources, body `{"sources":["hackernews","producthunt"]}`
+- `GET /api/s?id=github-trending-today`: one cached `newsnow` source
+- `POST /api/s/entire`: batch read cached `newsnow` sources, body `{"sources":["github-trending-today","aihot"]}`
 - `GET /api/news`: `combined_news.json`
 - `GET /api/news-with-events`: `news_with_events.json`
 - `GET /api/events`: `events.json`
 - `GET /api/rss`: `rss_items` snapshot
 - `GET /api/site-lists`: `site_lists_items` snapshot
-- `GET /api/linux-do`: `linux_do_items` snapshot
 
 Bundled snapshot files:
 
@@ -115,7 +112,6 @@ Bundled snapshot files:
 - `mock_data/events.snapshot.json`
 - `mock_data/rss_items.snapshot.json`
 - `mock_data/site_lists_items.snapshot.json`
-- `mock_data/linux_do_items.snapshot.json`
 - `mock_data/newsnow/*.json`
 
 Common query params:
@@ -139,17 +135,16 @@ config = build_config(
         "ingest_steps": [
             {"type": "rss", "enabled": True},
             {"type": "newsnow", "enabled": True, "columns": ["tech", "finance"]},
-            {"type": "linux_do", "enabled": True, "limit": 30, "skip_pinned": True},
             {
                 "type": "site_lists",
                 "enabled": True,
-                "sites": ["anthropic", "aibase", "stanford_hai"],
-                    "limit_per_site": 10,
+                "sites": [],
+                "limit_per_site": 10,
             },
         ],
         "classification": {
           "enabled": True,
-          "batch_size": 25,
+          "batch_size": 40,
           "event_candidate_count": 5,
           "merge_candidate_count": 5,
           "llm": {
@@ -176,23 +171,13 @@ Default output files:
 
 `newsnow` will fetch live API data first and can fall back to `mock_data/newsnow/` when configured.
 
-`linux_do` fetches the topic list from the `linux.do` News category JSON endpoint and maps each topic into the unified item schema using `created_at` as `pubtime`.
-
-`site_lists` is a lightweight HTML listing step for sources that do not expose a clean RSS feed in practice. It currently includes `anthropic`, `aibase`, and `stanford_hai`.
-
-Minimal linux.do test scraper:
-
-```bash
-uv run modnews-linux-do
-```
-
-This writes the category topic list JSON to `output/linux_do/`.
+`site_lists` runs managed extractors configured in `runtime/config.json`. Extractor source code lives under `extractors/<source_id>/current/`.
 
 Each news item uses the normalized shape:
 
 ```json
 {
-  "platform": "sspai",
+  "platform": "github-trending-today",
   "title": "Example title",
   "url": "https://example.com/post/1",
   "pubtime": "2026-06-26T10:00:00+00:00",
@@ -234,15 +219,13 @@ Each event record looks like:
 
 ## Classification
 
-Current classification step is an LLM-driven stage.
+Current classification step is an LLM-driven clustered stage.
 
-- Every title is sent to the LLM in batches of 25; title batches can run concurrently
-- The LLM marks each item as `candidate`, `suspect`, or `discard`
-- `suspect` items fetch article excerpts from the beginning, middle, and end before a second LLM review
-- Candidate events are recalled with local SQLite-cached vectors plus a time-window filter
-- One news item plus up to 5 candidate events are sent to the LLM for `assign`, `create`, or `discard`
-- Similar event pairs get a final LLM merge check
-- `CLASSIFICATION_SUSPECT_MODE=discard` skips article fetching and discards suspected items
+- Every title is embedded, clustered locally, and sent to the LLM in clustered batches of 40
+- Each title-cluster LLM call directly outputs AI event records plus suspected AI items; unrelated items are omitted
+- `discarded_news.json` contains suspected items for separate review, not every unrelated title
+- Event labels and summaries are embedded, clustered locally, and sent to the LLM in clustered batches of 40 for one merge pass
+- Title extraction and event merge LLM calls both use `batch_concurrency`, defaulting to 20
 
 `event_type` is fixed to:
 `model`, `product`, `research`, `infrastructure`, `hardware`, `funding`, `partnership`, `policy`, `safety`, `security`, `open_source`, `company`, `acquisition`, `litigation`, `application`, `benchmark`, `other`.
@@ -254,11 +237,10 @@ Minimal config for an OpenAI-compatible chat endpoint:
 ```json
 {
   "classification": {
-    "batch_size": 25,
-    "batch_concurrency": 8,
+    "batch_size": 40,
+    "batch_concurrency": 20,
     "event_candidate_count": 5,
     "merge_candidate_count": 5,
-    "suspect_mode": "discard",
     "llm": {
       "model": "qwen-plus",
       "base_url": "https://api.openai.com/v1",

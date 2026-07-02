@@ -9,6 +9,7 @@ from typing import Any
 
 from modnews_pipeline.context import PipelineContext
 from modnews_pipeline.models import NewsItem, StepResult
+from modnews_pipeline.sources import source_config_store
 
 from ..base import IngestStep
 
@@ -19,13 +20,13 @@ class NewsNowStep(IngestStep):
     step_name = "newsnow"
 
     def run(self, ctx: PipelineContext) -> tuple[list[NewsItem], StepResult]:
-        sources = _load_sources(
-            ctx.config.newsnow_sources_path,
-            columns=self.options.get("columns", ["tech", "finance"]),
-            include_all=self.options.get("include_all", False),
-        )
-        retries = int(self.options.get("retries", 2))
-        retry_delay = float(self.options.get("retry_delay", 1.0))
+        store = source_config_store(ctx.config.project_root)
+        source_config = store.load()
+        step_config = source_config["steps"]["newsnow"]
+        sources = store.enabled_newsnow_sources()
+        retries = int(self.options.get("retries", step_config.get("retries", 2)))
+        retry_delay = float(self.options.get("retry_delay", step_config.get("retry_delay", 1.0)))
+        limit_per_source = int(self.options.get("limit_per_source", step_config.get("limit_per_source", 50)))
         items: list[NewsItem] = []
         errors: list[str] = []
 
@@ -33,7 +34,7 @@ class NewsNowStep(IngestStep):
             api_url = f"{ctx.config.newsnow_api_url}?id={source['id']}&latest"
             try:
                 payload = _fetch_payload(ctx, api_url, retries=retries, retry_delay=retry_delay)
-                for row in payload.get("items", [])[: self.options.get("limit_per_source", 50)]:
+                for row in payload.get("items", [])[:limit_per_source]:
                     items.append(
                         NewsItem(
                             platform=source["id"],
@@ -48,7 +49,7 @@ class NewsNowStep(IngestStep):
                 if cache_rows is None:
                     errors.append(f"{source['id']}: {exc}")
                     continue
-                for row in cache_rows[: self.options.get("limit_per_source", 50)]:
+                for row in cache_rows[:limit_per_source]:
                     items.append(
                         NewsItem(
                             platform=source["id"],
@@ -72,21 +73,6 @@ class NewsNowStep(IngestStep):
             output_path=str(output_path),
             errors=errors,
         )
-
-
-def _load_sources(path: Path, columns: list[str], include_all: bool) -> list[dict[str, str]]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    selected: list[dict[str, str]] = []
-    allowed = set(columns)
-    for source_id, meta in data.items():
-        if not isinstance(meta, dict):
-            continue
-        if meta.get("redirect"):
-            continue
-        if not include_all and meta.get("column") not in allowed:
-            continue
-        selected.append({"id": source_id, "column": meta.get("column", "")})
-    return sorted(selected, key=lambda item: item["id"])
 
 
 def _fetch_payload(

@@ -128,9 +128,7 @@ class LlmClient:
             stream=True,
         )
         if response.status_code >= 400:
-            if response.status_code in {400, 404, 415, 422}:
-                return self._request_content_without_stream(url, messages)
-            response.raise_for_status()
+            return self._request_content_without_stream(url, messages)
         chunks: list[str] = []
         non_stream_lines: list[str] = []
         saw_stream = False
@@ -237,6 +235,7 @@ class LlmClient:
 
 
 
+
 def _retry_delay_seconds(exc: Exception, attempt: int) -> float:
     response = getattr(exc, "response", None)
     retry_after = None
@@ -250,8 +249,6 @@ def _retry_delay_seconds(exc: Exception, attempt: int) -> float:
     status_code = getattr(response, "status_code", None)
     base = 8.0 if status_code in {429, 500, 502, 503, 504} else 2.0
     return min(base * (2 ** max(attempt - 1, 0)), 90.0)
-
-
 def _parse_json_content(content: Any) -> dict[str, Any]:
     if isinstance(content, dict):
         return content

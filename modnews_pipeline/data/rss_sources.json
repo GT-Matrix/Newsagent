@@ -55,17 +55,6 @@
     "url": "https://www.wired.com/feed/tag/ai/latest/rss"
   },
   {
-    "id": "ars-technica",
-    "name": "ArsTechnica IT",
-    "url": "https://feeds.arstechnica.com/arstechnica/index"
-  },
-  {
-    "id": "producthunt",
-    "name": "Product Hunt",
-    "url": "https://www.producthunt.com/feed",
-    "enabled": false
-  },
-  {
     "id": "mit-tech-review",
     "name": "MIT Technology Review AI",
     "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/"

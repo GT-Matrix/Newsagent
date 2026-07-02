@@ -1,76 +1,33 @@
 {
-  "output_path": "output/combined_news.json",
-  "proxy_url": "http://127.0.0.1:7897",
-  "newsnow_cache_dir": "mock_data/newsnow",
-  "ingest_steps": [
-    {
-      "type": "rss",
-      "enabled": true
+  "steps": {
+    "rss": {
+      "enabled": true,
+      "limit_per_feed": 20
     },
-    {
-      "type": "newsnow",
+    "newsnow": {
       "enabled": true,
       "columns": [
         "tech",
         "finance"
       ],
-      "include_all": false
+      "include_all": false,
+      "limit_per_source": 50,
+      "retries": 2,
+      "retry_delay": 1.0
     },
-    {
-      "type": "linux_do",
+    "site_lists": {
       "enabled": true,
-      "limit": 30,
-      "skip_pinned": true
-    },
-    {
-      "type": "site_lists",
-      "enabled": true,
-      "sites": [
-        "anthropic",
-        "aibase",
-        "stanford_hai"
-      ],
+      "sites": [],
       "limit_per_site": 10
     }
-  ],
+  },
   "classification": {
     "enabled": true,
-    "output_path": "output/news_with_events.json",
-    "events_output_path": "output/events.json",
-    "discarded_output_path": "output/discarded_news.json",
     "batch_size": 40,
     "batch_concurrency": 20,
     "event_candidate_count": 5,
     "merge_candidate_count": 5,
     "time_window_hours": 72,
-    "suspect_mode": "discard",
-    "llm": {
-      "model": "qwen-plus",
-      "cache_path": "output/llm_classification_cache.sqlite3",
-      "temperature": 0,
-      "timeout_seconds": 90
-    },
-    "embedding": {
-      "model": "text-embedding-v4",
-      "cache_path": "output/event_vector_cache.sqlite3",
-      "timeout_seconds": 60
-    }
-  },
-  "paper_attach": {
-    "enabled": true,
-    "source": "arxiv",
-    "limit": 40,
-    "query": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML OR all:\"large language model\" OR all:\"LLM\" OR all:\"agent\"",
-    "sort_by": "submittedDate",
-    "sort_order": "descending",
-    "output_path": "output/arxiv_papers.json",
-    "decisions_output_path": "output/paper_attach_decisions.json",
-    "max_summary_chars": 700
-  },
-  "history_dedupe": {
-    "enabled": true,
-    "history_path": "output/event_history.json",
-    "lookback_days": 14,
-    "similarity_threshold": 0.72
+    "suspect_mode": "discard"
   }
 }

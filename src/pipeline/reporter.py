@@ -261,7 +261,7 @@ def _is_community_only(event: EnrichedEvent) -> bool:
     platforms = {platform.lower() for platform in event.platforms if platform}
     if not platforms:
         return False
-    community_hints = {"linux_do", "hacker", "product", "reddit", "github", "aihot"}
+    community_hints = {"hacker", "product", "reddit", "github", "aihot"}
     return all(any(hint in platform for hint in community_hints) for platform in platforms)
 
 

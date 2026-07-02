@@ -34,7 +34,6 @@ CHINESE_MEDIA = {
 }
 
 COMMUNITY_PLATFORMS = {
-    "linux_do",
     "aihot",
     "hacker-news",
     "product-hunt",
