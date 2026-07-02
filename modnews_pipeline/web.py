@@ -207,6 +207,19 @@ def retry_repair_task(task_id: str) -> Response:
         return jsonify({"error": "not found"}), 404
 
 
+@app.post("/api/repair-tasks/<task_id>/promote")
+def promote_repair_task(task_id: str) -> Response:
+    try:
+        task = _repair_manager().promote_task(task_id)
+        record = _extractor_registry().get(task.source_id)
+        emit("repair_task_promoted", task_id=task.id, source_id=task.source_id, status=task.status)
+        return jsonify({"ok": True, "item": task.to_dict(), "extractor": record.to_dict()})
+    except KeyError:
+        return jsonify({"error": "not found"}), 404
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
 @app.delete("/api/repair-tasks/<task_id>")
 def delete_repair_task(task_id: str) -> Response:
     try:

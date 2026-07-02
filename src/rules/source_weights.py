@@ -3,13 +3,10 @@ from __future__ import annotations
 
 OFFICIAL_PLATFORMS = {
     "openai",
-    "anthropic",
     "google-deepmind",
     "nvidia",
     "microsoft",
     "meta-ai",
-    "huggingface",
-    "stanford_hai",
 }
 
 AUTHORITY_MEDIA = {
@@ -22,7 +19,6 @@ AUTHORITY_MEDIA = {
 }
 
 CHINESE_MEDIA = {
-    "aibase",
     "infoq",
     "jiqizhixin",
     "qbitai",

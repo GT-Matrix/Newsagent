@@ -259,7 +259,7 @@ def _default_steps() -> dict[str, Any]:
         },
         "site_lists": {
             "enabled": True,
-            "sites": ["huggingface-papers"],
+            "sites": [],
             "limit_per_site": 10,
         },
         "paper_attach": {"enabled": True, "source": "huggingface", "limit": 40},
@@ -291,17 +291,7 @@ def _default_paper_attach() -> dict[str, Any]:
 
 
 def _default_site_lists() -> dict[str, Any]:
-    return {
-        "huggingface-papers": {
-            "enabled": True,
-            "name": "Hugging Face Trending Papers",
-            "url": "https://huggingface.co/papers/trending",
-            "content_type": "paper",
-            "extractor_id": "huggingface",
-            "tags": ["papers", "trending"],
-            "repair_policy": {"enabled": True, "max_attempts_before_repair": 3, "auto_start": True},
-        },
-    }
+    return {}
 
 
 def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
@@ -317,7 +307,6 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(steps, dict):
         steps = {}
         config["steps"] = steps
-    steps.pop("linux_do", None)
     for key, value in _default_steps().items():
         row = steps.setdefault(key, {})
         if isinstance(row, dict):
@@ -351,8 +340,6 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(site_lists, dict):
         site_lists = {}
         sources["site_lists"] = site_lists
-    for legacy_source_id in ("anthropic", "aibase", "stanford_hai"):
-        site_lists.pop(legacy_source_id, None)
     for source_id, default in _default_site_lists().items():
         row = site_lists.setdefault(source_id, {})
         if isinstance(row, dict):

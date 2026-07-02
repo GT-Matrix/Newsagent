@@ -6,7 +6,7 @@ The current web extraction path is centered on managed extractor jobs:
 
 - `site_lists` is the pipeline step name for managed web extraction jobs.
 - Managed extractors live under `extractors/<id>/current/`.
-- Only the Hugging Face trending papers source is active by default because it already has an agent-format extractor.
+- No web source is hard-coded as active by default; web sources are created through managed agent tasks.
 - Repair tasks are manually created from the WebUI via `POST /api/repair-tasks`.
 - Task state is stored as files under `.agent_work/extractors/<source_id>/<task_id>/`.
 - Task logs are written to `codex.jsonl`; task metadata is written to `task.json`; the final Codex response is written to `result.json`.
@@ -39,7 +39,7 @@ The pipeline-level step should only:
 - Persist per-source job states and events.
 - Emit pipeline-visible summaries.
 
-The orchestrator should not know how Hugging Face or any future site is parsed. That belongs inside each source's extractor task.
+The orchestrator should not know how any site is parsed. That belongs inside each source's extractor task.
 
 ## Runtime Config Shape
 
@@ -47,13 +47,13 @@ Recommended `sources.site_lists` entry:
 
 ```json
 {
-  "huggingface-papers": {
+  "vendor-news": {
     "enabled": true,
-    "name": "Hugging Face Trending Papers",
-    "url": "https://huggingface.co/papers/trending",
-    "content_type": "paper",
-    "extractor_id": "huggingface",
-    "tags": ["papers", "trending"],
+    "name": "Vendor News",
+    "url": "https://example.com/news",
+    "content_type": "news",
+    "extractor_id": "vendor-news",
+    "tags": ["vendor", "ai"],
     "repair_policy": {
       "enabled": true,
       "max_attempts_before_repair": 3,
@@ -92,8 +92,8 @@ Input payload:
 
 ```json
 {
-  "source_id": "anthropic",
-  "url": "https://www.anthropic.com/news",
+  "source_id": "vendor-news",
+  "url": "https://example.com/news",
   "scrape_date": "2026-07-02",
   "limit": 20,
   "content_type": "news",
@@ -129,7 +129,7 @@ The current contract has `ok/items/diagnostics/extractor_version`; it should be 
 Generated files should keep metadata in the first comment block:
 
 ```python
-# MODNEWS_EXTRACTOR {"id":"huggingface","name":"Hugging Face Trending Papers","kind":"paper","version":"0.1.0","status":"enabled","entrypoint":"extractor.py:run","target_url":"https://huggingface.co/papers/trending","tags":["papers","trending"],"created_at":"2026-07-02T00:00:00+08:00","updated_at":"2026-07-02T00:00:00+08:00"}
+# MODNEWS_EXTRACTOR {"id":"vendor-news","name":"Vendor News","kind":"news","version":"0.1.0","status":"enabled","entrypoint":"extractor.py:run","target_url":"https://example.com/news","tags":["vendor","ai"],"created_at":"2026-07-02T00:00:00+08:00","updated_at":"2026-07-02T00:00:00+08:00"}
 ```
 
 This supports registry refresh, enable/disable, retry, regenerate, delete, and UI display without executing the extractor.
@@ -236,7 +236,7 @@ Recommended flow:
 Promotion should version old extractors:
 
 ```text
-extractors/huggingface/
+extractors/vendor-news/
   current/
   versions/20260702-153000/
   versions/20260702-160200/
@@ -263,9 +263,9 @@ Recommended files:
 Event examples:
 
 ```json
-{"ts":"2026-07-02T15:30:00+08:00","type":"job_started","source_id":"huggingface-papers","state":"scraping"}
+{"ts":"2026-07-02T15:30:00+08:00","type":"job_started","source_id":"vendor-news","state":"scraping"}
 {"ts":"2026-07-02T15:30:03+08:00","type":"scrape_failed","error_type":"parse_error","message":"missing title selector"}
-{"ts":"2026-07-02T15:30:04+08:00","type":"repair_started","task_id":"huggingface-20260702153004"}
+{"ts":"2026-07-02T15:30:04+08:00","type":"repair_started","task_id":"vendor-news-20260702153004"}
 {"ts":"2026-07-02T15:32:10+08:00","type":"validation_passed","items":8}
 ```
 

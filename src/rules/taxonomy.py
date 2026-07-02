@@ -99,7 +99,6 @@ AI_KEYWORDS = {
     "gemini",
     "gpt",
     "openai",
-    "anthropic",
     "deepmind",
     "nvidia",
     "copilot",

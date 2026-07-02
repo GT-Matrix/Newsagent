@@ -71,6 +71,65 @@ class RepairManager:
         if task.work_dir.exists():
             shutil.rmtree(task.work_dir)
 
+    def promote_task(self, task_id: str) -> RepairTask:
+        task = self._load_task(task_id)
+        result = _read_json(task.result_path, {})
+        if task.status != "succeeded" or result.get("status") not in {"fixed", "needs_review"}:
+            raise RuntimeError("only succeeded fixed/needs_review tasks can be promoted")
+        current_dir = task.work_dir / "current"
+        extractor_path = current_dir / "extractor.py"
+        manifest_path = current_dir / "manifest.json"
+        if not extractor_path.exists():
+            raise RuntimeError("task has no current/extractor.py")
+        target_dir = self.registry.root / task.source_id / "current"
+        if target_dir.exists():
+            version_dir = self.registry.root / task.source_id / "versions" / datetime.now().strftime("%Y%m%d%H%M%S")
+            version_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(target_dir, version_dir)
+            shutil.rmtree(target_dir)
+        shutil.copytree(current_dir, target_dir)
+        try:
+            record = self.registry.get(task.source_id)
+            record.metadata.version = result.get("version") or record.metadata.version
+            record.metadata.status = "enabled"
+            record.metadata.updated_at = _now()
+            if not record.metadata.target_url:
+                inferred_url = _infer_target_url(extractor_path) or _infer_url_from_task(task.work_dir / "TASK.md")
+                record.metadata.target_url = inferred_url
+            if record.metadata.name == task.source_id:
+                record.metadata.name = _infer_name_from_task(task.work_dir / "TASK.md") or record.metadata.name
+            from .metadata import replace_metadata_comment
+
+            replace_metadata_comment(record.extractor_path, record.metadata)
+            manifest = _read_json(manifest_path, {})
+            manifest.update(
+                {
+                    "id": task.source_id,
+                    "status": "enabled",
+                    "updated_at": record.metadata.updated_at,
+                    "promoted_from_task": task.id,
+                }
+            )
+            _write_json(record.manifest_path, manifest)
+            from modnews_pipeline.sources import source_config_store
+
+            source_config_store(self.project_root).update_site_list_item(
+                task.source_id,
+                {
+                    "enabled": True,
+                    "name": record.metadata.name or task.source_id,
+                    "url": record.metadata.target_url,
+                    "content_type": record.metadata.kind or "news",
+                    "extractor_id": task.source_id,
+                    "tags": record.metadata.tags,
+                },
+            )
+        except Exception:
+            pass
+        task.updated_at = _now()
+        self._save_task(task)
+        return task
+
     def retry_task(self, task_id: str) -> RepairTask:
         task = self._load_task(task_id)
         task.status = "queued"
@@ -157,8 +216,11 @@ class RepairManager:
             )
             if process.returncode == 0:
                 result_error = self._validate_final_result(task.result_path)
-                task.status = "failed" if result_error else "succeeded"
-                task.error = result_error
+                if result_error:
+                    task.status = "failed"
+                    task.error = result_error
+                else:
+                    self._apply_final_status(task, _read_json(task.result_path, {}))
             else:
                 task.status = "failed"
                 task.error = f"codex exited with code {process.returncode}"
@@ -168,6 +230,35 @@ class RepairManager:
         finally:
             task.updated_at = _now()
             self._save_task(task)
+            if task.status == "succeeded":
+                result = _read_json(task.result_path, {})
+                if result.get("status") in {"fixed", "needs_review"}:
+                    try:
+                        self.promote_task(task.id)
+                    except Exception:
+                        pass
+
+    def _apply_final_status(self, task: RepairTask, result: dict[str, Any]) -> None:
+        final_status = result.get("status")
+        if final_status == "skipped_unrepairable":
+            task.status = "blocked"
+            task.error = str(result.get("summary") or "blocked or unrepairable")
+            _write_json(
+                task.work_dir / "blocked.json",
+                {
+                    "status": "blocked",
+                    "source_id": task.source_id,
+                    "summary": task.error,
+                    "next_steps": result.get("next_steps") if isinstance(result.get("next_steps"), list) else [],
+                    "updated_at": _now(),
+                },
+            )
+        elif final_status in {"fixed", "needs_review"}:
+            task.status = "succeeded"
+            task.error = None
+        else:
+            task.status = "failed"
+            task.error = str(result.get("summary") or f"codex returned status {final_status}")
 
     def _build_codex_command(self, task: RepairTask) -> list[str]:
         command = ["codex", "exec"]
@@ -199,7 +290,10 @@ class RepairManager:
                     "Read TASK.md. Fix current/extractor.py until it satisfies the contract and tests. "
                     "Your final answer must be exactly one JSON object with keys: "
                     "status, summary, files_changed, next_steps. "
-                    "Allowed status values: fixed, failed, needs_review, skipped_unrepairable."
+                    "Allowed status values: fixed, failed, needs_review, skipped_unrepairable. "
+                    "Use status=skipped_unrepairable when the target is blocked by Cloudflare, CAPTCHA, "
+                    "login wall, rate limit, network policy, or another access issue that code changes cannot fix. "
+                    "In that case, do not promote a fake parser fix; summarize the blocker clearly."
                 ),
             ]
         )
@@ -441,3 +535,41 @@ def _env_bool(name: str, default: bool) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _infer_url_from_task(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8", errors="replace")
+    marker = "Create extractor for "
+    if marker in text:
+        tail = text.split(marker, 1)[1]
+        if ": http" in tail:
+            return "http" + tail.split(": http", 1)[1].split()[0].strip()
+    for token in text.replace("`", " ").split():
+        if token.startswith("http://") or token.startswith("https://"):
+            return token.strip(".,)")
+    return None
+
+
+def _infer_name_from_task(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8", errors="replace")
+    marker = "Create extractor for "
+    if marker not in text:
+        return None
+    value = text.split(marker, 1)[1].splitlines()[0]
+    if ": http" in value:
+        value = value.split(": http", 1)[0]
+    return value.strip() or None
+
+
+def _infer_target_url(path: Path) -> str | None:
+    text = path.read_text(encoding="utf-8", errors="replace")
+    for line in text.splitlines():
+        if line.startswith("DEFAULT_URL"):
+            parts = line.split("=", 1)
+            if len(parts) == 2:
+                return parts[1].strip().strip("\"'")
+    return None
