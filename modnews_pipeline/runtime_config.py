@@ -123,6 +123,7 @@ class RuntimeConfigStore:
     def update_site_list_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         data = self.load()
         sources = data["sources"].setdefault("site_lists", {})
+        exists = source_id in sources
         row = sources.setdefault(source_id, {"id": source_id})
         if not isinstance(row, dict):
             row = {"id": source_id}
@@ -130,6 +131,12 @@ class RuntimeConfigStore:
         for key in ("enabled", "name", "url", "content_type", "extractor_id", "tags", "options", "repair_policy"):
             if key in patch:
                 row[key] = patch[key]
+        if not exists:
+            step = data["steps"].setdefault("site_lists", {})
+            if isinstance(step, dict):
+                sites = step.setdefault("sites", [])
+                if isinstance(sites, list) and source_id not in sites:
+                    sites.append(source_id)
         return self.save(data)
 
     def enabled_rss_sources(self) -> list[dict[str, Any]]:

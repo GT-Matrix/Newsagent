@@ -116,6 +116,14 @@ def update_site_list_source(source_id: str) -> Response:
     return jsonify({"ok": True, "config": _source_config_store().update_site_list_item(source_id, payload)})
 
 
+@app.put("/api/source-config/site-lists/<source_id>")
+def upsert_site_list_source(source_id: str) -> Response:
+    payload = request.get_json(silent=True) or {}
+    if not payload.get("name") or not payload.get("url"):
+        return jsonify({"ok": False, "error": "name and url are required"}), 400
+    return jsonify({"ok": True, "config": _source_config_store().update_site_list_item(source_id, payload)})
+
+
 @app.get("/api/web-jobs")
 def web_jobs() -> Response:
     return jsonify({"items": _web_job_store().list()})
