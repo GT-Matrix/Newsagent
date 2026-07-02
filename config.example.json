@@ -15,17 +15,9 @@
       "retries": 2,
       "retry_delay": 1.0
     },
-    "linux_do": {
-      "enabled": true,
-      "limit": 30,
-      "skip_pinned": true
-    },
     "site_lists": {
       "enabled": true,
       "sites": [
-        "anthropic",
-        "aibase",
-        "stanford_hai",
         "huggingface-papers"
       ],
       "limit_per_site": 10

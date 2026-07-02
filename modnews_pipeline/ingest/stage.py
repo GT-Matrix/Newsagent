@@ -5,7 +5,6 @@ from modnews_pipeline.context import PipelineContext
 from modnews_pipeline.models import NewsItem, StepResult
 from modnews_pipeline.progress import emit
 
-from .linux_do import LinuxDoStep
 from .newsnow import NewsNowStep
 from .rss import RssStep
 from .site_lists import SiteListsStep
@@ -13,7 +12,6 @@ from .site_lists import SiteListsStep
 STEP_FACTORIES = {
     "rss": RssStep,
     "newsnow": NewsNowStep,
-    "linux_do": LinuxDoStep,
     "site_lists": SiteListsStep,
 }
 

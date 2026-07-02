@@ -29,7 +29,6 @@ CHINESE_MEDIA = {
 }
 
 COMMUNITY_PLATFORMS = {
-    "linux_do",
     "aihot",
     "reddit",
     "github-trending",

@@ -91,7 +91,6 @@ class PipelineConfig:
     newsnow_api_url: str
     rss_api_url: str | None
     site_lists_api_url: str | None
-    linux_do_api_url: str | None
     newsnow_sources_path: Path
     newsnow_cache_dir: Path | None
     rss_sources_path: Path
@@ -127,7 +126,7 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
     merged = _merge_runtime_override(runtime_raw, override_raw)
     steps_raw = merged.get("steps", {})
     steps = []
-    for step_id in ("rss", "newsnow", "linux_do", "site_lists"):
+    for step_id in ("rss", "newsnow", "site_lists"):
         step_raw = steps_raw.get(step_id, {}) if isinstance(steps_raw, dict) else {}
         if not isinstance(step_raw, dict):
             step_raw = {}
@@ -161,7 +160,6 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
         ),
         rss_api_url=override_raw.get("rss_api_url", os.environ.get("MODNEWS_RSS_API_URL")),
         site_lists_api_url=override_raw.get("site_lists_api_url", os.environ.get("MODNEWS_SITE_LISTS_API_URL")),
-        linux_do_api_url=override_raw.get("linux_do_api_url", os.environ.get("MODNEWS_LINUX_DO_API_URL")),
         newsnow_sources_path=Path(
             override_raw.get(
                 "newsnow_sources_path",

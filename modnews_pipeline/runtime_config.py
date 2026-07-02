@@ -252,10 +252,9 @@ def _default_steps() -> dict[str, Any]:
         },
         "site_lists": {
             "enabled": True,
-            "sites": ["anthropic", "aibase", "stanford_hai", "huggingface-papers"],
+            "sites": ["huggingface-papers"],
             "limit_per_site": 10,
         },
-        "linux_do": {"enabled": True, "limit": 30, "skip_pinned": True},
         "paper_attach": {"enabled": True, "source": "huggingface", "limit": 40},
     }
 
@@ -286,33 +285,6 @@ def _default_paper_attach() -> dict[str, Any]:
 
 def _default_site_lists() -> dict[str, Any]:
     return {
-        "anthropic": {
-            "enabled": True,
-            "name": "Anthropic News",
-            "url": "https://www.anthropic.com/news",
-            "content_type": "news",
-            "extractor_id": "anthropic",
-            "tags": ["company", "ai"],
-            "repair_policy": {"enabled": True, "max_attempts_before_repair": 3, "auto_start": True},
-        },
-        "aibase": {
-            "enabled": True,
-            "name": "AIbase",
-            "url": "https://www.aibase.com/news",
-            "content_type": "news",
-            "extractor_id": "aibase",
-            "tags": ["ai", "industry"],
-            "repair_policy": {"enabled": True, "max_attempts_before_repair": 3, "auto_start": True},
-        },
-        "stanford_hai": {
-            "enabled": True,
-            "name": "Stanford HAI",
-            "url": "https://hai.stanford.edu/news",
-            "content_type": "news",
-            "extractor_id": "stanford_hai",
-            "tags": ["research", "policy"],
-            "repair_policy": {"enabled": True, "max_attempts_before_repair": 3, "auto_start": True},
-        },
         "huggingface-papers": {
             "enabled": True,
             "name": "Hugging Face Trending Papers",
@@ -338,6 +310,7 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(steps, dict):
         steps = {}
         config["steps"] = steps
+    steps.pop("linux_do", None)
     for key, value in _default_steps().items():
         row = steps.setdefault(key, {})
         if isinstance(row, dict):
@@ -371,6 +344,8 @@ def _normalize_config(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(site_lists, dict):
         site_lists = {}
         sources["site_lists"] = site_lists
+    for legacy_source_id in ("anthropic", "aibase", "stanford_hai"):
+        site_lists.pop(legacy_source_id, None)
     for source_id, default in _default_site_lists().items():
         row = site_lists.setdefault(source_id, {})
         if isinstance(row, dict):
@@ -416,7 +391,6 @@ def _editable_step_keys(step_id: str) -> set[str]:
         "rss": {"enabled", "limit_per_feed"},
         "newsnow": {"enabled", "include_all", "columns", "limit_per_source", "retries", "retry_delay"},
         "site_lists": {"enabled", "sites", "limit_per_site"},
-        "linux_do": {"enabled", "limit", "skip_pinned"},
         "paper_attach": {"enabled", "source", "limit"},
     }.get(step_id, {"enabled"})
 

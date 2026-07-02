@@ -367,7 +367,6 @@ def _apply_news_mode(config: Any, mode: str) -> None:
     config.newsnow_api_url = f"{base_url}/api/s"
     config.rss_api_url = f"{base_url}/api/rss"
     config.site_lists_api_url = f"{base_url}/api/site-lists"
-    config.linux_do_api_url = f"{base_url}/api/linux-do"
 
 
 def _ensure_mock_server(host: str, port: str) -> None:

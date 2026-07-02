@@ -2,16 +2,17 @@
 
 ## Current State
 
-The current web extraction path is split across two mechanisms:
+The current web extraction path is centered on managed extractor jobs:
 
-- `site_lists` is a single ingest step with hard-coded fetchers in `modnews_pipeline/ingest/site_lists/step.py`.
-- Managed extractors exist under `extractors/<id>/current/`, but only `huggingface` is currently wired into a runtime flow through the paper attachment path.
+- `site_lists` is the pipeline step name for managed web extraction jobs.
+- Managed extractors live under `extractors/<id>/current/`.
+- Only the Hugging Face trending papers source is active by default because it already has an agent-format extractor.
 - Repair tasks are manually created from the WebUI via `POST /api/repair-tasks`.
 - Task state is stored as files under `.agent_work/extractors/<source_id>/<task_id>/`.
 - Task logs are written to `codex.jsonl`; task metadata is written to `task.json`; the final Codex response is written to `result.json`.
 - The frontend fetches `/api/repair-tasks` and `/api/repair-tasks/<task_id>`. It does not currently stream task events live.
 
-There is no automatic "scrape failed, create repair task" behavior yet. There is also no per-source scrape task state machine; `site_lists` is currently a large aggregate step.
+Automatic "scrape failed, create repair task" behavior exists in the orchestrator policy, but should stay conservative until validation is stronger.
 
 ## Immediate Backup
 
@@ -19,11 +20,15 @@ The current runtime web sources were backed up to:
 
 `runtime/backups/site_lists_sources_20260702.json`
 
-This is only a reference snapshot. It should not become a compatibility layer.
+The removed non-HuggingFace web-source code/config snapshot was also backed up to:
+
+`runtime/backups/non_huggingface_web_sources_20260702.tar.gz`
+
+These are only reference snapshots. They should not become compatibility layers.
 
 ## Recommended Direction
 
-Replace `site_lists` as a hard-coded aggregate step with a web extraction orchestration step.
+Keep `site_lists` as a web extraction orchestration step rather than a hard-coded scraper collection.
 
 The pipeline-level step should only:
 
@@ -34,7 +39,7 @@ The pipeline-level step should only:
 - Persist per-source job states and events.
 - Emit pipeline-visible summaries.
 
-The orchestrator should not know how Anthropic, Hugging Face, Stanford HAI, or any future site is parsed. That belongs inside each source's extractor task.
+The orchestrator should not know how Hugging Face or any future site is parsed. That belongs inside each source's extractor task.
 
 ## Runtime Config Shape
 
@@ -42,13 +47,13 @@ Recommended `sources.site_lists` entry:
 
 ```json
 {
-  "anthropic": {
+  "huggingface-papers": {
     "enabled": true,
-    "name": "Anthropic News",
-    "url": "https://www.anthropic.com/news",
-    "content_type": "news",
-    "extractor_id": "anthropic",
-    "tags": ["company", "ai"],
+    "name": "Hugging Face Trending Papers",
+    "url": "https://huggingface.co/papers/trending",
+    "content_type": "paper",
+    "extractor_id": "huggingface",
+    "tags": ["papers", "trending"],
     "repair_policy": {
       "enabled": true,
       "max_attempts_before_repair": 3,
@@ -124,7 +129,7 @@ The current contract has `ok/items/diagnostics/extractor_version`; it should be 
 Generated files should keep metadata in the first comment block:
 
 ```python
-# MODNEWS_EXTRACTOR {"id":"anthropic","name":"Anthropic News","kind":"news","version":"0.1.0","status":"enabled","entrypoint":"extractor.py:run","target_url":"https://www.anthropic.com/news","tags":["company","ai"],"created_at":"2026-07-02T00:00:00+08:00","updated_at":"2026-07-02T00:00:00+08:00"}
+# MODNEWS_EXTRACTOR {"id":"huggingface","name":"Hugging Face Trending Papers","kind":"paper","version":"0.1.0","status":"enabled","entrypoint":"extractor.py:run","target_url":"https://huggingface.co/papers/trending","tags":["papers","trending"],"created_at":"2026-07-02T00:00:00+08:00","updated_at":"2026-07-02T00:00:00+08:00"}
 ```
 
 This supports registry refresh, enable/disable, retry, regenerate, delete, and UI display without executing the extractor.
@@ -231,7 +236,7 @@ Recommended flow:
 Promotion should version old extractors:
 
 ```text
-extractors/anthropic/
+extractors/huggingface/
   current/
   versions/20260702-153000/
   versions/20260702-160200/
@@ -258,9 +263,9 @@ Recommended files:
 Event examples:
 
 ```json
-{"ts":"2026-07-02T15:30:00+08:00","type":"job_started","source_id":"anthropic","state":"scraping"}
+{"ts":"2026-07-02T15:30:00+08:00","type":"job_started","source_id":"huggingface-papers","state":"scraping"}
 {"ts":"2026-07-02T15:30:03+08:00","type":"scrape_failed","error_type":"parse_error","message":"missing title selector"}
-{"ts":"2026-07-02T15:30:04+08:00","type":"repair_started","task_id":"anthropic-20260702153004"}
+{"ts":"2026-07-02T15:30:04+08:00","type":"repair_started","task_id":"huggingface-20260702153004"}
 {"ts":"2026-07-02T15:32:10+08:00","type":"validation_passed","items":8}
 ```
 
@@ -321,13 +326,11 @@ Responsibilities:
 
 ## Suggested Migration Plan
 
-1. Add missing normalized fields to existing web source config: `content_type`, `extractor_id`, `tags`, `repair_policy`.
-2. Add managed extractor skeletons for `anthropic`, `aibase`, and `stanford_hai` only when needed through the agent workflow.
-3. Introduce `web_extraction` modules and job store without deleting old `site_lists` yet.
-4. Change `SiteListsStep` to delegate to `web_extraction.orchestrator`.
-5. Add failure classification and automatic repair policy.
-6. Add `events.jsonl`, validation reports, and frontend timeline tabs.
-7. Remove hard-coded fetchers after managed extractors cover the active sources.
+1. Keep only sources with managed extractor contracts in active runtime config.
+2. Create new source support through repair/generation tasks instead of adding hard-coded fetchers.
+3. Add failure classification and automatic repair policy hardening.
+4. Add validation reports and richer frontend timeline tabs.
+5. Promote generated extractors only after contract and live/fixture validation pass.
 
 ## Open Design Choices
 
