@@ -9,6 +9,7 @@ from modnews.internal.service.pipeline.manager import PipelineManager
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config import RuntimeConfigRepository
+from modnews.repository.runs import RunRepository
 from modnews.repository.web_jobs import WebJobRepository
 from .event_handlers import register_event_handlers, register_task_executors
 
@@ -28,6 +29,9 @@ class ServiceContainer:
 
     def checkpoints(self) -> CheckpointRepository:
         return CheckpointRepository(self.project_root)
+
+    def runs(self) -> RunRepository:
+        return RunRepository(self.project_root)
 
     def web_jobs(self) -> WebJobRepository:
         return WebJobRepository(self.project_root)

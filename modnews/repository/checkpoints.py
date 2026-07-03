@@ -29,6 +29,21 @@ class CheckpointRepository:
     def write(self, run_id: str, step_id: str, task_id: str, payload: dict[str, Any]) -> Path:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         path = self.root / run_id / "checkpoints" / step_id / f"{stamp}-{task_id}" / "checkpoint.json"
+        payload = {
+            "run_id": run_id,
+            "step_id": step_id,
+            "task_id": task_id,
+            "started_at": payload.get("started_at"),
+            "finished_at": payload.get("finished_at") or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+            **payload,
+        }
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        return path
+
+    def write_artifact(self, run_id: str, step_id: str, task_id: str, name: str, payload: Any) -> Path:
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        path = self.root / run_id / "checkpoints" / step_id / f"{stamp}-{task_id}" / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         return path

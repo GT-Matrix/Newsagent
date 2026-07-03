@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -11,16 +10,13 @@ from modnews.core.task import TaskEvent
 from modnews.repository.cache import CacheRepository
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
-from modnews_pipeline.config import apply_runtime_overrides, load_config
+from modnews.repository.runs import RunRepository
 from modnews_pipeline.extractors.registry import registry_from_project
 from modnews_pipeline.extractors.repair import RepairManager
 from modnews_pipeline.paths import runtime_paths
-from modnews_pipeline.pipeline import run_pipeline
 from modnews_pipeline.progress import BUS, emit, sse
 from modnews_pipeline.sources import source_config_store
-from modnews_pipeline.web_extraction.contract import WebSource
 from modnews_pipeline.web_extraction.job_store import WebJobStore
-from modnews_pipeline.web_extraction.orchestrator import WebExtractionOrchestrator
 
 
 class LocalClient:
@@ -124,37 +120,49 @@ class LocalClient:
         return source_config_store(self.project_root).save(data)
 
     def run_start(self, payload: dict[str, Any]) -> dict[str, Any]:
-        BUS.clear()
-        emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"))
-        config = load_config(payload.get("config"))
-        apply_runtime_overrides(
-            config,
-            only_ingest_steps=payload.get("only_ingest_steps") or payload.get("only"),
-            disable_classification=bool(payload.get("disable_classification")),
+        run_id = str(payload.get("run_id") or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-main")
+        task_id = str(payload.get("task_id") or f"pipeline-{run_id}")
+        runs = RunRepository(self.project_root)
+        run_record = runs.create(run_id, payload)
+        task = TaskEvent(
+            id=task_id,
+            type="pipeline.run_legacy",
+            pipeline_run_id=run_id,
+            step_id="pipeline",
+            payload={
+                "project_root": str(self.project_root),
+                "run_id": run_id,
+                "config": payload.get("config"),
+                "only": payload.get("only"),
+                "only_ingest_steps": payload.get("only_ingest_steps"),
+                "disable_classification": payload.get("disable_classification"),
+            },
+            concurrency_key="pipeline",
+            max_concurrency=1,
         )
-        result_holder: dict[str, Any] = {"state": "running"}
-
-        def target() -> None:
-            try:
-                result = run_pipeline(config)
-                result_holder.update({"state": "succeeded", "output_path": str(result.output_path), "total": len(result.items)})
-                emit("pipeline_done", output_path=str(result.output_path), stats={"total": len(result.items), "events": len(result.events)})
-            except Exception as exc:
-                result_holder.update({"state": "failed", "error": str(exc)})
-                emit("pipeline_error", error=str(exc))
-
+        self.container.event_queue.register(task)
+        runs.update(run_id, state="queued", task_id=task_id)
         if payload.get("background", True):
-            thread = threading.Thread(target=target, daemon=True)
-            thread.start()
-            return {"ok": True, "state": "started"}
-        target()
-        return {"ok": result_holder.get("state") == "succeeded", **result_holder}
+            return {"ok": True, "run": runs.get(run_id), "task": task.to_dict()}
+        BUS.clear()
+        emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
+        self.container.event_queue.run(task_id)
+        task_payload = self.queue_show(task_id)
+        run_record = runs.get(run_id)
+        ok = task_payload.get("state") == "succeeded"
+        if ok:
+            emit("pipeline_done", run_id=run_id, output_path=run_record.get("output_path"), stats=run_record.get("stats", {}))
+        else:
+            emit("pipeline_error", run_id=run_id, error=task_payload.get("result", {}).get("error"))
+        return {"ok": ok, "run": run_record, "task": task_payload}
 
     def run_list(self) -> list[dict[str, Any]]:
-        return CheckpointRepository(self.project_root).list()
+        return RunRepository(self.project_root).list()
 
     def run_status(self, run_id: str | None = None) -> dict[str, Any]:
-        return {"run_id": run_id, "state": self.state()}
+        if run_id:
+            return RunRepository(self.project_root).get(run_id)
+        return {"runs": self.run_list(), "state": self.state()}
 
     def extractors_list(self) -> list[dict[str, Any]]:
         return [record.to_dict() for record in registry_from_project(self.project_root).list()]

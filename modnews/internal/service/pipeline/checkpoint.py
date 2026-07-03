@@ -12,3 +12,6 @@ class CheckpointManager:
 
     def write(self, run_id: str, step_id: str, task_id: str, payload: dict[str, Any]) -> Path:
         return self.repository.write(run_id, step_id, task_id, payload)
+
+    def write_artifact(self, run_id: str, step_id: str, task_id: str, name: str, payload: object) -> Path:
+        return self.repository.write_artifact(run_id, step_id, task_id, name, payload)

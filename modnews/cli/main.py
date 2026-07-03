@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +23,11 @@ def main() -> None:
         dry_run=args.dry_run,
     )
     client = resolve_client(ctx)
-    payload = args.handler(ctx, client, args)
+    if ctx.output_format in {"json", "jsonl"}:
+        with contextlib.redirect_stdout(io.StringIO()):
+            payload = args.handler(ctx, client, args)
+    else:
+        payload = args.handler(ctx, client, args)
     if payload is not None:
         print_payload(payload, ctx.output_format)
 

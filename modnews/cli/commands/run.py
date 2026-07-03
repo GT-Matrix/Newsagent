@@ -28,8 +28,10 @@ def start_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
 
 
 def list_runs(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
-    return [] if isinstance(client, ApiClient) else client.run_list()
+    return client.get("/api/runs").get("items", []) if isinstance(client, ApiClient) else client.run_list()
 
 
 def status_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
-    return client.get("/api/state") if isinstance(client, ApiClient) else client.run_status(args.run_id)
+    if isinstance(client, ApiClient):
+        return client.get(f"/api/runs/{args.run_id}").get("item") if args.run_id else client.get("/api/state")
+    return client.run_status(args.run_id)
