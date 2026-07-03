@@ -11,9 +11,26 @@ from modnews_pipeline.progress import BUS, emit
 class RunsLocalMixin:
     def run_start(self, payload: dict[str, Any]) -> dict[str, Any]:
         run_id = str(payload.get("run_id") or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-main")
-        task_id = str(payload.get("task_id") or f"pipeline-{run_id}")
         runs = RunRepository(self.project_root)
         runs.create(run_id, payload)
+        if not payload.get("legacy_pipeline"):
+            request = {
+                "project_root": str(self.project_root),
+                "run_id": run_id,
+                "config": payload.get("config"),
+                "only": payload.get("only"),
+                "only_ingest_steps": payload.get("only_ingest_steps"),
+                "disable_classification": payload.get("disable_classification"),
+            }
+            planned = self.container.pipeline_manager.start_run(request)
+            runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
+            if not payload.get("background", True):
+                BUS.clear()
+                emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
+                self.container.event_queue.drain_ready()
+            return {"ok": True, "run": runs.get(run_id), "tasks": planned["registered_tasks"]}
+
+        task_id = str(payload.get("task_id") or f"pipeline-{run_id}")
         task = TaskEvent(
             id=task_id,
             type="pipeline.run_legacy",

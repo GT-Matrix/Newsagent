@@ -13,6 +13,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     start.add_argument("--only", action="append", default=[])
     start.add_argument("--disable-classify", action="store_true")
     start.add_argument("--foreground", action="store_true")
+    start.add_argument("--legacy-pipeline", action="store_true")
     start.set_defaults(handler=start_run)
     nested.add_parser("list").set_defaults(handler=list_runs)
     status = nested.add_parser("status")
@@ -21,7 +22,12 @@ def register(subparsers: argparse._SubParsersAction) -> None:
 
 
 def start_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
-    payload = {"only": args.only or None, "disable_classification": args.disable_classify, "background": not args.foreground}
+    payload = {
+        "only": args.only or None,
+        "disable_classification": args.disable_classify,
+        "background": not args.foreground,
+        "legacy_pipeline": args.legacy_pipeline,
+    }
     if isinstance(client, ApiClient):
         return client.post("/api/run", payload)
     return client.run_start(payload)

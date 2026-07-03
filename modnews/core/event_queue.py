@@ -107,6 +107,16 @@ class EventQueue:
         with self._lock:
             return dict(self._results.get(task_id, {}))
 
+    def patch_payload(self, task_id: str, patch: dict[str, Any]) -> TaskEvent:
+        with self._lock:
+            task = self._tasks[task_id]
+            task.payload.update(patch)
+            return task
+
+    def dependents_of(self, task_id: str) -> list[TaskEvent]:
+        with self._lock:
+            return [task for task in self._tasks.values() if task_id in task.depends_on]
+
     def status(self) -> dict[str, int]:
         with self._lock:
             return dict(Counter(task.state for task in self._tasks.values()))

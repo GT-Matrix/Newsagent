@@ -45,5 +45,7 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     container.event_queue.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
     register_event_handlers(container.event_router)
+    container.event_router.on("task.completed", container.pipeline_manager.on_task_completed)
+    container.event_router.on("task.failed", container.pipeline_manager.on_task_failed)
     register_task_executors(container.event_queue)
     return container

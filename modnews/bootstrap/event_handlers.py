@@ -8,7 +8,7 @@ from modnews.core.task import TaskEvent
 from modnews.service.classify.tasks import run_classify_task
 from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
-from modnews.service.pipeline.tasks import run_legacy_pipeline_task
+from modnews.service.pipeline.tasks import combine_ingest_task, run_legacy_pipeline_task
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 
@@ -28,6 +28,7 @@ def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("classify.run_legacy", run_classify_task)
     queue.register_executor("ingest.run_step", run_ingest_step_task)
     queue.register_executor("web_source.run", run_web_source_task)
+    queue.register_executor("pipeline.combine_ingest", combine_ingest_task)
     queue.register_executor("pipeline.run_legacy", run_legacy_pipeline_task)
 
 

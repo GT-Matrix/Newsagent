@@ -19,7 +19,10 @@ def run_classify_task(task: TaskEvent) -> dict[str, object]:
     config = load_config(task.payload.get("config"))
     if task.payload.get("disable_classification"):
         config.classification.enabled = False
-    input_path = Path(str(task.payload.get("input_path") or config.output_path)).resolve()
+    input_ref = str(task.payload.get("input_path") or config.output_path)
+    if input_ref == "__combined_ingest__":
+        input_ref = str(RunRepository(project_root).get(run_id).get("combined_ingest_path") or config.output_path)
+    input_path = Path(input_ref).resolve()
     items = _load_items(input_path)
     ctx = PipelineContext.create(config)
     ctx.work_dir.mkdir(parents=True, exist_ok=True)
