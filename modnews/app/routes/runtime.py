@@ -31,7 +31,9 @@ def cache_status():
 @bp.post("/api/cache/clear")
 def cache_clear():
     payload = request.get_json(silent=True) or {}
-    return jsonify(LocalClient().cache_clear(llm=bool(payload.get("llm")), embedding=bool(payload.get("embedding"))))
+    clear_llm = bool(payload.get("llm", True))
+    clear_embedding = bool(payload.get("embedding", True))
+    return jsonify(LocalClient().cache_clear(llm=clear_llm, embedding=clear_embedding))
 
 
 @bp.get("/api/checkpoints")

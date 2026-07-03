@@ -14,6 +14,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     set_cmd = nested.add_parser("set")
     set_cmd.add_argument("key")
     set_cmd.add_argument("value")
+    set_cmd.add_argument("--dry-run", action="store_true")
     set_cmd.set_defaults(handler=set_value)
 
 
@@ -23,7 +24,7 @@ def show(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
 
 def set_value(ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     value = _parse_value(args.value)
-    if ctx.dry_run:
+    if ctx.dry_run or args.dry_run:
         return {"dry_run": True, "key": args.key, "value": value}
     if isinstance(client, ApiClient):
         if args.key.startswith("steps."):

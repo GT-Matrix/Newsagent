@@ -75,6 +75,24 @@ class LocalClient:
     def config_update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
         return source_config_store(self.project_root).update_classification(patch)
 
+    def config_restore_builtins(self) -> dict[str, Any]:
+        return source_config_store(self.project_root).restore_builtin_sources()
+
+    def rss_update(self, items: list[dict[str, Any]]) -> dict[str, Any]:
+        return source_config_store(self.project_root).update_rss(items)
+
+    def rss_update_item(self, source_id: str, row: dict[str, Any]) -> dict[str, Any]:
+        return source_config_store(self.project_root).update_rss_item(source_id, row)
+
+    def rss_delete_item(self, source_id: str) -> dict[str, Any]:
+        return source_config_store(self.project_root).delete_rss_item(source_id)
+
+    def newsnow_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        return source_config_store(self.project_root).update_newsnow_item(source_id, patch)
+
+    def site_list_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        return source_config_store(self.project_root).update_site_list_item(source_id, patch)
+
     def config_set(self, key_path: str, value: Any) -> dict[str, Any]:
         parts = key_path.split(".")
         if len(parts) < 2:
@@ -185,7 +203,11 @@ class LocalClient:
         return CacheRepository(self.project_root).state()
 
     def cache_clear(self, *, llm: bool, embedding: bool) -> dict[str, Any]:
-        return {"ok": True, "removed": CacheRepository(self.project_root).clear(llm=llm, embedding=embedding)}
+        return {
+            "ok": True,
+            "removed": CacheRepository(self.project_root).clear(llm=llm, embedding=embedding),
+            "outputs": self.outputs_status(),
+        }
 
     def checkpoints_list(self, run_id: str | None = None) -> list[dict[str, Any]]:
         return CheckpointRepository(self.project_root).list(run_id)
