@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+TERMINAL_STATES = {"succeeded", "failed", "cancelled"}
+
 
 @dataclass(slots=True)
 class TaskEvent:
@@ -16,6 +18,9 @@ class TaskEvent:
     depends_on: list[str] = field(default_factory=list)
     checkpoint_policy: str = "default"
     state: str = "queued"
+    created_at: str | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

@@ -43,7 +43,7 @@ class ExtractionLocalMixin:
             concurrency_key=f"web_source:{source_id}",
             max_concurrency=1,
         )
-        self.container.event_queue.dispatch(task)
+        self.container.event_queue.submit(task)
         result = self.queue_show(task_id)
         job = result.get("result", {}).get("job") if isinstance(result.get("result"), dict) else None
         return {"ok": result.get("state") == "succeeded", "task": result, "item": job}

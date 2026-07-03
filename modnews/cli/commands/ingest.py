@@ -31,5 +31,5 @@ def run_ingest(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
         concurrency_key=f"ingest:{args.step}",
         max_concurrency=1,
     )
-    client.container.event_queue.dispatch(task)
+    client.container.event_queue.submit(task)
     return client.queue_show(task_id)

@@ -36,7 +36,7 @@ class RunsLocalMixin:
             return {"ok": True, "run": runs.get(run_id), "task": task.to_dict()}
         BUS.clear()
         emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
-        self.container.event_queue.run(task_id)
+        self.container.event_queue.drain_ready()
         task_payload = self.queue_show(task_id)
         run_record = runs.get(run_id)
         ok = task_payload.get("state") == "succeeded"

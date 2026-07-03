@@ -16,6 +16,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     show_cmd = nested.add_parser("show")
     show_cmd.add_argument("task_id")
     show_cmd.set_defaults(handler=show_queue)
+    drain_cmd = nested.add_parser("drain")
+    drain_cmd.add_argument("--limit", type=int)
+    drain_cmd.set_defaults(handler=drain_queue)
     echo_cmd = nested.add_parser("echo")
     echo_cmd.add_argument("task_id")
     echo_cmd.add_argument("--message", default="ok")
@@ -40,6 +43,12 @@ def show_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.get(f"/api/queue/{args.task_id}")
     return client.queue_show(args.task_id)
+
+
+def drain_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.post("/api/queue/drain", {"limit": args.limit})
+    return client.queue_drain(args.limit)
 
 
 def echo_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:

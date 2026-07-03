@@ -29,7 +29,7 @@ class PipelineManager:
             tasks.extend(step.plan({"run_id": run_id, "request": request}))
         if self.event_queue:
             for task in tasks:
-                self.event_queue.register(task)
+                self.event_queue.submit(task)
         return {"run_id": run_id, "registered_tasks": [task.to_dict() for task in tasks]}
 
     def on_task_completed(self, event: dict[str, Any]) -> None:
@@ -45,4 +45,4 @@ class PipelineManager:
             return
         for step in self.steps:
             for task in step.plan({}, completed_event=event):
-                self.event_queue.register(task)
+                self.event_queue.submit(task)

@@ -36,5 +36,5 @@ def run_classify(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
         concurrency_key="classify",
         max_concurrency=1,
     )
-    client.container.event_queue.dispatch(task)
+    client.container.event_queue.submit(task)
     return client.queue_show(task_id)

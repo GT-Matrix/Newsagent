@@ -389,6 +389,7 @@ def configure_services(container):
 - 旧 `modnews_pipeline.web` 已改为新 `modnews.app` 的兼容入口。
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
+- `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败事件回调、`queue drain` 手动推进和 ready/blocked 状态查询。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.run_legacy` task，可通过 CLI/API 从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
@@ -397,7 +398,7 @@ def configure_services(container):
 
 仍是兼容层的部分：
 
-- legacy pipeline 的端到端运行仍会同步串联 ingest/classify；后续要改成 step 只注册 `TaskEvent`，由完成回调推进下一步。
+- legacy pipeline 的端到端运行仍会同步串联 ingest/classify；后续要把端到端 run 改成 step 只注册 `TaskEvent`，由 `EventQueue` 依赖和完成回调推进下一步。
 - classify 的 batch、embedding、cluster extraction、merge 子步骤仍由 legacy classify runner 执行，后续要拆成 task executor，并由完成回调推进下一步。
 - legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
 - 固定输出目前支持手动从 checkpoint 发布；后续要在关键 task 成功回调中自动发布最新成功 checkpoint。

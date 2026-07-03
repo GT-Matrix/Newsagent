@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
-from modnews.cli.local_client import LocalClient
+from modnews.app.context import local_client
 from modnews.core.task import TaskEvent
 
 bp = Blueprint("classify", __name__)
@@ -13,7 +13,7 @@ bp = Blueprint("classify", __name__)
 @bp.post("/api/classify/run")
 def run_classify():
     payload = request.get_json(silent=True) or {}
-    client = LocalClient()
+    client = local_client()
     task_id = f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     task = TaskEvent(
         id=task_id,
@@ -24,6 +24,6 @@ def run_classify():
         concurrency_key="classify",
         max_concurrency=1,
     )
-    client.container.event_queue.dispatch(task)
+    client.container.event_queue.submit(task)
     task_payload = client.queue_show(task_id)
     return jsonify({"ok": task_payload.get("state") == "succeeded", "task": task_payload})
