@@ -7,7 +7,7 @@
 项目原本有三条主线混在一起：
 
 1. `modnews_pipeline/`：旧主入口，负责 ingest、classify、WebUI API、managed extractor、repair、job store、runtime config。
-2. `src/`：报告生成层，读取 `output/combined_news.json` 后做评分、核验、摘要和日报输出。
+2. `modnews/service/report/`：报告生成层，读取 `output/combined_news.json` 后做评分、核验、摘要和日报输出。
 3. 根目录运行态/历史文件：`output/`、`runtime/`、`var/`、`.agent_work/`、嵌套的 `modnews/`、若干中文/PRD 文档和样例 JSON。
 
 主要问题不是某个目录名，而是边界不清：`web.py` 同时做 Flask 路由、后台任务调度、配置读写、输出状态读取、extractor/job/repair API；`ingest`、`classify`、`web_extraction` 各自维护流程状态和事件；配置、缓存、checkpoint、job store 分散在多个模块。
@@ -427,8 +427,8 @@ def configure_services(container):
 - legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口和队列 executor 不再暴露 legacy fallback，旧同步 runner 只保留给显式低层兼容导入路径。
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`，旧命令名 `newsagent-report` 仅作为指向同一 `modnews` report entry 的兼容别名保留。
-- report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src.main` 只保留为兼容转发壳。
-- report 配置默认值、数据模型、utils、规则表、IO helper、evidence/editor/reporter 和分类/评分/摘要/核验 stages 已迁入 `modnews/service/report/`；`src.config`、`src.models`、`src.utils.*`、`src.rules.*`、`src.io.*` 与 `src.pipeline.*` 现在是兼容转发层，report 子模块已改用新路径。
+- report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src/` report 兼容转发层已删除。
+- report 配置默认值、数据模型、utils、规则表、IO helper、evidence/editor/reporter 和分类/评分/摘要/核验 stages 已迁入 `modnews/service/report/`，report 子模块已改用新路径。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`；关键 task 返回 `auto_publish_checkpoint` 时，`CompletionCallbackRegistry` 会在 `task.completed` 回调中自动发布固定输出。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
 
@@ -438,7 +438,7 @@ def configure_services(container):
 - clustered classify 已拆到 extraction/merge 两个 task，默认 pipeline 与手动 classify CLI/API 都注册这套任务图；但每个阶段内部仍复用现有 step 实现。batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - 任务执行期间的 progress/LLM 事件已通过当前 task 上下文写入 `TaskLogRepository`，`queue show` 可看到 `progress.llm_request_*` 等日志；Codex repair task 已把 `codex.jsonl` 路径、尾部摘要和字节数写入 task result，并通过 `progress.codex_repair_log` 进入 task logs；web extraction 的 `WebJobStore.append(...)` 事件也会以 `progress.web_job_event` 写入当前 task logs。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
-- report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 已不再发布 `src` 包，源码内 `src/` report 相关模块当前仅作为 repo 内兼容转发层保留，后续可在确认旧入口不再需要后删除。
+- report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 不再发布 `src` 包，源码内 `src/` report 兼容转发层已删除。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。
 
 ## Managed Extractors
@@ -573,7 +573,7 @@ extractors/
 - 并发任务由 `EventQueue` 限制，不由 step 内部线程池各自控制。
 - 必须顺序运行的任务只有在上一条任务完成回调后才注册下一条。
 - 固定输出文件与 run checkpoint 可追溯对应。
-- `modnews report generate`、`modnews-report` 和旧命令别名 `newsagent-report` 在同一输入下输出完全一致；`src/` 报告兼容层迁入/删除期间仍要保持源码兼容入口可转发到同一实现。
+- `modnews report generate`、`modnews-report` 和旧命令别名 `newsagent-report` 在同一输入下输出完全一致；源码内不再保留 `src/` 报告兼容包。
 
 ## 命名建议
 

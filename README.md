@@ -4,7 +4,7 @@ NewsAgent is an AI news pipeline with three layers:
 
 1. Ingest RSS, NewsNow, and managed web extractors into normalized news items.
 2. Cluster and classify AI-related items into event records.
-3. Run the report layer under `src/` to score, verify, section, summarize, and generate the daily report.
+3. Run the report layer through `modnews report generate` to score, verify, section, summarize, and generate the daily report.
 
 ## Pipeline
 
@@ -12,7 +12,7 @@ NewsAgent is an AI news pipeline with three layers:
 runtime/config.json
   -> RSS / NewsNow / managed web extractors
   -> output/combined_news.json
-  -> src report layer
+  -> modnews/service/report
   -> data/output/daily_report.md
 ```
 
