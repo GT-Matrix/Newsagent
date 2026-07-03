@@ -12,6 +12,5 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-modnews/
 .agent_work/
 runtime/

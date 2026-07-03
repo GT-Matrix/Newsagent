@@ -1,8 +1,25 @@
 {
   "id": "anthropic",
+  "name": "Anthropic News",
+  "kind": "news",
   "status": "enabled",
+  "version": "1.0.0",
+  "entrypoint": "extractor.py:run",
+  "target_url": "https://www.anthropic.com/news",
+  "source_ids": [
+    "anthropic"
+  ],
+  "promoted_from_task": "anthropic-20260702165432",
   "created_at": "2026-07-02T16:54:32+08:00",
   "updated_at": "2026-07-02T17:22:15+08:00",
-  "bootstrap": true,
-  "promoted_from_task": "anthropic-20260702165432"
+  "capabilities": [
+    "html_fetch",
+    "news_listing"
+  ],
+  "content_type": "news",
+  "tags": [
+    "company",
+    "ai"
+  ],
+  "bootstrap": true
 }
