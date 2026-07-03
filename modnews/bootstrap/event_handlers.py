@@ -5,7 +5,7 @@ from pathlib import Path
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
-from modnews.service.classify.tasks import run_classify_task
+from modnews.service.classify.tasks import run_classify_task, run_clustered_pipeline_task
 from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.pipeline.tasks import combine_ingest_task, run_legacy_pipeline_task
@@ -26,6 +26,7 @@ def register_event_handlers(router: EventRouter) -> None:
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
     queue.register_executor("classify.run_legacy", run_classify_task)
+    queue.register_executor("classify.clustered_pipeline", run_clustered_pipeline_task)
     queue.register_executor("ingest.run_step", run_ingest_step_task)
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("pipeline.combine_ingest", combine_ingest_task)

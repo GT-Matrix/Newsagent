@@ -14,6 +14,10 @@ from modnews_pipeline.models import NewsItem
 
 
 def run_classify_task(task: TaskEvent) -> dict[str, object]:
+    return run_clustered_pipeline_task(task, checkpoint_step_id="classify")
+
+
+def run_clustered_pipeline_task(task: TaskEvent, *, checkpoint_step_id: str = "classify/clustered_pipeline") -> dict[str, object]:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
     config = load_config(task.payload.get("config"))
@@ -31,7 +35,7 @@ def run_classify_task(task: TaskEvent) -> dict[str, object]:
     checkpoint = CheckpointManager(project_root)
     checkpoint_payload = {
         "run_id": run_id,
-        "step_id": "classify",
+        "step_id": checkpoint_step_id,
         "task_id": task.id,
         "status": "succeeded",
         "input_refs": {"items": str(input_path)},
@@ -48,7 +52,7 @@ def run_classify_task(task: TaskEvent) -> dict[str, object]:
         },
         "error": None,
     }
-    checkpoint_path = checkpoint.write(run_id, "classify", task.id, checkpoint_payload)
+    checkpoint_path = checkpoint.write(run_id, checkpoint_step_id, task.id, checkpoint_payload)
     _append_run_checkpoint(project_root, run_id, checkpoint_path)
     return {
         "step": result.to_dict(),

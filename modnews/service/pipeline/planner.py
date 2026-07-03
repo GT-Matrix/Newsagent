@@ -60,9 +60,9 @@ class IngestClassifyPipelineStep:
             tasks.append(
                 TaskEvent(
                     id=f"classify-{run_id}",
-                    type="classify.run_legacy",
+                    type="classify.clustered_pipeline",
                     pipeline_run_id=run_id,
-                    step_id="classify",
+                    step_id="classify/clustered_pipeline",
                     payload={
                         "project_root": project_root,
                         "run_id": run_id,

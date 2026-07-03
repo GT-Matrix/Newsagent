@@ -15,5 +15,5 @@ def patch_completed_outputs(queue: EventQueue, event: dict[str, Any]) -> None:
         return
     task_id = str(task.get("id") or "")
     for dependent in queue.dependents_of(task_id):
-        if dependent.type == "classify.run_legacy":
+        if dependent.type in {"classify.clustered_pipeline", "classify.run_legacy"}:
             queue.patch_payload(dependent.id, {"input_path": str(combined_path)})
