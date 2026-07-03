@@ -14,19 +14,19 @@ class ReportLimits:
     top_news_min: int = 5
     top_news_max: int = 8
     insight_min: int = 1
-    insight_max: int = 2
-    deep_asset_max: int = 3
-    watchlist_max: int = 5
+    insight_max: int = 4
+    deep_asset_max: int = 4
+    watchlist_max: int = 3
 
 
 @dataclass(frozen=True)
 class ScoreWeights:
-    impact: float = 0.30
-    source: float = 0.20
-    freshness: float = 0.15
-    relevance: float = 0.15
-    actionability: float = 0.10
-    novelty: float = 0.10
+    impact: float = 0.32
+    source: float = 0.12
+    freshness: float = 0.16
+    relevance: float = 0.17
+    actionability: float = 0.12
+    novelty: float = 0.11
 
 
 REPORT_LIMITS = ReportLimits()

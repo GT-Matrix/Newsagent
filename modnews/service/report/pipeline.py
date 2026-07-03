@@ -4,14 +4,11 @@ from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 
+from modnews.service.report.editor import polish_report_events
+from modnews.service.report.evidence import enrich_report_evidence
 from modnews.service.report.io.event_loader import load_processed_candidates
 from modnews.service.report.io.report_writer import write_enriched_events, write_json, write_text
 from modnews.service.report.models import EnrichedEvent
-from modnews.service.report.stages.classifier import classify_event
-from modnews.service.report.stages.scorer import score_event
-from modnews.service.report.stages.summarizer import summarize_event
-from modnews.service.report.stages.verifier import verify_event
-from modnews.service.report.utils.text import text_quality
 from modnews.service.report.reporter import (
     assign_report_sections,
     build_debug_report_markdown,
@@ -19,8 +16,12 @@ from modnews.service.report.reporter import (
     report_candidates_payload,
     review_candidates_payload,
 )
-from modnews.service.report.editor import polish_report_events
-from modnews.service.report.evidence import enrich_report_evidence
+from modnews.service.report.stages.classifier import classify_event
+from modnews.service.report.stages.scorer import score_event
+from modnews.service.report.stages.summarizer import summarize_event
+from modnews.service.report.stages.trend_writer import generate_trend_summary
+from modnews.service.report.stages.verifier import verify_event
+from modnews.service.report.utils.text import text_quality
 
 
 def run_pipeline(
@@ -83,6 +84,7 @@ def run_pipeline(
     assign_report_sections(enriched)
     evidence_payload = enrich_report_evidence(enriched)
 
+    trend_summary: str | None = None
     if config_path is not None:
         from modnews.core.config import load_config
         from modnews.core.context import PipelineContext
@@ -90,12 +92,14 @@ def run_pipeline(
         modnews_config = load_config(str(config_path))
         ctx = PipelineContext.create(modnews_config)
         polish_report_events(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
+        trend_summary = generate_trend_summary(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     write_enriched_events(output_dir / "enriched_events.json", enriched)
     write_json(output_dir / "evidence_events.json", evidence_payload)
     write_json(output_dir / "report_candidates.json", report_candidates_payload(enriched))
     write_json(output_dir / "review_candidates.json", review_candidates_payload(enriched))
-    write_text(output_dir / "daily_report.md", build_report_markdown(enriched, report_date))
-    write_text(output_dir / "daily_report_debug.md", build_debug_report_markdown(enriched, report_date))
+    write_json(output_dir / "trend_summary.json", {"trend_summary": trend_summary, "mode": "llm" if trend_summary else "fallback"})
+    write_text(output_dir / "daily_report.md", build_report_markdown(enriched, report_date, trend_summary))
+    write_text(output_dir / "daily_report_debug.md", build_debug_report_markdown(enriched, report_date, trend_summary))
     return enriched

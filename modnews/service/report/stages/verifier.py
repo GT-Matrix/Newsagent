@@ -30,7 +30,7 @@ def verify_event(candidate: EventCandidate, text_quality: str) -> tuple[VerifySt
     if has_any_word(haystack, RUMOR_WORDS):
         return "rumor", "包含传闻或未确认措辞，适合进入待观察线索。"
     if "community" in source_kinds and len(platforms) == 1:
-        return "rumor", "仅来自社区或论坛来源。"
+        return "single_source", "community single source, kept for normal ranking."
     if "official" in source_kinds and platforms:
         return "verified", "包含官方来源。"
     if len(platforms) >= 2 and source_kinds & {"authority_media", "chinese_media"}:
