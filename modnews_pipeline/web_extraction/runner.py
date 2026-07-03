@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews_pipeline.extractors.contract import ExtractorRunInput, ExtractorRunResult
-from modnews_pipeline.extractors.registry import ExtractorRegistry
+from modnews.service.extraction.contract import ExtractorRunInput, ExtractorRunResult
+from modnews.service.extraction.registry import ExtractorRegistry
 
 from .contract import WebSource
 from .repair_policy import classify_result

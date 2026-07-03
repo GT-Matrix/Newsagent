@@ -66,6 +66,7 @@
       io.py
     extraction/
       contract.py
+      metadata.py
       registry.py
       runner.py
       repair.py
@@ -401,6 +402,7 @@ def configure_services(container):
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`，旧 `modnews_pipeline.extractors.registry` 保留兼容 facade；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
+- managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`，旧 `modnews_pipeline.extractors.*` 保留兼容 facade。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。

@@ -8,8 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
-from modnews_pipeline.extractors.contract import ExtractorRunInput, ExtractorRunResult, validate_result
-from modnews_pipeline.extractors.metadata import ExtractorMetadata, read_metadata, replace_metadata_comment
+from modnews.service.extraction.contract import ExtractorRunInput, ExtractorRunResult, validate_result
+from modnews.service.extraction.metadata import ExtractorMetadata, read_metadata, replace_metadata_comment
 
 
 @dataclass(slots=True)

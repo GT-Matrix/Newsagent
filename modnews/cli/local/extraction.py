@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Any
 
 from modnews.core.task import TaskEvent
+from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.registry import registry_from_project
-from modnews_pipeline.extractors.repair import RepairManager
 from modnews_pipeline.web_extraction.job_store import WebJobStore
 
 

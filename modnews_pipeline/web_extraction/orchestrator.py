@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Any
 
 from modnews_pipeline.context import PipelineContext
-from modnews_pipeline.extractors.registry import registry_from_project
-from modnews_pipeline.extractors.repair import RepairManager
+from modnews.service.extraction.registry import registry_from_project
+from modnews.service.extraction.repair import RepairManager
 from modnews_pipeline.models import NewsItem, StepResult
 from modnews_pipeline.sources import source_config_store
 
