@@ -58,13 +58,17 @@ class ExtractionLocalMixin:
         task = RepairManager(self.project_root, registry_from_project(self.project_root)).create_task(
             str(payload["source_id"]),
             reason=str(payload.get("reason") or "manual repair request"),
-            auto_start=bool(payload.get("auto_start", True)),
+            auto_start=False,
         )
-        return {"ok": True, "item": task.to_dict()}
+        queue_task = None
+        if bool(payload.get("auto_start", True)):
+            queue_task = self._submit_repair_task(task.id, task.source_id)
+        return {"ok": True, "item": task.to_dict(), "task": queue_task}
 
     def repair_retry(self, task_id: str) -> dict[str, Any]:
         task = RepairManager(self.project_root, registry_from_project(self.project_root)).retry_task(task_id)
-        return {"ok": True, "item": task.to_dict()}
+        queue_task = self._submit_repair_task(task.id, task.source_id)
+        return {"ok": True, "item": task.to_dict(), "task": queue_task}
 
     def repair_promote(self, task_id: str) -> dict[str, Any]:
         task = RepairManager(self.project_root, registry_from_project(self.project_root)).promote_task(task_id)
@@ -73,3 +77,20 @@ class ExtractionLocalMixin:
     def repair_delete(self, task_id: str) -> dict[str, Any]:
         RepairManager(self.project_root, registry_from_project(self.project_root)).delete_task(task_id)
         return {"ok": True}
+
+    def _submit_repair_task(self, repair_task_id: str, source_id: str) -> dict[str, Any]:
+        task_id = f"repair-{repair_task_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        task = TaskEvent(
+            id=task_id,
+            type="extractor.repair.codex",
+            step_id="extractor/repair",
+            payload={
+                "project_root": str(self.project_root),
+                "repair_task_id": repair_task_id,
+                "source_id": source_id,
+            },
+            concurrency_key=f"extractor.repair:{source_id}",
+            max_concurrency=1,
+        )
+        self.container.event_queue.submit(task)
+        return self.queue_show(task_id)

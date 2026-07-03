@@ -134,8 +134,6 @@ class RepairManager:
         task.error = None
         task.updated_at = _now()
         self._save_task(task)
-        thread = threading.Thread(target=self.run_task, args=(task_id,), daemon=True)
-        thread.start()
         return task
 
     def read_log(self, task_id: str, max_chars: int = 40000) -> str:

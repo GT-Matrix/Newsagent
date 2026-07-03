@@ -405,6 +405,7 @@ def configure_services(container):
 - classify task 写统一 run checkpoint 时，已把 `news_with_events.json`、`events.json`、`discarded_news.json` 和 `classification_progress.json` 作为 checkpoint artifact 写入同一个时间戳任务目录；task resume 会优先读取 run checkpoint 里的 `classification_progress` artifact，找不到时再回退固定配置路径。固定 `output/` 文件仍保留为兼容发布结果。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
 - managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`。
+- Codex extractor repair 已接入统一队列：`repair create`/`repair retry` 会注册并执行 `TaskEvent(type="extractor.repair.codex")`，由 `EventQueue` 负责并发、blocked、重试和 task logs；原 repair task 记录继续作为工作目录、Codex 输出和 promote 结果仓储。
 - managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`。
 - `RuntimePaths`/`runtime_paths` 和核心数据模型 `NewsItem`、`EventRecord`、`StepResult`、`PipelineResult` 已迁入 `modnews/core/`。
 - runtime/source config store 实现已迁入 `modnews/repository/runtime_config.py` 与 `modnews/repository/source_config.py`。
@@ -426,7 +427,7 @@ def configure_services(container):
 
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
-- LLM 调用、Codex repair 调用和 web extraction retry/repair 的细粒度内部日志仍未完全汇入 `TaskLogRepository`；当前已先统一队列状态语义、自动重试字段、队列级 task 日志和 web_source task 的业务 blocked 映射。
+- LLM 调用、Codex stdout/JSONL 和 web extraction retry/repair 的细粒度内部日志仍未完全汇入 `TaskLogRepository`；当前已先统一队列状态语义、自动重试字段、队列级 task 日志、Codex repair task 执行入口和 web_source task 的业务 blocked 映射。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、模型、utils、规则表、IO helper 和 stages；评分、evidence、editor、reporter 等 pipeline 子模块仍暂时依赖 `src/` 命名空间。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。
