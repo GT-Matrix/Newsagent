@@ -5,8 +5,8 @@ from typing import Any
 
 from modnews.repository.outputs import OutputRepository
 from modnews.core.paths import runtime_paths
+from modnews.core.progress import BUS, sse
 from modnews.repository.source_config import source_config_store
-from modnews_pipeline.progress import BUS, sse
 
 
 class RuntimeLocalMixin:

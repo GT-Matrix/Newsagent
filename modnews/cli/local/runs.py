@@ -5,7 +5,7 @@ from typing import Any
 
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
-from modnews_pipeline.progress import BUS, emit
+from modnews.core.progress import BUS, emit
 
 
 class RunsLocalMixin:

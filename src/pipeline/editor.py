@@ -8,7 +8,7 @@ import requests
 
 from modnews_pipeline.classify.llm_client import LlmClient
 from modnews.core.config import LlmConfig
-from modnews_pipeline.progress import emit
+from modnews.core.progress import emit
 from src.models import EnrichedEvent
 
 MAX_EVIDENCE_CHARS = 4200
