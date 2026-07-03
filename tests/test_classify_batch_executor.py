@@ -8,6 +8,7 @@ from modnews.service.classify.batch_executor import (
     BatchExecutionItem,
     EventQueueBatchExecutionBackend,
     build_batch_items,
+    default_batch_backend,
     describe_batch_items,
     run_batch_parallel,
 )
@@ -111,6 +112,23 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual({task.max_concurrency for task in tasks}, {2})
         self.assertEqual([queue.result(task.id)["batch_result"] for task in tasks], ["A", "B"])
         self.assertEqual(queue._executors, {})
+
+    def test_default_backend_context_routes_batches_to_event_queue(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(queue, run_id="run-1", step_id="classify/default")
+
+        with default_batch_backend(backend):
+            result = run_batch_parallel(
+                lambda value: value + 10,
+                [1, 2],
+                max_workers=2,
+                task_type="classify.embedding",
+                concurrency_key="classify.embedding",
+            )
+
+        self.assertEqual(result, [11, 12])
+        self.assertEqual(len(queue.list()), 2)
+        self.assertEqual({task.type.rsplit(".", 1)[0] for task in queue.list()}, {"classify.batch_item"})
 
 
 if __name__ == "__main__":

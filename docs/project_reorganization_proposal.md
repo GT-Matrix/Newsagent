@@ -414,7 +414,7 @@ def configure_services(container):
 - legacy progress bus 已迁入 `modnews/core/progress.py`，并会把 `emit(...)` 事件桥接到当前容器的 `EventRouter`（`progress` 与 `progress.<event_type>`）；后续还需要继续减少 classify 内部直接使用旧式 progress event 的地方。
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
-- classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。当前默认 backend 仍是本地线程池，同时已提供 `EventQueueBatchExecutionBackend` 适配层，可把 batch item 注册成 `TaskEvent` 并通过队列收集结果；后续再把默认执行切到该 backend，而不是让各 step 自己维护线程池。
+- classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。standalone 调用默认仍使用本地线程池；bootstrap 注册的 classify task 会注入 `EventQueueBatchExecutionBackend`，使 LLM batch 和 embedding batch item 注册成 `TaskEvent` 并通过统一队列收集结果。
 - legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `src` 和 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`。
@@ -426,7 +426,7 @@ def configure_services(container):
 仍是兼容层的部分：
 
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
-- clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
+- clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用现有 step 实现；batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - LLM 调用、Codex stdout/JSONL 和 web extraction retry/repair 的细粒度内部日志仍未完全汇入 `TaskLogRepository`；当前已先统一队列状态语义、自动重试字段、队列级 task 日志、Codex repair task 执行入口和 web_source task 的业务 blocked 映射。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、模型、utils、规则表、IO helper 和 stages；评分、evidence、editor、reporter 等 pipeline 子模块仍暂时依赖 `src/` 命名空间。

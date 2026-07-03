@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, Protocol, TypeVar
+from typing import Any, Callable, Generic, Iterator, Protocol, TypeVar
 from uuid import uuid4
 
 from modnews.core.event_queue import EventQueue
@@ -10,6 +12,8 @@ from modnews.core.task import TaskEvent
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+_DEFAULT_BACKEND: ContextVar[BatchExecutionBackend | None] = ContextVar("classify_batch_backend", default=None)
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,7 +186,16 @@ def run_batch_parallel(
         batch_count=batch_count,
         labels=labels,
     )
-    return (backend or ThreadedBatchExecutionBackend()).run(fn, execution_items)
+    return (backend or _DEFAULT_BACKEND.get() or ThreadedBatchExecutionBackend()).run(fn, execution_items)
+
+
+@contextmanager
+def default_batch_backend(backend: BatchExecutionBackend | None) -> Iterator[None]:
+    token = _DEFAULT_BACKEND.set(backend)
+    try:
+        yield
+    finally:
+        _DEFAULT_BACKEND.reset(token)
 
 
 def _coerce_items(

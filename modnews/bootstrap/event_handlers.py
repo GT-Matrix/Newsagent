@@ -9,6 +9,7 @@ from modnews.service.classify.clustered_tasks import (
     run_clustered_event_extraction_task,
     run_clustered_event_merge_task,
 )
+from modnews.service.classify.batch_executor import EventQueueBatchExecutionBackend, default_batch_backend
 from modnews.service.classify.tasks import run_classify_task, run_clustered_pipeline_task
 from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
@@ -28,10 +29,13 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
 
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
-    queue.register_executor("classify.run_legacy", run_classify_task)
-    queue.register_executor("classify.clustered_pipeline", run_clustered_pipeline_task)
-    queue.register_executor("classify.clustered_event_extraction", run_clustered_event_extraction_task)
-    queue.register_executor("classify.clustered_event_merge", run_clustered_event_merge_task)
+    queue.register_executor("classify.run_legacy", _with_classify_batch_queue(queue, run_classify_task))
+    queue.register_executor("classify.clustered_pipeline", _with_classify_batch_queue(queue, run_clustered_pipeline_task))
+    queue.register_executor(
+        "classify.clustered_event_extraction",
+        _with_classify_batch_queue(queue, run_clustered_event_extraction_task),
+    )
+    queue.register_executor("classify.clustered_event_merge", _with_classify_batch_queue(queue, run_clustered_event_merge_task))
     queue.register_executor("ingest.run_step", run_ingest_step_task)
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("extractor.repair.codex", run_codex_repair_task)
@@ -41,6 +45,20 @@ def register_task_executors(queue: EventQueue) -> None:
 
 def _echo(task: TaskEvent) -> dict[str, object]:
     return {"payload": dict(task.payload)}
+
+
+def _with_classify_batch_queue(queue: EventQueue, executor):
+    def wrapped(task: TaskEvent) -> dict[str, object] | None:
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id=task.pipeline_run_id,
+            step_id=task.step_id,
+            task_type_prefix="classify.batch_item",
+        )
+        with default_batch_backend(backend):
+            return executor(task)
+
+    return wrapped
 
 
 def _auto_publish_checkpoint(event: dict[str, object]) -> dict[str, object] | None:
