@@ -12,15 +12,15 @@ from modnews.service.report.stages.scorer import score_event
 from modnews.service.report.stages.summarizer import summarize_event
 from modnews.service.report.stages.verifier import verify_event
 from modnews.service.report.utils.text import text_quality
-from src.pipeline.editor import polish_report_events
-from src.pipeline.evidence import enrich_report_evidence
-from src.pipeline.reporter import (
+from modnews.service.report.reporter import (
     assign_report_sections,
     build_debug_report_markdown,
     build_report_markdown,
     report_candidates_payload,
     review_candidates_payload,
 )
+from modnews.service.report.editor import polish_report_events
+from modnews.service.report.evidence import enrich_report_evidence
 
 
 def run_pipeline(
