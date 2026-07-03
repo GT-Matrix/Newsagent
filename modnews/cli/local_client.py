@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.bootstrap import configure_services
+from modnews.core.task import TaskEvent
 from modnews.repository.cache import CacheRepository
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
@@ -54,6 +55,16 @@ class LocalClient:
 
     def queue_list(self, states: set[str] | None = None) -> list[dict[str, Any]]:
         return [task.to_dict() for task in self.container.event_queue.list(states)]
+
+    def queue_show(self, task_id: str) -> dict[str, Any]:
+        task = self.container.event_queue.get(task_id).to_dict()
+        task["result"] = self.container.event_queue.result(task_id)
+        return task
+
+    def queue_echo(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        task = TaskEvent(id=task_id, type="diagnostic.echo", payload=payload)
+        self.container.event_queue.dispatch(task)
+        return self.queue_show(task_id)
 
     def config_show(self, include_paths: bool = False) -> dict[str, Any]:
         payload = source_config_store(self.project_root).load()

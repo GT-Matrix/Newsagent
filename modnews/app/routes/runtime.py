@@ -23,6 +23,18 @@ def queue_status():
     return jsonify(LocalClient().queue_status())
 
 
+@bp.get("/api/queue/<task_id>")
+def queue_show(task_id: str):
+    return jsonify(LocalClient().queue_show(task_id))
+
+
+@bp.post("/api/queue/echo")
+def queue_echo():
+    payload = request.get_json(silent=True) or {}
+    task_id = str(payload.get("task_id") or "diagnostic-echo")
+    return jsonify(LocalClient().queue_echo(task_id, payload.get("payload") if isinstance(payload.get("payload"), dict) else {}))
+
+
 @bp.get("/api/cache")
 def cache_status():
     return jsonify(LocalClient().cache_status())

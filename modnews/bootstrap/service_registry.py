@@ -10,6 +10,7 @@ from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config import RuntimeConfigRepository
 from modnews.repository.web_jobs import WebJobRepository
+from .event_handlers import register_event_handlers, register_task_executors
 
 
 @dataclass(slots=True)
@@ -36,4 +37,6 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     root = project_root.resolve() if project_root else Path.cwd().resolve()
     container = ServiceContainer(project_root=root)
     container.pipeline_manager.bind(container.event_queue, container.event_router)
+    register_event_handlers(container.event_router)
+    register_task_executors(container.event_queue)
     return container
