@@ -108,11 +108,15 @@ class LocalClient:
         parts = key_path.split(".")
         if len(parts) < 2:
             raise ValueError("config key must include a section")
-        if parts[0] == "steps" and len(parts) >= 3:
-            return self.config_update_step(parts[1], {".".join(parts[2:]): value})
-        if parts[0] == "classification":
-            return self.config_update_classification({".".join(parts[1:]): value})
         data = self.config_show()
+        if parts[0] == "steps" and len(parts) >= 3:
+            step = data.setdefault("steps", {}).setdefault(parts[1], {})
+            _set_nested(step, parts[2:], value)
+            return source_config_store(self.project_root).save(data)
+        if parts[0] == "classification":
+            classification = data.setdefault("classification", {})
+            _set_nested(classification, parts[1:], value)
+            return source_config_store(self.project_root).save(data)
         target = data
         for part in parts[:-1]:
             target = target.setdefault(part, {})
@@ -231,3 +235,16 @@ class LocalClient:
 
     def checkpoints_list(self, run_id: str | None = None) -> list[dict[str, Any]]:
         return CheckpointRepository(self.project_root).list(run_id)
+
+
+def _set_nested(target: dict[str, Any], parts: list[str], value: Any) -> None:
+    if not parts:
+        raise ValueError("missing config key")
+    current = target
+    for part in parts[:-1]:
+        next_value = current.setdefault(part, {})
+        if not isinstance(next_value, dict):
+            next_value = {}
+            current[part] = next_value
+        current = next_value
+    current[parts[-1]] = value
