@@ -103,7 +103,7 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
     override_raw = raw or {}
     project_root = Path(base_dir).resolve() if base_dir else _project_root()
     paths = runtime_paths(project_root)
-    package_root = project_root / "modnews_pipeline"
+    data_root = project_root / "modnews" / "data"
     runtime_raw = runtime_config_store(project_root).load()
     merged = _merge_runtime_override(runtime_raw, override_raw)
     steps_raw = merged.get("steps", {})
@@ -144,12 +144,12 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
         newsnow_sources_path=Path(
             override_raw.get(
                 "newsnow_sources_path",
-                package_root / "data" / "newsnow_sources.json",
+                data_root / "newsnow_sources.json",
             )
         ).resolve(),
         newsnow_cache_dir=paths.newsnow_cache_dir,
         rss_sources_path=Path(
-            override_raw.get("rss_sources_path", package_root / "data" / "rss_sources.json")
+            override_raw.get("rss_sources_path", data_root / "rss_sources.json")
         ).resolve(),
         ingest_steps=steps,
         classification=ClassificationConfig(

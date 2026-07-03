@@ -24,11 +24,11 @@ class RuntimeConfigStore:
 
     @property
     def rss_seed_path(self) -> Path:
-        return self.project_root / "modnews_pipeline" / "data" / "rss_sources.json"
+        return self.project_root / "modnews" / "data" / "rss_sources.json"
 
     @property
     def newsnow_seed_path(self) -> Path:
-        return self.project_root / "modnews_pipeline" / "data" / "newsnow_sources.json"
+        return self.project_root / "modnews" / "data" / "newsnow_sources.json"
 
     def load(self) -> dict[str, Any]:
         if not self.path.exists():

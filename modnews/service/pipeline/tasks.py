@@ -7,7 +7,7 @@ from modnews.core.task import TaskEvent
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews.core.config import apply_runtime_overrides, load_config
-from modnews_pipeline.pipeline import run_pipeline
+from modnews.service.pipeline.legacy_runner import run_pipeline
 
 
 def combine_ingest_task(task: TaskEvent) -> dict[str, object]:
