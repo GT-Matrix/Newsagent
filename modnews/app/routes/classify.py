@@ -17,9 +17,9 @@ def run_classify():
     task_id = f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     task = TaskEvent(
         id=task_id,
-        type="classify.run_legacy",
+        type="classify.clustered_pipeline",
         pipeline_run_id=payload.get("run_id"),
-        step_id="classify",
+        step_id="classify/clustered_pipeline",
         payload={"project_root": str(client.project_root), **payload},
         concurrency_key="classify",
         max_concurrency=1,

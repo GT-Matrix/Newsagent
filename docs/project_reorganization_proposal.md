@@ -398,7 +398,7 @@ def configure_services(container):
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
 - 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
-- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
+- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口已切到 `classify.clustered_pipeline`，旧 `classify.run_legacy` 仅作为低层 executor 兼容路径保留。
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed`/`task.blocked` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
 - `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
