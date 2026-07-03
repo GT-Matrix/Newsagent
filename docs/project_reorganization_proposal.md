@@ -382,6 +382,24 @@ def configure_services(container):
 
 这样 `PipelineManager` 管顺序和 run state，`EventQueue` 管并发和执行，`CheckpointManager` 管落盘，具体业务 executor 只处理某一种 task。`pipeline` 不直接关联 `ingest` 或 `classify` 的实现，关联关系只存在于 bootstrap 注册代码中。
 
+## 当前迁移状态
+
+截至 `refactor/modnews-service-architecture` 分支当前阶段：
+
+- 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`internal/service`、`repository`、`cli` 骨架。
+- 旧 `modnews_pipeline.web` 已改为新 `modnews.app` 的兼容入口。
+- CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作。
+- 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
+- managed web source 单源运行已通过 `web_source.run` task 执行。
+- WebUI Progress 页已展示 runs、queue、checkpoints。
+
+仍是兼容层的部分：
+
+- ingest 的 `rss/newsnow/site_lists` 仍由 legacy pipeline 同步调用，后续要逐步改成 step 只注册 `TaskEvent`。
+- classify 的 batch、embedding、cluster extraction、merge 仍由 legacy classify runner 执行，后续要拆成 task executor，并由完成回调推进下一步。
+- legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
+- `OutputRepository` 当前读取固定输出路径，后续要改成从最新成功 checkpoint 发布固定输出。
+
 ## Managed Extractors
 
 根目录 `extractors/anthropic/current` 和 `extractors/huggingface_papers_trending/current` 已经是适合提交的形态，并且 `.gitignore` 已排除 `.agent_work/`。建议保留并正式注册安装：

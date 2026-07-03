@@ -13,6 +13,7 @@ class PipelineManager:
     steps: list[Any] = field(default_factory=list)
     event_queue: EventQueue | None = None
     event_router: EventRouter | None = None
+    ingest_registry: Any | None = None
 
     def bind(self, event_queue: EventQueue, event_router: EventRouter) -> None:
         self.event_queue = event_queue
