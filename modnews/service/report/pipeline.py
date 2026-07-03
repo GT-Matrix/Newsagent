@@ -7,7 +7,10 @@ from pathlib import Path
 from modnews.service.report.io.event_loader import load_processed_candidates
 from modnews.service.report.io.report_writer import write_enriched_events, write_json, write_text
 from modnews.service.report.models import EnrichedEvent
-from src.pipeline.classifier import classify_event
+from modnews.service.report.stages.classifier import classify_event
+from modnews.service.report.stages.summarizer import summarize_event
+from modnews.service.report.stages.verifier import verify_event
+from modnews.service.report.utils.text import text_quality
 from src.pipeline.editor import polish_report_events
 from src.pipeline.evidence import enrich_report_evidence
 from src.pipeline.reporter import (
@@ -18,9 +21,6 @@ from src.pipeline.reporter import (
     review_candidates_payload,
 )
 from src.pipeline.scorer import score_event
-from src.pipeline.summarizer import summarize_event
-from src.pipeline.verifier import verify_event
-from modnews.service.report.utils.text import text_quality
 
 
 def run_pipeline(
