@@ -12,15 +12,21 @@ from modnews.service.report.utils.validation import as_int_list, as_string_list,
 def load_processed_candidates(path: Path) -> list[EventCandidate]:
     """Load the canonical output from modnews.
 
-    The expected file is the processed PipelineResult JSON written by the
-    ingest/classify stage, usually `output/combined_news.json`. It must contain
-    both `events` and `items` so the report layer can keep source URLs.
+    Supported inputs:
+
+    - processed PipelineResult JSON written by the ingest/classify stage,
+      usually `output/combined_news.json`
+    - classify checkpoint payloads such as `classification_progress.json`
+
+    Both shapes must expose `events` and `items` arrays so the report layer can
+    keep source URLs.
     """
+    path = resolve_report_input_path(path)
     with path.open("r", encoding="utf-8-sig") as file:
         data = json.load(file)
 
     if not isinstance(data, dict):
-        raise ValueError(f"Expected processed PipelineResult object in {path}")
+        raise ValueError(f"Expected processed PipelineResult or classification checkpoint object in {path}")
     raw_events = data.get("events")
     raw_items = data.get("items")
     if not isinstance(raw_events, list) or not isinstance(raw_items, list):
@@ -83,3 +89,35 @@ def build_source_item_map(items: list[dict[str, Any]]) -> dict[str, list[SourceI
         )
         source_map.setdefault(str(event_id), []).append(source)
     return source_map
+
+
+def resolve_report_input_path(path: Path) -> Path:
+    resolved = path.expanduser().resolve()
+    if resolved.is_file() and resolved.name != "checkpoint.json":
+        return resolved
+    if resolved.is_dir():
+        for name in ("classification_progress.json", "combined_news.json", "report_input.json", "report_input_with_sources.json"):
+            candidate = resolved / name
+            if candidate.exists():
+                return candidate.resolve()
+        checkpoint_path = resolved / "checkpoint.json"
+        if checkpoint_path.exists():
+            return _resolve_report_checkpoint_artifact(checkpoint_path)
+        raise ValueError(f"Could not resolve report input artifact from directory {resolved}")
+    if resolved.name == "checkpoint.json":
+        return _resolve_report_checkpoint_artifact(resolved)
+    return resolved
+
+
+def _resolve_report_checkpoint_artifact(checkpoint_path: Path) -> Path:
+    payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Invalid checkpoint payload in {checkpoint_path}")
+    output_refs = payload.get("output_refs") if isinstance(payload.get("output_refs"), dict) else {}
+    for key in ("classification_progress", "combined_news"):
+        candidate = output_refs.get(key)
+        if candidate:
+            resolved = Path(str(candidate)).expanduser().resolve()
+            if resolved.exists():
+                return resolved
+    raise ValueError(f"Could not resolve report input artifact from checkpoint {checkpoint_path}")

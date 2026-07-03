@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
-from modnews.service.classify.io import resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
+from modnews.service.classify.io import resolve_input_path, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
 from modnews.service.classify.types import DiscardedRecord
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
@@ -110,6 +110,22 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
             fixed_path.write_text(json.dumps({"meta": {"stage": "fixed"}}, ensure_ascii=False), encoding="utf-8")
 
             self.assertIsNone(resolve_task_resume_checkpoint_path(project_root, "missing-run"))
+
+    def test_resolve_input_path_accepts_checkpoint_and_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            checkpoint_dir = project_root / "checkpoints" / "pipeline" / "combine_ingest" / "one"
+            checkpoint_dir.mkdir(parents=True)
+            items_path = checkpoint_dir / "items.json"
+            items_path.write_text(json.dumps([{"platform": "x", "title": "t", "url": "https://example.com", "scrape_date": "2026-07-03"}]), encoding="utf-8")
+            checkpoint_path = checkpoint_dir / "checkpoint.json"
+            checkpoint_path.write_text(
+                json.dumps({"output_refs": {"items": str(items_path)}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            self.assertEqual(resolve_input_path(project_root, "run-x", checkpoint_dir, project_root / "fallback.json"), items_path.resolve())
+            self.assertEqual(resolve_input_path(project_root, "run-x", checkpoint_path, project_root / "fallback.json"), items_path.resolve())
 
 
 if __name__ == "__main__":

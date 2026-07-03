@@ -11,7 +11,7 @@ def resolve_input_path(project_root: Path, run_id: str, input_ref: object, fallb
     ref = str(input_ref or fallback)
     if ref == "__combined_ingest__":
         ref = str(RunRepository(project_root).get(run_id).get("combined_ingest_path") or fallback)
-    return Path(ref).resolve()
+    return _resolve_classify_input_artifact(Path(ref).resolve())
 
 
 def load_news_items(path: Path) -> list[NewsItem]:
@@ -82,3 +82,45 @@ def _latest_run_classification_progress(project_root: Path, run_id: str) -> Path
 
 def append_run_checkpoint(project_root: Path, run_id: str, checkpoint_path: Path) -> None:
     RunRepository(project_root).append_checkpoint(run_id, checkpoint_path, create_payload={"source": "manual_classify_task"})
+
+
+def _resolve_classify_input_artifact(path: Path) -> Path:
+    if path.is_file() and path.name != "checkpoint.json":
+        return path
+    if path.is_dir():
+        checkpoint_path = path / "checkpoint.json"
+        if checkpoint_path.exists():
+            return _resolve_classify_checkpoint_artifact(checkpoint_path)
+        items_path = path / "items.json"
+        if items_path.exists():
+            return items_path.resolve()
+        classification_progress = path / "classification_progress.json"
+        if classification_progress.exists():
+            return classification_progress.resolve()
+        combined_news = path / "combined_news.json"
+        if combined_news.exists():
+            return combined_news.resolve()
+        raise ValueError(f"Could not resolve classify input artifact from directory {path}")
+    if path.name == "checkpoint.json":
+        return _resolve_classify_checkpoint_artifact(path)
+    return path
+
+
+def _resolve_classify_checkpoint_artifact(checkpoint_path: Path) -> Path:
+    payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Invalid checkpoint payload in {checkpoint_path}")
+    output_refs = payload.get("output_refs") if isinstance(payload.get("output_refs"), dict) else {}
+    input_refs = payload.get("input_refs") if isinstance(payload.get("input_refs"), dict) else {}
+    for key in ("items", "classification_progress", "combined_news", "news_with_events"):
+        candidate = output_refs.get(key)
+        if candidate:
+            resolved = Path(str(candidate)).expanduser().resolve()
+            if resolved.exists():
+                return resolved
+    candidate = input_refs.get("items")
+    if candidate:
+        resolved = Path(str(candidate)).expanduser().resolve()
+        if resolved.exists():
+            return resolved
+    raise ValueError(f"Could not resolve classify input artifact from checkpoint {checkpoint_path}")
