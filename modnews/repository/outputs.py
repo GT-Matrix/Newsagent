@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from modnews.core.config import load_config
+from modnews.core.config import build_config
 from modnews.core.paths import runtime_paths
 
 
@@ -14,7 +14,7 @@ class OutputRepository:
         self.project_root = project_root
 
     def state(self, config: Any | None = None) -> dict[str, Any]:
-        config = config or load_config()
+        config = config or build_config(base_dir=self.project_root)
         paths = {
             "combined_news": runtime_paths(self.project_root).combined_news_path,
             "news_with_events": config.classification.output_path,
@@ -27,7 +27,7 @@ class OutputRepository:
         return {key: self._path_info(path) for key, path in paths.items()}
 
     def publish_from_checkpoint(self, checkpoint: dict[str, Any]) -> dict[str, Any]:
-        config = load_config()
+        config = build_config(base_dir=self.project_root)
         paths = runtime_paths(self.project_root)
         targets = {
             "combined_news": paths.combined_news_path,
