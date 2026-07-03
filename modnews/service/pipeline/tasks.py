@@ -6,7 +6,7 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
-from modnews_pipeline.config import apply_runtime_overrides, load_config
+from modnews.core.config import apply_runtime_overrides, load_config
 from modnews_pipeline.pipeline import run_pipeline
 
 

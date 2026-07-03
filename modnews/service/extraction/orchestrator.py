@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.models import NewsItem, StepResult
-from modnews_pipeline.context import PipelineContext
+from modnews.core.context import PipelineContext
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.repair_policy import classify_exception, should_auto_repair

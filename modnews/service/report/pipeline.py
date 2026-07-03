@@ -84,8 +84,8 @@ def run_pipeline(
     evidence_payload = enrich_report_evidence(enriched)
 
     if config_path is not None:
-        from modnews_pipeline.config import load_config
-        from modnews_pipeline.context import PipelineContext
+        from modnews.core.config import load_config
+        from modnews.core.context import PipelineContext
 
         modnews_config = load_config(str(config_path))
         ctx = PipelineContext.create(modnews_config)

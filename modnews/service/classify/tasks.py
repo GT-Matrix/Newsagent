@@ -6,8 +6,8 @@ from modnews.core.task import TaskEvent
 from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews_pipeline.classify.stage import run_classification
-from modnews_pipeline.config import load_config
-from modnews_pipeline.context import PipelineContext
+from modnews.core.config import load_config
+from modnews.core.context import PipelineContext
 
 
 def run_classify_task(task: TaskEvent) -> dict[str, object]:

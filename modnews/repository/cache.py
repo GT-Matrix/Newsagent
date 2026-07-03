@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews_pipeline.config import load_config
+from modnews.core.config import load_config
 
 
 class CacheRepository:

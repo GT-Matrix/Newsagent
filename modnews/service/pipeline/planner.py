@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from modnews.core.task import TaskEvent
-from modnews_pipeline.config import apply_runtime_overrides, load_config
+from modnews.core.config import apply_runtime_overrides, load_config
 
 
 @dataclass(slots=True)

@@ -7,8 +7,8 @@ from modnews.core.task import TaskEvent
 from modnews.service.ingest.registry import default_ingest_registry
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
-from modnews_pipeline.config import load_config
-from modnews_pipeline.context import PipelineContext
+from modnews.core.config import load_config
+from modnews.core.context import PipelineContext
 
 
 def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:

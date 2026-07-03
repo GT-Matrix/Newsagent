@@ -12,8 +12,8 @@ from modnews_pipeline.classify.runner import ClassifyRuntime
 from modnews_pipeline.classify.state import ClassifyState
 from modnews_pipeline.classify.steps import ClusteredEventExtractionStep, ClusteredEventMergeStep, StartCheckpointStep
 from modnews_pipeline.classify.utils import prepare_item
-from modnews_pipeline.config import load_config
-from modnews_pipeline.context import PipelineContext
+from modnews.core.config import load_config
+from modnews.core.context import PipelineContext
 
 
 def run_clustered_event_extraction_task(task: TaskEvent) -> dict[str, object]:

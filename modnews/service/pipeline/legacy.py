@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from modnews_pipeline.config import PipelineConfig, load_config
+from modnews.core.config import PipelineConfig, load_config
 from modnews.core.models import PipelineResult
 from modnews_pipeline.pipeline import run_pipeline, run_pipeline_from_path
 
