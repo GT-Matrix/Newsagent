@@ -8,9 +8,11 @@ import uuid
 from datetime import datetime
 from collections import deque
 from dataclasses import dataclass, field
+from collections.abc import Callable
 from typing import Any
 
 from modnews.core.events import EventRouter
+from modnews.core.task import TaskEvent, current_task
 
 
 @dataclass(slots=True)
@@ -24,12 +26,16 @@ class ProgressEvent:
         return {"id": self.id, "type": self.type, "ts": self.ts, **self.data}
 
 
+ProgressLogger = Callable[[TaskEvent, ProgressEvent], None]
+
+
 @dataclass(slots=True)
 class ProgressBus:
     max_events: int = 5000
     _events: deque[ProgressEvent] = field(default_factory=deque)
     _listeners: list[queue.Queue[ProgressEvent]] = field(default_factory=list)
     _routers: list[EventRouter] = field(default_factory=list)
+    _loggers: list[ProgressLogger] = field(default_factory=list)
     _lock: threading.Lock = field(default_factory=threading.Lock)
     _next_id: int = 1
     _stats: dict[str, Any] = field(default_factory=dict)
@@ -44,12 +50,20 @@ class ProgressBus:
             if event_type in {"pipeline_start", "pipeline_done", "pipeline_error", "checkpoint", "step_start", "step_done"}:
                 self._stats.update(_stats_from_event(event_type, data))
             listeners = list(self._listeners)
+            loggers = list(self._loggers)
         _print_event(event)
         for listener in listeners:
             try:
                 listener.put_nowait(event)
             except queue.Full:
                 pass
+        task = current_task()
+        if task is not None:
+            for logger in loggers:
+                try:
+                    logger(task, event)
+                except Exception:
+                    pass
         self._dispatch(event)
         return event
 
@@ -81,6 +95,11 @@ class ProgressBus:
         with self._lock:
             if router not in self._routers:
                 self._routers.append(router)
+
+    def bind_logger(self, logger: ProgressLogger) -> None:
+        with self._lock:
+            if logger not in self._loggers:
+                self._loggers.append(logger)
 
     def unbind_router(self, router: EventRouter) -> None:
         with self._lock:

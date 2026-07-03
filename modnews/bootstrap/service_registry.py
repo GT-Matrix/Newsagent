@@ -52,6 +52,7 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     container.event_queue.bind_router(container.event_router)
     task_logs = TaskLogRepository(root)
     container.event_queue.bind_logger(lambda task, event_type, payload: task_logs.append(task, event_type, **payload))
+    BUS.bind_logger(lambda task, event: task_logs.append_progress(task, event))
     BUS.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
     register_completion_callbacks(container.completion_callbacks, container.pipeline_manager)

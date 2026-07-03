@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Iterator
 
 TERMINAL_STATES = {"succeeded", "failed", "cancelled", "blocked"}
+_CURRENT_TASK: ContextVar["TaskEvent | None"] = ContextVar("modnews_current_task", default=None)
 
 
 class TaskBlocked(Exception):
@@ -34,3 +37,16 @@ class TaskEvent:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@contextmanager
+def task_context(task: TaskEvent) -> Iterator[None]:
+    token = _CURRENT_TASK.set(task)
+    try:
+        yield
+    finally:
+        _CURRENT_TASK.reset(token)
+
+
+def current_task() -> TaskEvent | None:
+    return _CURRENT_TASK.get()

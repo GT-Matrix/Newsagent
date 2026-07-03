@@ -6,6 +6,7 @@ from pathlib import Path
 
 from modnews.app.server import create_app
 from modnews.cli.local_client import LocalClient
+from modnews.core.progress import emit
 from modnews.core.task import TaskEvent
 
 
@@ -80,6 +81,19 @@ class QueueControlTest(unittest.TestCase):
             self.assertGreaterEqual(len(result["logs"]), 3)
             self.assertEqual(result["logs"][0]["type"], "task.registered")
             self.assertIn("task.completed", {row["type"] for row in result["logs"]})
+
+    def test_progress_events_inside_task_are_written_to_task_logs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register_executor(
+                "diagnostic.progress",
+                lambda _task: emit("llm_request_start", task="unit_test", request_id="req-1") and {"value": "ok"},
+            )
+
+            client.container.event_queue.submit(TaskEvent(id="progress-task-1", type="diagnostic.progress"))
+            result = client.queue_show("progress-task-1")
+
+            self.assertIn("progress.llm_request_start", {row["type"] for row in result["logs"]})
 
 
 if __name__ == "__main__":

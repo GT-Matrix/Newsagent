@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from .events import EventRouter
-from .task import TERMINAL_STATES, TaskBlocked, TaskEvent
+from .task import TERMINAL_STATES, TaskBlocked, TaskEvent, task_context
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
 TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
@@ -98,7 +98,8 @@ class EventQueue:
             self.drain_ready()
             return task
         try:
-            result = executor(task) or {}
+            with task_context(task):
+                result = executor(task) or {}
             with self._lock:
                 task.state = "succeeded"
                 task.finished_at = _now()
