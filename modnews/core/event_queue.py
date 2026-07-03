@@ -129,6 +129,17 @@ class EventQueue:
             self._results[task.id] = {"cancel_reason": reason}
             return task
 
+    def retry(self, task_id: str) -> TaskEvent:
+        with self._lock:
+            task = self._tasks[task_id]
+            if task.state not in {"failed", "cancelled"}:
+                return task
+            task.state = "queued"
+            task.started_at = None
+            task.finished_at = None
+            self._results.pop(task.id, None)
+            return task
+
     def dependents_of(self, task_id: str) -> list[TaskEvent]:
         with self._lock:
             return [task for task in self._tasks.values() if task_id in task.depends_on]

@@ -57,6 +57,14 @@ def queue_cancel(task_id: str):
         return jsonify({"ok": False, "error": "not found"}), 404
 
 
+@bp.post("/api/queue/<task_id>/retry")
+def queue_retry(task_id: str):
+    try:
+        return jsonify(local_client().queue_retry(task_id))
+    except KeyError:
+        return jsonify({"ok": False, "error": "not found"}), 404
+
+
 @bp.get("/api/cache")
 def cache_status():
     return jsonify(local_client().cache_status())

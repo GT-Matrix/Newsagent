@@ -23,6 +23,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     cancel_cmd.add_argument("task_id")
     cancel_cmd.add_argument("--reason", default="cancelled by user")
     cancel_cmd.set_defaults(handler=cancel_queue)
+    retry_cmd = nested.add_parser("retry")
+    retry_cmd.add_argument("task_id")
+    retry_cmd.set_defaults(handler=retry_queue)
     echo_cmd = nested.add_parser("echo")
     echo_cmd.add_argument("task_id")
     echo_cmd.add_argument("--message", default="ok")
@@ -67,3 +70,9 @@ def cancel_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.post(f"/api/queue/{args.task_id}/cancel", payload)
     return client.queue_cancel(args.task_id, args.reason)
+
+
+def retry_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.post(f"/api/queue/{args.task_id}/retry", {})
+    return client.queue_retry(args.task_id)

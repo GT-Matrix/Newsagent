@@ -37,6 +37,39 @@ class QueueControlTest(unittest.TestCase):
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["task"]["state"], "cancelled")
 
+    def test_queue_retry_reruns_failed_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="task-1", type="missing.executor"))
+            client.container.event_queue.drain_ready()
+            self.assertEqual(client.container.event_queue.get("task-1").state, "failed")
+            client.container.event_queue.register_executor("missing.executor", lambda _task: {"value": "ok"})
+
+            result = client.queue_retry("task-1")
+
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["task"]["state"], "succeeded")
+            self.assertEqual(result["task"]["result"]["value"], "ok")
+
+    def test_queue_retry_api_route(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(Path(tmp))
+            with app.app_context():
+                from modnews.app.context import local_client
+
+                client_obj = local_client()
+                client_obj.container.event_queue.register(TaskEvent(id="task-1", type="missing.executor"))
+                client_obj.container.event_queue.drain_ready()
+                client_obj.container.event_queue.register_executor("missing.executor", lambda _task: {"value": "ok"})
+            http = app.test_client()
+
+            response = http.post("/api/queue/task-1/retry")
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.get_json()
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["task"]["state"], "succeeded")
+
 
 if __name__ == "__main__":
     unittest.main()

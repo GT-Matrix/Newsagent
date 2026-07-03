@@ -34,6 +34,12 @@ class QueueLocalMixin:
         task = self.container.event_queue.cancel(task_id, reason=reason)
         return {"ok": task.state == "cancelled", "task": self.queue_show(task_id)}
 
+    def queue_retry(self, task_id: str) -> dict[str, Any]:
+        task = self.container.event_queue.retry(task_id)
+        if task.state == "queued":
+            self.container.event_queue.drain_ready()
+        return {"ok": self.container.event_queue.get(task_id).state == "succeeded", "task": self.queue_show(task_id)}
+
     def _task_payload(self, task: TaskEvent) -> dict[str, Any]:
         payload = task.to_dict()
         reason = self.container.event_queue.blocked_reason(task)
