@@ -116,6 +116,19 @@ class EventQueue:
             task.payload.update(patch)
             return task
 
+    def cancel(self, task_id: str, *, reason: str = "cancelled") -> TaskEvent:
+        with self._lock:
+            task = self._tasks[task_id]
+            if task.state in TERMINAL_STATES:
+                return task
+            if task.state == "running":
+                self._results[task.id] = {"error": "cannot cancel running task", "cancel_reason": reason}
+                return task
+            task.state = "cancelled"
+            task.finished_at = _now()
+            self._results[task.id] = {"cancel_reason": reason}
+            return task
+
     def dependents_of(self, task_id: str) -> list[TaskEvent]:
         with self._lock:
             return [task for task in self._tasks.values() if task_id in task.depends_on]

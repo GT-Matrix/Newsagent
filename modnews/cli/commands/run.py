@@ -19,6 +19,13 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     status = nested.add_parser("status")
     status.add_argument("run_id", nargs="?")
     status.set_defaults(handler=status_run)
+    resume = nested.add_parser("resume")
+    resume.add_argument("run_id")
+    resume.set_defaults(handler=resume_run)
+    cancel = nested.add_parser("cancel")
+    cancel.add_argument("run_id")
+    cancel.add_argument("--reason", default="cancelled by user")
+    cancel.set_defaults(handler=cancel_run)
 
 
 def start_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
@@ -41,3 +48,16 @@ def status_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.get(f"/api/runs/{args.run_id}").get("item") if args.run_id else client.get("/api/state")
     return client.run_status(args.run_id)
+
+
+def resume_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.post(f"/api/runs/{args.run_id}/resume", {})
+    return client.run_resume(args.run_id)
+
+
+def cancel_run(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    payload = {"reason": args.reason}
+    if isinstance(client, ApiClient):
+        return client.post(f"/api/runs/{args.run_id}/cancel", payload)
+    return client.run_cancel(args.run_id, args.reason)
