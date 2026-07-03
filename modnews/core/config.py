@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from modnews.core.env import ensure_runtime_env
 from modnews.core.paths import runtime_paths
 from modnews.repository.runtime_config import runtime_config_store
 
@@ -102,6 +103,7 @@ def apply_runtime_overrides(
 def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None = None) -> PipelineConfig:
     override_raw = raw or {}
     project_root = Path(base_dir).resolve() if base_dir else _project_root()
+    ensure_runtime_env(project_root)
     paths = runtime_paths(project_root)
     data_root = project_root / "modnews" / "data"
     runtime_raw = runtime_config_store(project_root).load()

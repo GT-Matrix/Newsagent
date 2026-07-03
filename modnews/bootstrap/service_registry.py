@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
+from modnews.core.env import ensure_runtime_env
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.progress import BUS
@@ -47,6 +48,7 @@ class ServiceContainer:
 
 def configure_services(project_root: Path | None = None) -> ServiceContainer:
     root = project_root.resolve() if project_root else Path.cwd().resolve()
+    ensure_runtime_env(root)
     container = ServiceContainer(project_root=root)
     container.pipeline_manager.bind(container.event_queue, container.event_router)
     container.event_queue.bind_router(container.event_router)
