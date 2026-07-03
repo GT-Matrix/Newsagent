@@ -411,7 +411,7 @@ def configure_services(container):
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed`/`task.blocked` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
 - `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
-- classify task 写统一 run checkpoint 时，已把 `news_with_events.json`、`events.json`、`discarded_news.json` 和 `classification_progress.json` 作为 checkpoint artifact 写入同一个时间戳任务目录；task resume 会优先读取 run checkpoint 里的 `classification_progress` artifact，找不到时再回退固定配置路径。固定 `output/` 文件仍保留为兼容发布结果。
+- classify task 写统一 run checkpoint 时，已把 `news_with_events.json`、`events.json`、`discarded_news.json` 和 `classification_progress.json` 作为 checkpoint artifact 写入同一个时间戳任务目录；task resume 只读取 run checkpoint 里的 `classification_progress` artifact，不再回退固定配置路径。固定 `output/` 文件仍保留为发布结果。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
 - managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`。
 - Codex extractor repair 已接入统一队列：`repair create`/`repair retry` 会注册并执行 `TaskEvent(type="extractor.repair.codex")`，由 `EventQueue` 负责并发、blocked、重试和 task logs；原 repair task 记录继续作为工作目录、Codex 输出和 promote 结果仓储。
@@ -437,7 +437,7 @@ def configure_services(container):
 - 默认端到端 run 只注册任务图，不再提供公开 legacy fallback；但 ingest/classify 的具体业务 executor 仍有部分复用原有阶段实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，默认 pipeline 与手动 classify CLI/API 都注册这套任务图；但每个阶段内部仍复用现有 step 实现。batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - 任务执行期间的 progress/LLM 事件已通过当前 task 上下文写入 `TaskLogRepository`，`queue show` 可看到 `progress.llm_request_*` 等日志；Codex repair task 已把 `codex.jsonl` 路径、尾部摘要和字节数写入 task result，并通过 `progress.codex_repair_log` 进入 task logs；web extraction 的 `WebJobStore.append(...)` 事件也会以 `progress.web_job_event` 写入当前 task logs。
-- legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
+- standalone classify 的固定路径 `classification_progress.json` 仍作为显式低层调用的 resume 兼容文件保留；任务图流程只使用 run checkpoint artifact，不把固定输出作为内部状态源。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 不再发布 `src` 包，源码内 `src/` report 兼容转发层已删除。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
-from modnews.service.classify.io import resolve_resume_checkpoint_path
+from modnews.service.classify.io import resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
 from modnews.service.classify.types import DiscardedRecord
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
@@ -101,6 +101,15 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
             fixed_path.write_text(json.dumps({"meta": {"stage": "fixed"}}, ensure_ascii=False), encoding="utf-8")
 
             self.assertEqual(resolve_resume_checkpoint_path(project_root, "missing-run", fixed_path), fixed_path)
+
+    def test_task_resume_checkpoint_does_not_fall_back_to_configured_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            fixed_path = project_root / "output" / "classification_progress.json"
+            fixed_path.parent.mkdir(parents=True)
+            fixed_path.write_text(json.dumps({"meta": {"stage": "fixed"}}, ensure_ascii=False), encoding="utf-8")
+
+            self.assertIsNone(resolve_task_resume_checkpoint_path(project_root, "missing-run"))
 
 
 if __name__ == "__main__":

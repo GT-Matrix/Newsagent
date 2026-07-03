@@ -49,6 +49,10 @@ def resolve_resume_checkpoint_path(project_root: Path, run_id: str, configured_p
     return configured_path if configured_path and configured_path.exists() else None
 
 
+def resolve_task_resume_checkpoint_path(project_root: Path, run_id: str) -> Path | None:
+    return _latest_run_classification_progress(project_root, run_id)
+
+
 def _latest_run_classification_progress(project_root: Path, run_id: str) -> Path | None:
     try:
         checkpoints = RunRepository(project_root).get(run_id).get("checkpoints", [])
