@@ -17,7 +17,8 @@ class StartCheckpointStep:
         return state.stage == "started"
 
     def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
-        write_outputs(runtime.config, state.items, state.event_records, state.discarded, {"stage": "started"})
+        if runtime.write_fixed_outputs:
+            write_outputs(runtime.config, state.items, state.event_records, state.discarded, {"stage": "started"})
         return state
 
 
@@ -38,18 +39,19 @@ class ClusteredEventExtractionStep:
             runtime.config,
             state.discarded,
         )
-        write_outputs(
-            runtime.config,
-            state.items,
-            state.event_records,
-            state.discarded,
-            build_checkpoint_meta(
+        if runtime.write_fixed_outputs:
+            write_outputs(
+                runtime.config,
                 state.items,
                 state.event_records,
                 state.discarded,
-                stage=self.output_stage,
-            ),
-        )
+                build_checkpoint_meta(
+                    state.items,
+                    state.event_records,
+                    state.discarded,
+                    stage=self.output_stage,
+                ),
+            )
         return state
 
 
@@ -68,17 +70,18 @@ class ClusteredEventMergeStep:
             state.events,
             runtime.config,
         )
-        write_outputs(
-            runtime.config,
-            state.items,
-            state.event_records,
-            state.discarded,
-            build_checkpoint_meta(
+        if runtime.write_fixed_outputs:
+            write_outputs(
+                runtime.config,
                 state.items,
                 state.event_records,
                 state.discarded,
-                stage=self.output_stage,
-                merged_event_count=state.merged_event_count,
-            ),
-        )
+                build_checkpoint_meta(
+                    state.items,
+                    state.event_records,
+                    state.discarded,
+                    stage=self.output_stage,
+                    merged_event_count=state.merged_event_count,
+                ),
+            )
         return state

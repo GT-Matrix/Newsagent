@@ -18,6 +18,7 @@ class ClassifyRuntime:
     config: ClassificationConfig
     client: LlmClient
     retriever: EventVectorRetriever
+    write_fixed_outputs: bool = True
 
 
 class ClassifyStep(Protocol):

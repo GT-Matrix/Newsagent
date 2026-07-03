@@ -77,6 +77,7 @@ def _prepare(task: TaskEvent) -> tuple[Path, str, Path, ClassifyState, ClassifyR
         config=config.classification,
         client=LlmClient(config.classification.llm, ctx.session),
         retriever=EventVectorRetriever(config.classification.embedding, ctx.session),
+        write_fixed_outputs=bool(task.payload.get("write_fixed_outputs")),
     )
     return project_root, run_id, input_path, state, runtime
 
@@ -102,8 +103,9 @@ def _write_run_checkpoint(
         total_candidates=state.total_candidates,
         merged_event_count=state.merged_event_count,
     )
-    write_outputs(runtime.config, state.items, state.event_records, state.discarded, meta)
     output_refs = write_run_output_artifacts(checkpoint, run_id, step_id, task.id, state.items, state.event_records, state.discarded, meta)
+    if bool(task.payload.get("write_fixed_outputs")):
+        write_outputs(runtime.config, state.items, state.event_records, state.discarded, meta)
     checkpoint_payload = {
         "run_id": run_id,
         "step_id": step_id,
