@@ -10,6 +10,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
+from modnews.core.events import EventRouter
+
 
 @dataclass(slots=True)
 class ProgressEvent:
@@ -27,6 +29,7 @@ class ProgressBus:
     max_events: int = 5000
     _events: deque[ProgressEvent] = field(default_factory=deque)
     _listeners: list[queue.Queue[ProgressEvent]] = field(default_factory=list)
+    _routers: list[EventRouter] = field(default_factory=list)
     _lock: threading.Lock = field(default_factory=threading.Lock)
     _next_id: int = 1
     _stats: dict[str, Any] = field(default_factory=dict)
@@ -47,6 +50,7 @@ class ProgressBus:
                 listener.put_nowait(event)
             except queue.Full:
                 pass
+        self._dispatch(event)
         return event
 
     def snapshot(self) -> dict[str, Any]:
@@ -72,6 +76,24 @@ class ProgressBus:
         with self._lock:
             if listener in self._listeners:
                 self._listeners.remove(listener)
+
+    def bind_router(self, router: EventRouter) -> None:
+        with self._lock:
+            if router not in self._routers:
+                self._routers.append(router)
+
+    def unbind_router(self, router: EventRouter) -> None:
+        with self._lock:
+            if router in self._routers:
+                self._routers.remove(router)
+
+    def _dispatch(self, event: ProgressEvent) -> None:
+        with self._lock:
+            routers = list(self._routers)
+        payload = {"event": event.to_dict()}
+        for router in routers:
+            router.dispatch("progress", payload)
+            router.dispatch(f"progress.{event.type}", payload)
 
 
 BUS = ProgressBus()

@@ -414,7 +414,7 @@ def configure_services(container):
 - `RuntimePaths`/`runtime_paths` 和核心数据模型 `NewsItem`、`EventRecord`、`StepResult`、`PipelineResult` 已迁入 `modnews/core/`。
 - runtime/source config store 实现已迁入 `modnews/repository/runtime_config.py` 与 `modnews/repository/source_config.py`。
 - pipeline 配置 dataclass、`load_config`、`apply_runtime_overrides` 与 `PipelineContext` 已迁入 `modnews/core/config.py` 和 `modnews/core/context.py`。
-- legacy progress bus 已迁入 `modnews/core/progress.py`；后续还需要继续收敛到统一 `EventRouter`/`EventQueue` 事件体系。
+- legacy progress bus 已迁入 `modnews/core/progress.py`，并会把 `emit(...)` 事件桥接到当前容器的 `EventRouter`（`progress` 与 `progress.<event_type>`）；后续还需要继续减少 classify 内部直接使用旧式 progress event 的地方。
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
 - legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。

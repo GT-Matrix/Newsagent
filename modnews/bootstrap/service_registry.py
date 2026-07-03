@@ -6,6 +6,7 @@ from pathlib import Path
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
+from modnews.core.progress import BUS
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
@@ -45,6 +46,7 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     container = ServiceContainer(project_root=root)
     container.pipeline_manager.bind(container.event_queue, container.event_router)
     container.event_queue.bind_router(container.event_router)
+    BUS.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
     register_completion_callbacks(container.completion_callbacks, container.pipeline_manager)
     container.completion_callbacks.bind(container.event_router)
