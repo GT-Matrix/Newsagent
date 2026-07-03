@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from modnews.core.context import PipelineContext
 from modnews.core.progress import emit
 
 from .article import fetch_article_excerpt
+from .batch_executor import run_batch_parallel
 from .llm_client import LlmClient
 from .prompts import batch_relevance_system_prompt, suspect_review_system_prompt
 from .types import DiscardedRecord, PreparedItem
@@ -23,21 +23,13 @@ def classify_relevance_batches(
     batches = [prepared[start : start + batch_size] for start in range(0, len(prepared), batch_size)]
     max_workers = max(1, batch_concurrency)
     emit("batch_relevance_start", batch_count=len(batches), batch_size=batch_size, concurrency=max_workers)
-    if max_workers == 1:
-        responses = []
-        for batch_index, batch in enumerate(batches, start=1):
-            responses.append(_classify_relevance_batch(client, batch, batch_index, len(batches)))
-            emit("batch_relevance_done", batch_index=batch_index, batch_count=len(batches))
-    else:
-        responses = []
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(_classify_relevance_batch, client, batch, batch_index, len(batches)): batch_index
-                for batch_index, batch in enumerate(batches, start=1)
-            }
-            for future in as_completed(futures):
-                responses.append(future.result())
-                emit("batch_relevance_done", batch_index=futures[future], batch_count=len(batches))
+    responses = run_batch_parallel(
+        lambda args: _classify_relevance_batch(client, *args),
+        [(batch, batch_index, len(batches)) for batch_index, batch in enumerate(batches, start=1)],
+        max_workers=max_workers,
+    )
+    for batch_index in range(1, len(batches) + 1):
+        emit("batch_relevance_done", batch_index=batch_index, batch_count=len(batches))
 
     for response in responses:
         for row in response.get("items", []):

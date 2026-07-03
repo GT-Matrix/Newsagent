@@ -417,6 +417,7 @@ def configure_services(container):
 - legacy progress bus 已迁入 `modnews/core/progress.py`，并会把 `emit(...)` 事件桥接到当前容器的 `EventRouter`（`progress` 与 `progress.<event_type>`）；后续还需要继续减少 classify 内部直接使用旧式 progress event 的地方。
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
+- classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`，后续可把该 executor 背后替换为 `TaskEvent` 注册，而不是让各 step 自己维护线程池。
 - legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `src` 和 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。

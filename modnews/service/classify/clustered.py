@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 from modnews.core.config import ClassificationConfig
@@ -9,6 +8,7 @@ from modnews.core.context import PipelineContext
 from modnews.core.models import EventRecord, NewsItem
 from modnews.core.progress import emit
 
+from .batch_executor import run_batch_parallel
 from .events import assign_item_to_event
 from .llm_client import LlmClient
 from .prompts import clustered_event_extraction_system_prompt, clustered_event_merge_system_prompt
@@ -49,7 +49,7 @@ def extract_events_from_title_clusters(
         concurrency=max(1, config.batch_concurrency),
     )
     responses = _run_parallel(
-        _extract_batch,
+        lambda args: _extract_batch(*args),
         [
             (client, batch, batch_index, len(batches))
             for batch_index, batch in enumerate(batches, start=1)
@@ -152,7 +152,7 @@ def merge_event_clusters(
         concurrency=max(1, config.batch_concurrency),
     )
     responses = _run_parallel(
-        _merge_batch,
+        lambda args: _merge_batch(*args),
         [
             (client, batch, batch_index, len(batches))
             for batch_index, batch in enumerate(batches, start=1)
@@ -238,16 +238,11 @@ def _embed_rows_parallel(
     workers = max(1, concurrency)
     if workers == 1:
         return [_VectorRow(key, retriever.embed_text_for_clustering(text)) for key, text in rows]
-    vectors: dict[int | str, _VectorRow] = {}
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(retriever.embed_text_for_clustering, text): key
-            for key, text in rows
-        }
-        for future in as_completed(futures):
-            key = futures[future]
-            vectors[key] = _VectorRow(key, future.result())
-    return [vectors[key] for key, _ in rows]
+    return run_batch_parallel(
+        lambda row: _VectorRow(row[0], retriever.embed_text_for_clustering(row[1])),
+        rows,
+        max_workers=workers,
+    )
 
 
 def _greedy_vector_groups(rows: list[_VectorRow], batch_size: int) -> list[list[_VectorRow]]:
@@ -266,18 +261,7 @@ def _greedy_vector_groups(rows: list[_VectorRow], batch_size: int) -> list[list[
 
 
 def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
-    workers = max(1, max_workers)
-    if workers == 1:
-        return [fn(*args) for args in args_list]
-    responses: list[dict] = []
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(fn, *args): index
-            for index, args in enumerate(args_list, start=1)
-        }
-        for future in as_completed(futures):
-            responses.append(future.result())
-    return responses
+    return run_batch_parallel(fn, args_list, max_workers=max_workers)
 
 
 def _extract_batch(
