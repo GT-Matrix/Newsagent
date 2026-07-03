@@ -11,6 +11,7 @@ from .events import EventRouter
 from .task import TERMINAL_STATES, TaskBlocked, TaskEvent
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
+TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
 
 
 @dataclass(slots=True)
@@ -18,6 +19,7 @@ class EventQueue:
     _tasks: dict[str, TaskEvent] = field(default_factory=dict)
     _results: dict[str, dict[str, Any]] = field(default_factory=dict)
     _executors: dict[str, TaskExecutor] = field(default_factory=dict)
+    _loggers: list[TaskLogger] = field(default_factory=list)
     _router: EventRouter | None = None
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -30,11 +32,15 @@ class EventQueue:
     def unregister_executor(self, task_type: str) -> None:
         self._executors.pop(task_type, None)
 
+    def bind_logger(self, logger: TaskLogger) -> None:
+        self._loggers.append(logger)
+
     def register(self, task: TaskEvent) -> TaskEvent:
         with self._lock:
             if task.created_at is None:
                 task.created_at = _now()
             self._tasks[task.id] = task
+        self._log(task, "task.registered")
         return task
 
     def submit(self, task: TaskEvent) -> TaskEvent:
@@ -69,12 +75,14 @@ class EventQueue:
                 task.state = "waiting"
                 task.status_reason = waiting_reason
                 self._results[task.id] = {"waiting_reason": waiting_reason}
+                self._log(task, "task.waiting", reason=waiting_reason)
                 return task
             if not blocked_before_run:
                 task.state = "running"
                 task.status_reason = None
                 task.attempt += 1
                 task.started_at = _now()
+                self._log(task, "task.started")
         if blocked_before_run:
             self._dispatch("task.blocked", task)
             self.drain_ready()
@@ -85,6 +93,7 @@ class EventQueue:
                 task.state = "failed"
                 task.finished_at = _now()
                 self._results[task.id] = {"error": f"no executor registered for {task.type}"}
+                self._log(task, "task.failed", error=self._results[task.id]["error"])
             self._dispatch("task.failed", task)
             self.drain_ready()
             return task
@@ -97,6 +106,7 @@ class EventQueue:
                     "finished_at": task.finished_at,
                     **result,
                 }
+                self._log(task, "task.completed", result_keys=sorted(self._results[task.id].keys()))
             self._dispatch("task.completed", task)
             self.drain_ready()
         except TaskBlocked as exc:
@@ -116,6 +126,7 @@ class EventQueue:
                         "max_attempts": task.max_attempts,
                         "retry_scheduled": True,
                     }
+                    self._log(task, "task.retry_scheduled", error=str(exc))
                     event_type = "task.retry_scheduled"
                 else:
                     task.state = "failed"
@@ -125,6 +136,7 @@ class EventQueue:
                         "attempt": task.attempt,
                         "max_attempts": task.max_attempts,
                     }
+                    self._log(task, "task.failed", error=str(exc))
                     event_type = "task.failed"
             self._dispatch(event_type, task)
             self.drain_ready()
@@ -162,6 +174,7 @@ class EventQueue:
             task.state = "cancelled"
             task.finished_at = _now()
             self._results[task.id] = {"cancel_reason": reason}
+            self._log(task, "task.cancelled", reason=reason)
             return task
 
     def retry(self, task_id: str) -> TaskEvent:
@@ -175,6 +188,7 @@ class EventQueue:
             task.finished_at = None
             task.attempt = 0
             self._results.pop(task.id, None)
+            self._log(task, "task.retry_requested")
             return task
 
     def dependents_of(self, task_id: str) -> list[TaskEvent]:
@@ -234,6 +248,7 @@ class EventQueue:
                     task.state = "waiting"
                     task.status_reason = reason
                     self._results[task.id] = {"waiting_reason": reason}
+                    self._log(task, "task.waiting", reason=reason)
         for task in blocked_tasks:
             self._dispatch("task.blocked", task)
 
@@ -279,6 +294,14 @@ class EventQueue:
         task.status_reason = reason
         task.finished_at = _now()
         self._results[task.id] = {"blocked_reason": reason, **(details or {})}
+        self._log(task, "task.blocked", reason=reason)
+
+    def _log(self, task: TaskEvent, event_type: str, **payload: Any) -> None:
+        for logger in list(self._loggers):
+            try:
+                logger(task, event_type, payload)
+            except Exception:
+                pass
 
 
 def _now() -> str:

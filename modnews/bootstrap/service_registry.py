@@ -12,6 +12,7 @@ from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config import RuntimeConfigRepository
 from modnews.repository.runs import RunRepository
+from modnews.repository.task_logs import TaskLogRepository
 from modnews.repository.web_jobs import WebJobRepository
 from .event_handlers import register_completion_callbacks, register_task_executors
 from .pipeline_registry import register_pipeline_steps
@@ -40,12 +41,17 @@ class ServiceContainer:
     def web_jobs(self) -> WebJobRepository:
         return WebJobRepository(self.project_root)
 
+    def task_logs(self) -> TaskLogRepository:
+        return TaskLogRepository(self.project_root)
+
 
 def configure_services(project_root: Path | None = None) -> ServiceContainer:
     root = project_root.resolve() if project_root else Path.cwd().resolve()
     container = ServiceContainer(project_root=root)
     container.pipeline_manager.bind(container.event_queue, container.event_router)
     container.event_queue.bind_router(container.event_router)
+    task_logs = TaskLogRepository(root)
+    container.event_queue.bind_logger(lambda task, event_type, payload: task_logs.append(task, event_type, **payload))
     BUS.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
     register_completion_callbacks(container.completion_callbacks, container.pipeline_manager)

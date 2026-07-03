@@ -395,6 +395,7 @@ def configure_services(container):
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败/业务阻断事件回调、`queue drain` 手动推进和 ready/waiting/blocked 状态查询。`waiting` 表示依赖或并发槽尚不可用；`blocked` 保留给依赖终止、CAPTCHA、权限、缺 extractor、需要人工修复等不会自动继续的业务阻断。
 - CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
+- 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
 - 默认 pipeline run 已开始注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；`--legacy-pipeline` 保留旧同步端到端 runner 作为兼容 fallback。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
@@ -425,7 +426,7 @@ def configure_services(container):
 
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
-- LLM 调用、Codex repair 调用和 web extraction retry/repair 的内部日志仍未完全统一到 `TaskEvent` 日志协议；当前只先统一了队列状态语义、自动重试字段和 web_source task 的业务 blocked 映射。
+- LLM 调用、Codex repair 调用和 web extraction retry/repair 的细粒度内部日志仍未完全汇入 `TaskLogRepository`；当前已先统一队列状态语义、自动重试字段、队列级 task 日志和 web_source task 的业务 blocked 映射。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、模型、utils、规则表、IO helper 和 stages；评分、evidence、editor、reporter 等 pipeline 子模块仍暂时依赖 `src/` 命名空间。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。

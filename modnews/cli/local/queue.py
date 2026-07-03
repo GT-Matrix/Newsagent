@@ -19,6 +19,7 @@ class QueueLocalMixin:
     def queue_show(self, task_id: str) -> dict[str, Any]:
         task = self._task_payload(self.container.event_queue.get(task_id))
         task["result"] = self.container.event_queue.result(task_id)
+        task["logs"] = self.container.task_logs().list(task_id, limit=200)
         return task
 
     def queue_echo(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:

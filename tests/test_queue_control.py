@@ -70,6 +70,17 @@ class QueueControlTest(unittest.TestCase):
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["task"]["state"], "succeeded")
 
+    def test_queue_show_includes_task_logs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            result = client.queue_echo("task-logs-1", {"message": "hello"})
+
+            self.assertEqual(result["state"], "succeeded")
+            self.assertGreaterEqual(len(result["logs"]), 3)
+            self.assertEqual(result["logs"][0]["type"], "task.registered")
+            self.assertIn("task.completed", {row["type"] for row in result["logs"]})
+
 
 if __name__ == "__main__":
     unittest.main()
