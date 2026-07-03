@@ -27,6 +27,11 @@ def classify_relevance_batches(
         lambda args: _classify_relevance_batch(client, *args),
         [(batch, batch_index, len(batches)) for batch_index, batch in enumerate(batches, start=1)],
         max_workers=max_workers,
+        task_type="classify.batch_relevance",
+        concurrency_key="classify.llm",
+        batch_indexes=list(range(1, len(batches) + 1)),
+        batch_count=len(batches),
+        labels={"stage": "relevance"},
     )
     for batch_index in range(1, len(batches) + 1):
         emit("batch_relevance_done", batch_index=batch_index, batch_count=len(batches))

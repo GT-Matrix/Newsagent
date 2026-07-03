@@ -55,6 +55,8 @@ def extract_events_from_title_clusters(
             for batch_index, batch in enumerate(batches, start=1)
         ],
         max_workers=config.batch_concurrency,
+        task_type="classify.clustered_event_extraction.batch",
+        labels={"stage": "clustered_event_extraction"},
     )
 
     events: list[EventState] = []
@@ -158,6 +160,8 @@ def merge_event_clusters(
             for batch_index, batch in enumerate(batches, start=1)
         ],
         max_workers=config.batch_concurrency,
+        task_type="classify.clustered_event_merge.batch",
+        labels={"stage": "clustered_event_merge"},
     )
 
     by_id = {state.record.event_id: state for state in events}
@@ -242,6 +246,9 @@ def _embed_rows_parallel(
         lambda row: _VectorRow(row[0], retriever.embed_text_for_clustering(row[1])),
         rows,
         max_workers=workers,
+        task_type="classify.embedding",
+        concurrency_key="classify.embedding",
+        labels={"stage": "clustered"},
     )
 
 
@@ -260,8 +267,17 @@ def _greedy_vector_groups(rows: list[_VectorRow], batch_size: int) -> list[list[
     return groups
 
 
-def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
-    return run_batch_parallel(fn, args_list, max_workers=max_workers)
+def _run_parallel(fn, args_list, *, max_workers: int, task_type: str, labels: dict[str, str]) -> list[dict]:
+    return run_batch_parallel(
+        fn,
+        args_list,
+        max_workers=max_workers,
+        task_type=task_type,
+        concurrency_key="classify.llm",
+        batch_indexes=list(range(1, len(args_list) + 1)),
+        batch_count=len(args_list),
+        labels=labels,
+    )
 
 
 def _extract_batch(
