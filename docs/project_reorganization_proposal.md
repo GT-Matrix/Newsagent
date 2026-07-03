@@ -51,6 +51,9 @@
       registry.py
       step.py
       checkpoint.py
+      planner.py
+      callbacks.py
+      run_state.py
     ingest/
       registry.py
       steps/
@@ -379,7 +382,7 @@ def configure_services(container):
     container.event_router.on("task.failed", manager.on_task_failed)
 ```
 
-这样 `PipelineManager` 管顺序和 run state，`EventQueue` 管并发和执行，`CheckpointManager` 管落盘，具体业务 executor 只处理某一种 task。`pipeline` 不直接关联 `ingest` 或 `classify` 的实现，关联关系只存在于 bootstrap 注册代码中。
+这样 `PipelineManager` 只管 step 注册、run 启动和完成/失败事件转发，`EventQueue` 管并发和执行，`CheckpointManager` 管落盘，具体业务 executor 只处理某一种 task。run 状态同步、完成后 payload patch、自动发布等副作用放在 `pipeline/run_state.py`、`pipeline/callbacks.py` 或 bootstrap event handler 中，避免 manager 重新变成大入口。`pipeline` 不直接关联 `ingest` 或 `classify` 的实现，关联关系只存在于 bootstrap 注册代码中。
 
 ## 当前迁移状态
 
