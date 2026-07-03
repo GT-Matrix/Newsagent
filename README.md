@@ -37,8 +37,8 @@ The backend loads env from `MODNEWS_ENV_FILE`, `.env.runtime`, or the legacy `mo
 ## Run
 
 ```bash
-python -m modnews_pipeline.cli
-python -m src.main --input output/combined_news.json --date 2026-07-02
+python -m modnews.cli.main run start
+python -m modnews.cli.main report generate --input output/combined_news.json --date 2026-07-02
 ```
 
 ## Outputs

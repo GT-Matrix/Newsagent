@@ -551,8 +551,8 @@ extractors/
 
 ## 需要重点验证的地方
 
-- `python -m modnews_pipeline.cli` 和新 `python -m modnews.cli.pipeline` 在迁移期都能跑。
-- `modnews-progress` 或新 `modnews-server` 的 `/api/events` SSE 兼容现有 WebUI。
+- `python -m modnews.cli.main run start` 和 `modnews run start` 是主 pipeline CLI 入口；`modnews_pipeline` 仅作为 import 兼容层保留，不再作为安装后的主命令入口。
+- `modnews-server` 的 `/api/events` SSE 兼容现有 WebUI。
 - 不启动前端和 server 时，CLI local 模式可以查询事件队列、修改配置、启动 run、查看 checkpoint。
 - 启动 server 时，CLI API 模式和前端看到的状态一致。
 - `runtime/config.json` 自动迁移和备份逻辑不丢用户配置。
