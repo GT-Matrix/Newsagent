@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
-from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
+from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path, resolve_resume_checkpoint_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.classify.checkpoint import build_checkpoint_meta, load_resume_state, write_outputs, write_run_output_artifacts
 from modnews.service.classify.llm_client import LlmClient
@@ -62,7 +62,8 @@ def _prepare(task: TaskEvent) -> tuple[Path, str, Path, ClassifyState, ClassifyR
     items = load_news_items(input_path)
     ctx = PipelineContext.create(config)
     ctx.work_dir.mkdir(parents=True, exist_ok=True)
-    resume_state = load_resume_state(config.classification.checkpoint_path, items)
+    resume_checkpoint_path = resolve_resume_checkpoint_path(project_root, run_id, config.classification.checkpoint_path)
+    resume_state = load_resume_state(resume_checkpoint_path, items)
     state = ClassifyState(
         items=resume_state.items,
         prepared=[prepare_item(index, item) for index, item in enumerate(resume_state.items)],

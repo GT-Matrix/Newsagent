@@ -42,6 +42,40 @@ def load_news_items(path: Path) -> list[NewsItem]:
     ]
 
 
+def resolve_resume_checkpoint_path(project_root: Path, run_id: str, configured_path: Path | None) -> Path | None:
+    artifact_path = _latest_run_classification_progress(project_root, run_id)
+    if artifact_path:
+        return artifact_path
+    return configured_path if configured_path and configured_path.exists() else None
+
+
+def _latest_run_classification_progress(project_root: Path, run_id: str) -> Path | None:
+    try:
+        checkpoints = RunRepository(project_root).get(run_id).get("checkpoints", [])
+    except KeyError:
+        return None
+    for checkpoint_value in reversed([value for value in checkpoints if value]):
+        checkpoint_path = Path(str(checkpoint_value)).expanduser().resolve()
+        if not checkpoint_path.exists():
+            continue
+        try:
+            checkpoint_payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(checkpoint_payload, dict):
+            continue
+        output_refs = checkpoint_payload.get("output_refs")
+        if not isinstance(output_refs, dict):
+            continue
+        artifact_value = output_refs.get("classification_progress")
+        if not artifact_value:
+            continue
+        artifact_path = Path(str(artifact_value)).expanduser().resolve()
+        if artifact_path.exists():
+            return artifact_path
+    return None
+
+
 def append_run_checkpoint(project_root: Path, run_id: str, checkpoint_path: Path) -> None:
     runs = RunRepository(project_root)
     try:
