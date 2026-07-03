@@ -77,7 +77,7 @@ class RunsLocalMixin:
         before = self._run_tasks(run_id)
         self.container.event_queue.drain_ready()
         after = self._run_tasks(run_id)
-        remaining = [task for task in after if task["state"] in {"queued", "blocked", "running"}]
+        remaining = [task for task in after if task["state"] in {"queued", "waiting", "running"}]
         state = "running" if remaining else record.get("state", "queued")
         if state in {"queued", "cancelled"}:
             state = "queued"
@@ -92,7 +92,7 @@ class RunsLocalMixin:
         for task in self.container.event_queue.list():
             if task.pipeline_run_id != run_id:
                 continue
-            if task.state in {"queued", "blocked"}:
+            if task.state in {"queued", "waiting", "blocked"}:
                 cancelled_task = self.container.event_queue.cancel(task.id, reason=reason)
                 cancelled.append(cancelled_task.to_dict())
             else:

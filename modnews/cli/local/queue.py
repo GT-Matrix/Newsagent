@@ -42,8 +42,11 @@ class QueueLocalMixin:
 
     def _task_payload(self, task: TaskEvent) -> dict[str, Any]:
         payload = task.to_dict()
-        reason = self.container.event_queue.blocked_reason(task)
-        if reason:
-            payload["blocked_reason"] = reason
-        payload["ready"] = reason is None and task.state in {"queued", "blocked"}
+        waiting_reason = self.container.event_queue.waiting_reason(task)
+        blocked_reason = self.container.event_queue.blocked_reason(task)
+        if waiting_reason:
+            payload["waiting_reason"] = waiting_reason
+        if blocked_reason:
+            payload["blocked_reason"] = blocked_reason
+        payload["ready"] = waiting_reason is None and task.state in {"queued", "waiting"}
         return payload

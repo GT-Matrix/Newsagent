@@ -22,6 +22,7 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
     registry.register("task.completed", _auto_publish_checkpoint)
     registry.register("task.completed", pipeline_manager.on_task_completed)
     registry.register("task.failed", pipeline_manager.on_task_failed)
+    registry.register("task.blocked", pipeline_manager.on_task_blocked)
 
 
 def register_task_executors(queue: EventQueue) -> None:

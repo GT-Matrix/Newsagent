@@ -48,6 +48,14 @@ class PipelineManager:
             update_run_state(self.event_queue, event, failed=True)
         self._dispatch_next(event, failed=True)
 
+    def on_task_blocked(self, event: dict[str, Any]) -> None:
+        if self.event_queue:
+            update_run_state(self.event_queue, event, blocked=True)
+        for step in self.steps:
+            handler = getattr(step, "on_task_blocked", None)
+            if callable(handler):
+                handler(event)
+
     def _dispatch_next(self, event: dict[str, Any], *, failed: bool) -> None:
         if failed:
             return
