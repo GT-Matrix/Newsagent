@@ -406,16 +406,17 @@ def configure_services(container):
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
-- managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`，旧 `modnews_pipeline.extractors.registry` 保留兼容 facade；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
-- managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`，旧 `modnews_pipeline.extractors.*` 保留兼容 facade。
-- managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`，旧 `modnews_pipeline.web_extraction.*` 保留兼容 facade。
-- `RuntimePaths`/`runtime_paths` 和核心数据模型 `NewsItem`、`EventRecord`、`StepResult`、`PipelineResult` 已迁入 `modnews/core/`，旧 `modnews_pipeline.paths`、`modnews_pipeline.models` 保留兼容 facade。
-- runtime/source config store 实现已迁入 `modnews/repository/runtime_config.py` 与 `modnews/repository/source_config.py`，旧 `modnews_pipeline.runtime_config`、`modnews_pipeline.sources` 保留兼容 facade。
-- pipeline 配置 dataclass、`load_config`、`apply_runtime_overrides` 与 `PipelineContext` 已迁入 `modnews/core/config.py` 和 `modnews/core/context.py`，旧 `modnews_pipeline.config`、`modnews_pipeline.context` 保留兼容 facade。
-- legacy progress bus 已迁入 `modnews/core/progress.py`，旧 `modnews_pipeline.progress` 保留兼容 facade；后续还需要继续收敛到统一 `EventRouter`/`EventQueue` 事件体系。
-- ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`，旧 `modnews_pipeline.ingest.*` 保留兼容 facade。
-- classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`，旧 `modnews_pipeline.classify.*` 保留兼容 facade。
-- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`，旧 `modnews_pipeline.pipeline` 保留兼容 facade；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
+- managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
+- managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`。
+- managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`。
+- `RuntimePaths`/`runtime_paths` 和核心数据模型 `NewsItem`、`EventRecord`、`StepResult`、`PipelineResult` 已迁入 `modnews/core/`。
+- runtime/source config store 实现已迁入 `modnews/repository/runtime_config.py` 与 `modnews/repository/source_config.py`。
+- pipeline 配置 dataclass、`load_config`、`apply_runtime_overrides` 与 `PipelineContext` 已迁入 `modnews/core/config.py` 和 `modnews/core/context.py`。
+- legacy progress bus 已迁入 `modnews/core/progress.py`；后续还需要继续收敛到统一 `EventRouter`/`EventQueue` 事件体系。
+- ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
+- classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
+- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
+- `modnews_pipeline/` 兼容包已删除，wheel 只打包 `src` 和 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。

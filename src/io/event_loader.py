@@ -10,7 +10,7 @@ from src.utils.validation import as_int_list, as_string_list, normalize_confiden
 
 
 def load_processed_candidates(path: Path) -> list[EventCandidate]:
-    """Load the canonical output from modnews_pipeline.
+    """Load the canonical output from modnews.
 
     The expected file is the processed PipelineResult JSON written by the
     ingest/classify stage, usually `output/combined_news.json`. It must contain
