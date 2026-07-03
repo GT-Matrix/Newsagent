@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 
 from src.config import SCORE_WEIGHTS
-from src.models import EventCandidate, ScoreBreakdown
+from modnews.service.report.models import EventCandidate, ScoreBreakdown
 from src.rules.scoring_rules import IMPORTANCE_BASE
 from src.rules.source_weights import platform_score, source_kind
 from src.rules.taxonomy import AI_KEYWORDS, HIGH_IMPACT_TYPES

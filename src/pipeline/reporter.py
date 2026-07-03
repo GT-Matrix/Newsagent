@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date
 
 from src.config import REPORT_LIMITS
-from src.models import EnrichedEvent, ReportSection
+from modnews.service.report.models import EnrichedEvent, ReportSection
 
 POLICY_TYPES = {"policy", "legal", "company_policy"}
 TOP_TYPE_LIMITS = {

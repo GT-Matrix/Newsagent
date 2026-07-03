@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from src.models import EnrichedEvent
+from modnews.service.report.models import EnrichedEvent
 
 MAX_SOURCES_PER_EVENT = 2
 MAX_TEXT_CHARS = 6000

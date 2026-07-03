@@ -9,7 +9,7 @@ import requests
 from modnews.service.classify.llm_client import LlmClient
 from modnews.core.config import LlmConfig
 from modnews.core.progress import emit
-from src.models import EnrichedEvent
+from modnews.service.report.models import EnrichedEvent
 
 MAX_EVIDENCE_CHARS = 4200
 BACKGROUND_PATTERNS = [

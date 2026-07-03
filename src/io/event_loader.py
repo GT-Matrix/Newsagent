@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.models import EventCandidate, SourceItem
+from modnews.service.report.models import EventCandidate, SourceItem
 from src.utils.time import parse_datetime
 from src.utils.validation import as_int_list, as_string_list, normalize_confidence
 

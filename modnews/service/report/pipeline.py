@@ -6,7 +6,7 @@ from pathlib import Path
 
 from src.io.event_loader import load_processed_candidates
 from src.io.report_writer import write_enriched_events, write_json, write_text
-from src.models import EnrichedEvent
+from modnews.service.report.models import EnrichedEvent
 from src.pipeline.classifier import classify_event
 from src.pipeline.editor import polish_report_events
 from src.pipeline.evidence import enrich_report_evidence

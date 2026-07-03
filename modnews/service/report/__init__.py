@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from modnews.service.report.pipeline import run_pipeline
-from src.models import EnrichedEvent
+from modnews.service.report.models import EnrichedEvent
 from src.utils.time import parse_report_date
 
 

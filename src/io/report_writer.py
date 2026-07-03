@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from src.models import EnrichedEvent
+from modnews.service.report.models import EnrichedEvent
 
 
 def write_json(path: Path, payload: object) -> None:

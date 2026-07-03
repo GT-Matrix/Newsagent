@@ -417,6 +417,7 @@ def configure_services(container):
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `src` 和 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
+- report 数据模型已迁入 `modnews/service/report/models.py`；`src.models` 现在是兼容转发层，report 子模块已改用新模型路径。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`；关键 task 返回 `auto_publish_checkpoint` 时，`CompletionCallbackRegistry` 会在 `task.completed` 回调中自动发布固定输出。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
 
@@ -425,7 +426,7 @@ def configure_services(container):
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
-- report 层已有 `modnews/service/report` facade、新 CLI 入口和主 pipeline 实现，但模型、规则、IO、评分/摘要/核验子模块仍暂时依赖 `src/` 命名空间。
+- report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现和模型；规则、IO、评分/摘要/核验子模块仍暂时依赖 `src/` 命名空间。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。
 
 ## Managed Extractors

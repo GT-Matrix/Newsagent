@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.models import EventCandidate, VerifyStatus
+from modnews.service.report.models import EventCandidate, VerifyStatus
 from src.rules.source_weights import source_kind
 from src.rules.taxonomy import RUMOR_WORDS
 from src.utils.text import has_any_word
