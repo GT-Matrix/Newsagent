@@ -4,9 +4,9 @@
 
 ## 当前判断
 
-项目现在有三条主线混在一起：
+项目原本有三条主线混在一起：
 
-1. `modnews_pipeline/`：当前主入口，负责 ingest、classify、WebUI API、managed extractor、repair、job store、runtime config。
+1. `modnews_pipeline/`：旧主入口，负责 ingest、classify、WebUI API、managed extractor、repair、job store、runtime config。
 2. `src/`：报告生成层，读取 `output/combined_news.json` 后做评分、核验、摘要和日报输出。
 3. 根目录运行态/历史文件：`output/`、`runtime/`、`var/`、`.agent_work/`、嵌套的 `modnews/`、若干中文/PRD 文档和样例 JSON。
 
@@ -14,7 +14,7 @@
 
 ## 目标结构
 
-建议把主包从 `modnews_pipeline` 改为更通用的 `modnews`。项目名 `newsagent` 可以保留为发行包名，Python import 包名建议统一为 `modnews`。
+主包从 `modnews_pipeline` 改为更通用的 `modnews`。项目名 `newsagent` 可以保留为发行包名，但 Python import 包名和主程序入口统一为 `modnews`。最终形态不再保留 `modnews_pipeline` 包；外部脚本如仍引用旧包，需要迁移到 `modnews.*`。
 
 推荐目标目录：
 
@@ -109,21 +109,13 @@
       checkpoints.py
 ```
 
-这不是要求一次性搬完，而是给迁移时的最终形态。`pipeline`、`ingest`、`classify` 不应作为顶层公开包暴露；它们统一放在 `modnews/service/` 服务层下。顶层只暴露 `app`、`cli`、`core` 里稳定的基础类型，以及必要的 bootstrap 入口。短期可以先保留兼容壳：
-
-```text
-modnews_pipeline/__init__.py
-modnews_pipeline/cli.py
-modnews_pipeline/web.py
-```
-
-这些文件只转发到 `modnews.*`，避免外部脚本立刻失效。
+这不是要求一次性搬完，而是给迁移时的最终形态。`pipeline`、`ingest`、`classify` 不应作为顶层公开包暴露；它们统一放在 `modnews/service/` 服务层下。顶层只暴露 `app`、`cli`、`core` 里稳定的基础类型，以及必要的 bootstrap 入口。当前分支已经删除 `modnews_pipeline/` 兼容包，后续不再新增旧包转发层，避免项目长期存在两个入口。
 
 ## 分层建议
 
 ### Router / Blueprint 层
 
-当前 `modnews_pipeline/web.py` 应拆成 Flask blueprint：
+旧 `modnews_pipeline/web.py` 已拆成 Flask blueprint：
 
 - `app/routes/runtime_config.py`：`/api/runtime-config`、source config 增删改。
 - `app/routes/pipeline.py`：`/api/run`、运行锁、后台线程启动。
@@ -398,7 +390,7 @@ def configure_services(container):
 截至 `refactor/modnews-service-architecture` 分支当前阶段：
 
 - 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`service`、`repository`、`cli` 骨架。
-- 旧 `modnews_pipeline.web` 已改为新 `modnews.app` 的兼容入口。
+- 旧 `modnews_pipeline.web` 的 API/server 职责已迁入新 `modnews.app`。
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败事件回调、`queue drain` 手动推进和 ready/blocked 状态查询。
@@ -513,13 +505,12 @@ extractors/
 
 2. 包名和入口兼容
    - 新建 `modnews/` 源码包。
-   - 将 `modnews_pipeline` 迁移为兼容转发层。
+   - 删除 `modnews_pipeline` 旧入口，所有 import 和命令入口迁移到 `modnews.*`。
    - `pyproject.toml` scripts 改为更通用名称，例如：
-     - `modnews = "modnews.cli.pipeline:main"`
-     - `modnews-server = "modnews.cli.server:main"`
-     - `modnews-classify = "modnews.cli.classify:main"`
-     - `modnews-report = "modnews.report.cli:main"`
-   - 旧命令 `modnews-pipeline` 暂时保留一个版本周期。
+     - `modnews = "modnews.cli.main:main"`
+     - `modnews-server = "modnews.app.server:main"`
+     - `modnews-report = "modnews.cli.commands.report:main"`
+   - 不再新增 `modnews-pipeline` 或 `modnews_pipeline` 兼容入口。
 
 3. 建立 service 和 bootstrap 壳
    - 新建 `modnews/service/`，把 pipeline、ingest、classify、extraction 作为内部服务放进去。
@@ -555,7 +546,7 @@ extractors/
 
 ## 需要重点验证的地方
 
-- `python -m modnews.cli.main run start` 和 `modnews run start` 是主 pipeline CLI 入口；`modnews_pipeline` 仅作为 import 兼容层保留，不再作为安装后的主命令入口。
+- `python -m modnews.cli.main run start` 和 `modnews run start` 是主 pipeline CLI 入口；仓库中不再存在 `modnews_pipeline` 入口或兼容包。
 - `modnews-server` 的 `/api/events` SSE 兼容现有 WebUI。
 - 不启动前端和 server 时，CLI local 模式可以查询事件队列、修改配置、启动 run、查看 checkpoint。
 - 启动 server 时，CLI API 模式和前端看到的状态一致。
@@ -576,7 +567,7 @@ extractors/
 - API 服务：`modnews-server`
 - CLI API 地址参数：`--api-url`
 - CLI 执行模式参数：`--mode auto|api|local`
-- 旧包兼容：`modnews_pipeline`
+- 旧包兼容：不保留；旧引用迁移到 `modnews.*`
 
 避免继续把主程序叫 `modnews_pipeline`，因为现在它已经不只是 pipeline：它还包含 API server、runtime config、extractor registry、repair、job store 和报告桥接。
 
@@ -587,7 +578,7 @@ extractors/
 1. 把文档移动到 `docs/`。
 2. 删除或取消跟踪运行态文件。
 3. 补齐现有 managed extractors 的目录内 `manifest.json` 元数据，并确认 registry 只靠扫描目录安装。
-4. 新增 `modnews/` 包壳、`service/`、`bootstrap/` 和 `modnews_pipeline/` 兼容转发，不移动内部实现。
+4. 新增 `modnews/` 包壳、`service/`、`bootstrap/`，并删除 `modnews_pipeline/` 旧入口。
 5. 先定义 `TaskEvent`、`EventQueue`、`CheckpointManager` 接口，并用 adapter 包住现有同步实现。
 6. 建立 `modnews/cli/` 骨架，先实现 `config show`、`events list/watch`、`queue status`、`run start/status` 的 local 模式。
 7. 把 `web.py` 拆成 blueprint，但暂时保持原业务函数。
