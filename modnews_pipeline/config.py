@@ -143,7 +143,7 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
                 {
                     "type": "site_lists",
                     "enabled": True,
-                    "sites": ["anthropic", "aibase", "stanford_hai"],
+                    "sites": ["anthropic", "aibase", "36kr_ai", "zhidx", "stanford_hai"],
                     "limit_per_site": 10,
                 },
             ]

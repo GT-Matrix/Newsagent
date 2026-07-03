@@ -27,6 +27,8 @@
       "sites": [
         "anthropic",
         "aibase",
+        "36kr_ai",
+        "zhidx",
         "stanford_hai"
       ],
       "limit_per_site": 10

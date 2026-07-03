@@ -27,11 +27,13 @@ AUTHORITY_MEDIA = {
 
 CHINESE_MEDIA = {
     "aibase",
+    "36kr_ai",
     "wallstreetcn-news",
     "cls-depth",
     "solidot",
     "infoq",
     "jiqizhixin",
+    "zhidx",
     "qbitai",
 }
 

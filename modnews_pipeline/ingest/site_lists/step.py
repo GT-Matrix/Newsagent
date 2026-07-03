@@ -34,6 +34,8 @@ class SiteListsStep(IngestStep):
         fetchers = {
             "anthropic": _fetch_anthropic,
             "aibase": _fetch_aibase,
+            "36kr_ai": _fetch_36kr_ai,
+            "zhidx": _fetch_zhidx,
             "stanford_hai": _fetch_stanford_hai,
         }
 
@@ -191,6 +193,54 @@ def _fetch_aibase(ctx: PipelineContext, limit: int) -> list[dict[str, str | None
                 "title": re.sub(r"^#\d+\s*", "", _clean_text(match.group("title"))),
                 "url": match.group("url"),
                 "pubtime": page_pubtime,
+            }
+        )
+        if len(rows) >= limit:
+            break
+    return _dedupe(rows)
+
+def _fetch_36kr_ai(ctx: PipelineContext, limit: int) -> list[dict[str, str | None]]:
+    html = _fetch_html(ctx, "https://www.36kr.com/motif/327686782977")
+    anchor_pattern = re.compile(r'<a\b(?P<attrs>[^>]*)>(?P<body>.*?)</a>', re.S | re.I)
+    href_pattern = re.compile(r'href="(?P<href>/p/\d+)"')
+    rows = []
+    for match in anchor_pattern.finditer(html):
+        href_match = href_pattern.search(match.group("attrs"))
+        if not href_match:
+            continue
+        title = _clean_text(match.group("body"))
+        if not title or len(title) < 8 or title in {"核心服务"}:
+            continue
+        rows.append(
+            {
+                "title": title,
+                "url": urljoin("https://www.36kr.com", href_match.group("href")),
+                "pubtime": None,
+            }
+        )
+        if len(rows) >= limit:
+            break
+    return _dedupe(rows)
+
+
+def _fetch_zhidx(ctx: PipelineContext, limit: int) -> list[dict[str, str | None]]:
+    html = _fetch_html(ctx, "https://www.zhidx.com/")
+    pattern = re.compile(
+        r'<a href="(?P<url>https://www\.zhidx\.com/p/\d+\.html)"[^>]*'
+        r'(?:title="(?P<title_attr>[^"]+)")?[^>]*>(?P<body>.*?)</a>',
+        re.S,
+    )
+    rows = []
+    for match in pattern.finditer(html):
+        title = match.group("title_attr") or _clean_text(match.group("body"))
+        title = title.strip()
+        if not title or title.startswith("<img") or len(title) < 8:
+            continue
+        rows.append(
+            {
+                "title": title,
+                "url": match.group("url"),
+                "pubtime": None,
             }
         )
         if len(rows) >= limit:

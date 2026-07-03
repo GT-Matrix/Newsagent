@@ -143,7 +143,7 @@ config = build_config(
             {
                 "type": "site_lists",
                 "enabled": True,
-                "sites": ["anthropic", "aibase", "stanford_hai"],
+                "sites": ["anthropic", "aibase", "36kr_ai", "zhidx", "stanford_hai"],
                     "limit_per_site": 10,
             },
         ],
@@ -178,7 +178,7 @@ Default output files:
 
 `linux_do` fetches the topic list from the `linux.do` News category JSON endpoint and maps each topic into the unified item schema using `created_at` as `pubtime`.
 
-`site_lists` is a lightweight HTML listing step for sources that do not expose a clean RSS feed in practice. It currently includes `anthropic`, `aibase`, and `stanford_hai`.
+`site_lists` is a lightweight HTML listing step for sources that do not expose a clean RSS feed in practice. It currently includes `anthropic`, `aibase`, `36kr_ai`, `zhidx`, and `stanford_hai`.
 
 Minimal linux.do test scraper:
 
