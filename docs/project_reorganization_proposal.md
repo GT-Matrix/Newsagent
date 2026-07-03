@@ -393,9 +393,9 @@ def configure_services(container):
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败事件回调、`queue drain` 手动推进和 ready/blocked 状态查询。
-- 默认 pipeline run 已开始注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_pipeline` task，任务依赖由 `EventQueue` 推进；`--legacy-pipeline` 保留旧同步端到端 runner 作为兼容 fallback。
+- 默认 pipeline run 已开始注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；`--legacy-pipeline` 保留旧同步端到端 runner 作为兼容 fallback。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
-- classify 已支持 `classify.clustered_pipeline` task，旧 `classify.run_legacy` 仍保留给 CLI/API 兼容入口；两者都可从 snapshot 运行并写入 run checkpoint。
+- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
@@ -403,7 +403,7 @@ def configure_services(container):
 仍是兼容层的部分：
 
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
-- `classify.clustered_pipeline` 仍复用 legacy classify runner；batch、embedding、cluster extraction、merge 子步骤后续要继续拆成更细 task executor，并由完成回调推进下一步。
+- clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
 - legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
 - 固定输出目前支持手动从 checkpoint 发布；后续要在关键 task 成功回调中自动发布最新成功 checkpoint。
 

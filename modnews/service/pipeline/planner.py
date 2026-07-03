@@ -57,21 +57,35 @@ class IngestClassifyPipelineStep:
         )
         tasks = [*ingest_tasks, combine_task]
         if config.classification.enabled:
-            tasks.append(
-                TaskEvent(
-                    id=f"classify-{run_id}",
-                    type="classify.clustered_pipeline",
-                    pipeline_run_id=run_id,
-                    step_id="classify/clustered_pipeline",
-                    payload={
-                        "project_root": project_root,
-                        "run_id": run_id,
-                        "config": config_path,
-                        "input_path": "__combined_ingest__",
-                    },
-                    depends_on=[combine_task.id],
-                    concurrency_key="classify",
-                    max_concurrency=1,
-                )
+            extraction_task = TaskEvent(
+                id=f"classify-{run_id}-clustered-event-extraction",
+                type="classify.clustered_event_extraction",
+                pipeline_run_id=run_id,
+                step_id="classify/clustered_event_extraction",
+                payload={
+                    "project_root": project_root,
+                    "run_id": run_id,
+                    "config": config_path,
+                    "input_path": "__combined_ingest__",
+                },
+                depends_on=[combine_task.id],
+                concurrency_key="classify",
+                max_concurrency=1,
             )
+            merge_task = TaskEvent(
+                id=f"classify-{run_id}-clustered-event-merge",
+                type="classify.clustered_event_merge",
+                pipeline_run_id=run_id,
+                step_id="classify/clustered_event_merge",
+                payload={
+                    "project_root": project_root,
+                    "run_id": run_id,
+                    "config": config_path,
+                    "input_path": "__combined_ingest__",
+                },
+                depends_on=[extraction_task.id],
+                concurrency_key="classify",
+                max_concurrency=1,
+            )
+            tasks.extend([extraction_task, merge_task])
         return tasks

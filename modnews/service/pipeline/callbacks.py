@@ -13,7 +13,9 @@ def patch_completed_outputs(queue: EventQueue, event: dict[str, Any]) -> None:
     combined_path = result.get("combined_ingest_path")
     if not combined_path:
         return
-    task_id = str(task.get("id") or "")
-    for dependent in queue.dependents_of(task_id):
-        if dependent.type in {"classify.clustered_pipeline", "classify.run_legacy"}:
-            queue.patch_payload(dependent.id, {"input_path": str(combined_path)})
+    run_id = task.get("pipeline_run_id")
+    for queued_task in queue.list():
+        if queued_task.pipeline_run_id != run_id:
+            continue
+        if queued_task.type.startswith("classify."):
+            queue.patch_payload(queued_task.id, {"input_path": str(combined_path)})
