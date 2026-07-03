@@ -4,8 +4,8 @@ from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 
-from src.io.event_loader import load_processed_candidates
-from src.io.report_writer import write_enriched_events, write_json, write_text
+from modnews.service.report.io.event_loader import load_processed_candidates
+from modnews.service.report.io.report_writer import write_enriched_events, write_json, write_text
 from modnews.service.report.models import EnrichedEvent
 from src.pipeline.classifier import classify_event
 from src.pipeline.editor import polish_report_events
