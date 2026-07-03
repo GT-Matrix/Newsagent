@@ -11,7 +11,10 @@ dependencies = [
 ]
 
 [project.scripts]
+modnews = "modnews.cli.main:main"
+modnews-server = "modnews.cli.commands.server_entry:main"
 modnews-pipeline = "modnews_pipeline.cli:main"
+modnews-classify = "modnews_pipeline.classify.cli:main"
 modnews-classify-snapshot = "modnews_pipeline.classify.cli:main"
 modnews-progress = "modnews_pipeline.web:main"
 newsagent-report = "src.main:main"
@@ -21,4 +24,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src", "modnews_pipeline"]
+packages = ["src", "modnews", "modnews_pipeline"]

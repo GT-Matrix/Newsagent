@@ -1,10 +1,26 @@
 {
   "id": "huggingface_papers_trending",
+  "name": "Hugging Face Trending Papers",
+  "kind": "paper",
   "status": "enabled",
+  "version": "0.1.0",
+  "entrypoint": "extractor.py:run",
+  "target_url": "https://huggingface.co/papers/trending",
+  "source_ids": [
+    "huggingface_papers_trending"
+  ],
+  "promoted_from_task": "huggingface_papers_trending-20260702165648",
   "created_at": "2026-07-02T16:56:48+08:00",
   "updated_at": "2026-07-02T17:21:02+08:00",
-  "bootstrap": true,
-  "promoted_from_task": "huggingface_papers_trending-20260702165648",
-  "kind": "paper",
-  "name": "Hugging Face Trending Papers"
+  "capabilities": [
+    "html_fetch",
+    "paper_listing"
+  ],
+  "content_type": "paper",
+  "tags": [
+    "huggingface",
+    "paper",
+    "ai"
+  ],
+  "bootstrap": true
 }

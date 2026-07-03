@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from modnews.internal.service.pipeline.legacy import run_pipeline
+
 from .config import apply_runtime_overrides, load_config
-from .pipeline import run_pipeline
 
 
 def main() -> None:
