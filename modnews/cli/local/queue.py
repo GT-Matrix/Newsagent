@@ -41,6 +41,10 @@ class QueueLocalMixin:
             self.container.event_queue.drain_ready()
         return {"ok": self.container.event_queue.get(task_id).state == "succeeded", "task": self.queue_show(task_id)}
 
+    def queue_skip(self, task_id: str, reason: str = "skipped by user") -> dict[str, Any]:
+        task = self.container.event_queue.skip(task_id, reason=reason)
+        return {"ok": task.state == "skipped", "task": self.queue_show(task_id)}
+
     def _task_payload(self, task: TaskEvent) -> dict[str, Any]:
         payload = task.to_dict()
         waiting_reason = self.container.event_queue.waiting_reason(task)

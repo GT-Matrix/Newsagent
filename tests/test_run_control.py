@@ -6,7 +6,9 @@ from pathlib import Path
 
 from modnews.app.server import create_app
 from modnews.cli.local_client import LocalClient
+from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
+from modnews.service.pipeline.manager import PipelineManager
 
 
 class RunControlTest(unittest.TestCase):
@@ -63,6 +65,32 @@ class RunControlTest(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.get_json()["run"]["state"], "cancelled")
+
+    def test_blocked_step_callback_can_safely_skip_task(self) -> None:
+        class SkipBlockedStep:
+            id = "skip_blocked"
+
+            def plan(self, state, completed_event=None):
+                return []
+
+            def on_task_blocked(self, event, queue):
+                task = event.get("task")
+                if isinstance(task, dict):
+                    queue.skip(str(task["id"]), reason="optional source blocked")
+
+        queue = EventQueue()
+        manager = PipelineManager()
+        manager.bind(queue, None)  # type: ignore[arg-type]
+        manager.register_step(SkipBlockedStep())
+        queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+        queue.register(TaskEvent(id="blocked", type="diagnostic.missing"))
+        queue.register(TaskEvent(id="dependent", type="diagnostic.echo", depends_on=["blocked"]))
+
+        queue.drain_ready()
+        manager.on_task_blocked({"task": queue.get("blocked").to_dict(), "result": queue.result("blocked")})
+
+        self.assertEqual(queue.get("blocked").state, "skipped")
+        self.assertEqual(queue.get("dependent").state, "succeeded")
 
 
 if __name__ == "__main__":

@@ -26,6 +26,10 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     retry_cmd = nested.add_parser("retry")
     retry_cmd.add_argument("task_id")
     retry_cmd.set_defaults(handler=retry_queue)
+    skip_cmd = nested.add_parser("skip")
+    skip_cmd.add_argument("task_id")
+    skip_cmd.add_argument("--reason", default="skipped by user")
+    skip_cmd.set_defaults(handler=skip_queue)
     echo_cmd = nested.add_parser("echo")
     echo_cmd.add_argument("task_id")
     echo_cmd.add_argument("--message", default="ok")
@@ -76,3 +80,10 @@ def retry_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.post(f"/api/queue/{args.task_id}/retry", {})
     return client.queue_retry(args.task_id)
+
+
+def skip_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    payload = {"reason": args.reason}
+    if isinstance(client, ApiClient):
+        return client.post(f"/api/queue/{args.task_id}/skip", payload)
+    return client.queue_skip(args.task_id, args.reason)

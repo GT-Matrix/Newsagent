@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from .events import EventRouter
-from .task import TERMINAL_STATES, TaskBlocked, TaskEvent, task_context
+from .task import SUCCESS_STATES, TERMINAL_STATES, TaskBlocked, TaskEvent, task_context
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
 TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
@@ -192,6 +192,42 @@ class EventQueue:
             self._log(task, "task.retry_requested")
             return task
 
+    def skip(self, task_id: str, *, reason: str = "skipped") -> TaskEvent:
+        released: list[TaskEvent] = []
+        with self._lock:
+            task = self._tasks[task_id]
+            if task.state in {"succeeded", "skipped"}:
+                return task
+            if task.state == "running":
+                self._results[task.id] = {"error": "cannot skip running task", "skip_reason": reason}
+                return task
+            task.state = "skipped"
+            task.status_reason = reason
+            task.finished_at = _now()
+            self._results[task.id] = {"skip_reason": reason}
+            self._log(task, "task.skipped", reason=reason)
+            while True:
+                tasks = dict(self._tasks)
+                unblocked = [
+                    item
+                    for item in tasks.values()
+                    if item.state == "blocked" and self._dependency_blocked_reason(item, tasks) is None
+                ]
+                if not unblocked:
+                    break
+                for dependent in unblocked:
+                    dependent.state = "queued"
+                    dependent.status_reason = None
+                    dependent.finished_at = None
+                    self._results.pop(dependent.id, None)
+                    self._log(dependent, "task.unblocked", dependency=task_id)
+                    released.append(dependent)
+        self._dispatch("task.skipped", task)
+        for dependent in released:
+            self._dispatch("task.unblocked", dependent)
+        self.drain_ready()
+        return task
+
     def dependents_of(self, task_id: str) -> list[TaskEvent]:
         with self._lock:
             return [task for task in self._tasks.values() if task_id in task.depends_on]
@@ -265,7 +301,7 @@ class EventQueue:
             dependency = tasks.get(dependency_id)
             if dependency is None:
                 continue
-            if dependency.state != "succeeded":
+            if dependency.state not in SUCCESS_STATES:
                 if dependency.state in TERMINAL_STATES:
                     continue
                 return f"waiting for dependency {dependency_id}"
@@ -286,7 +322,7 @@ class EventQueue:
             dependency = tasks.get(dependency_id)
             if dependency is None:
                 return f"missing dependency {dependency_id}"
-            if dependency.state in TERMINAL_STATES and dependency.state != "succeeded":
+            if dependency.state in TERMINAL_STATES and dependency.state not in SUCCESS_STATES:
                 return f"dependency {dependency_id} ended as {dependency.state}"
         return None
 

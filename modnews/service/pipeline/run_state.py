@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.event_queue import EventQueue
-from modnews.core.task import TERMINAL_STATES
+from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES
 from modnews.repository.runs import RunRepository
 
 
@@ -34,7 +34,9 @@ def update_run_state(queue: EventQueue, event: dict[str, Any], *, failed: bool =
         elif any(item.state == "blocked" for item in run_tasks):
             updates["state"] = "blocked"
         elif all(item.state in TERMINAL_STATES for item in run_tasks):
-            updates["state"] = "succeeded"
+            updates["state"] = "succeeded" if all(item.state == "succeeded" for item in run_tasks) else "partial"
+        elif all(item.state in SUCCESS_STATES for item in run_tasks):
+            updates["state"] = "succeeded" if all(item.state == "succeeded" for item in run_tasks) else "partial"
     try:
         RunRepository(Path(str(project_root))).update(str(run_id), **updates)
     except KeyError:

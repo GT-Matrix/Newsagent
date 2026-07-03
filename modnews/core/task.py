@@ -5,7 +5,8 @@ from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
 from typing import Any, Iterator
 
-TERMINAL_STATES = {"succeeded", "failed", "cancelled", "blocked"}
+SUCCESS_STATES = {"succeeded", "skipped"}
+TERMINAL_STATES = {"succeeded", "skipped", "failed", "cancelled", "blocked"}
 _CURRENT_TASK: ContextVar["TaskEvent | None"] = ContextVar("modnews_current_task", default=None)
 
 

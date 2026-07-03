@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import inspect
 from typing import Any
 
 from modnews.core.event_queue import EventQueue
@@ -54,7 +55,10 @@ class PipelineManager:
         for step in self.steps:
             handler = getattr(step, "on_task_blocked", None)
             if callable(handler):
-                handler(event)
+                if len(inspect.signature(handler).parameters) >= 2:
+                    handler(event, self.event_queue)
+                else:
+                    handler(event)
 
     def _dispatch_next(self, event: dict[str, Any], *, failed: bool) -> None:
         if failed:

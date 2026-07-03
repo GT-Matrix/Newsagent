@@ -70,6 +70,31 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(task.attempt, 2)
         self.assertEqual(queue.result("flaky-1")["value"], "ok")
 
+    def test_skipped_dependency_allows_dependent_task_to_run(self) -> None:
+        queue = EventQueue()
+        queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+        queue.register(TaskEvent(id="first", type="diagnostic.never", state="blocked"))
+        queue.register(TaskEvent(id="second", type="diagnostic.echo", depends_on=["first"]))
+
+        queue.skip("first", reason="safe to skip")
+
+        self.assertEqual(queue.get("first").state, "skipped")
+        self.assertEqual(queue.result("first")["skip_reason"], "safe to skip")
+        self.assertEqual(queue.get("second").state, "succeeded")
+        self.assertEqual(queue.result("second")["value"], "ok")
+
+    def test_skip_releases_cascaded_blocked_dependencies(self) -> None:
+        queue = EventQueue()
+        queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+        queue.register(TaskEvent(id="first", type="diagnostic.never", state="blocked"))
+        queue.register(TaskEvent(id="second", type="diagnostic.never", state="blocked", depends_on=["first"]))
+        queue.register(TaskEvent(id="third", type="diagnostic.echo", state="blocked", depends_on=["second"]))
+
+        queue.skip("first", reason="safe to skip")
+        queue.skip("second", reason="safe to skip dependent")
+
+        self.assertEqual(queue.get("third").state, "succeeded")
+
 
 if __name__ == "__main__":
     unittest.main()

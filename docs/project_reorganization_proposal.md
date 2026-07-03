@@ -184,6 +184,7 @@ modnews queue list --state queued,running
 modnews queue show <task_id>
 modnews queue retry <task_id>
 modnews queue cancel <task_id>
+modnews queue skip <task_id> --reason "optional source blocked"
 
 modnews config show
 modnews config set classification.batch_size 40
@@ -234,6 +235,8 @@ modnews cache clear --llm --embedding
 
 核心原则：实际执行不放在 step 内部。所有可执行工作都创建为事件/任务对象，带上并发和资源约束信息后注册到事件系统。事件系统统一处理并发、重试、状态落库、完成回调和失败回调。
 
+网页爬取、LLM 调用、embedding 调用、Codex repair 都属于异步任务，不应由 ingest/classify step 自己开线程池或维护 retry/blocked 状态。step 只构造 `TaskEvent`，并声明 `concurrency_key`、`max_concurrency`、`max_attempts`、`depends_on`、`checkpoint_policy` 等调度信息；EventQueue 负责执行、重试、blocked 标记和日志落库。前端按 `task.type` 选择不同日志视图，例如 `web_source.run` 展示 web job events，`classify.batch_item.*` 展示 LLM/embedding 请求日志，`extractor.repair.codex` 展示 Codex JSONL 尾部和修复产物。
+
 任务对象建议包含：
 
 ```python
@@ -277,8 +280,14 @@ step 不应再是“执行具体业务的 runner”。step 应该是“往事件
 - 对必须顺序运行的任务，等待上一条任务完成回调后，才注册下一条任务。
 - 对可并发任务，只声明 `concurrency_key`、`max_concurrency`、资源类型、依赖关系，不自己创建线程池。
 - 不直接写 checkpoint，不直接写 output，不直接读写缓存。
+- 接收 `task.completed`、`task.failed`、`task.blocked` 回调后，只做流程同步决策：注册下一批任务、停止该 run、或把确认可忽略的 blocked 任务标记为 skipped。
 
 例如 ingest 的 RSS、NewsNow、managed extractor 都是任务事件；classify 的 batch relevance、embedding、event extraction、merge 也是任务事件。step 只决定“现在可以发哪些任务”，事件系统决定“什么时候执行、并发多少、完成后回调谁”。
+
+blocked 的处理要分两类：
+
+- 硬阻断：依赖失败、缺配置、登录/CAPTCHA、权限不足、extractor 需要修复等，保持 `blocked`，由 CLI/API/前端提示人工处理，必要时 `queue retry`。
+- 安全跳过：可选 source、可选 batch、已确认无可恢复价值的外部阻断，step 的 `on_task_blocked(event, queue)` 回调可以调用 `queue.skip(task_id, reason=...)`。`skipped` 是终态，也是依赖可继续的成功类状态；下游依赖会自动从 blocked 释放回 queued。run 最终如果包含 skipped task，应标记为 `partial`，不误报完整成功。
 
 ### Repository 层
 
@@ -391,12 +400,12 @@ def configure_services(container):
 
 - 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`service`、`repository`、`cli` 骨架。
 - 旧 `modnews_pipeline.web` 的 API/server 职责已迁入新 `modnews.app`。
-- CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作；`run resume` 会推进当前 run 的 queued/waiting task，`run cancel` 会取消未执行 task 并标记 run。
+- CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作；`run resume` 会推进当前 run 的 queued/waiting task，`run cancel` 会取消未执行 task 并标记 run，`queue skip` 可在人工确认或 step 回调确认后安全跳过 blocked task。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败/业务阻断事件回调、`queue drain` 手动推进和 ready/waiting/blocked 状态查询。`waiting` 表示依赖或并发槽尚不可用；`blocked` 保留给依赖终止、CAPTCHA、权限、缺 extractor、需要人工修复等不会自动继续的业务阻断。
-- CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
+- CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`queue skip <task_id>` / `POST /api/queue/<task_id>/skip` 可把确认可忽略的 blocked/queued/waiting task 标记为 skipped，并自动释放依赖它的下游任务；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
-- 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。
+- 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。`PipelineManager.on_task_blocked` 会把 blocked 回调转发给已注册 step，step 可据此安全跳过可选任务或注册替代任务。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口已切到 `classify.clustered_pipeline`，旧 `classify.run_legacy` 仅作为低层 executor 兼容路径保留。
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。

@@ -65,6 +65,16 @@ def queue_retry(task_id: str):
         return jsonify({"ok": False, "error": "not found"}), 404
 
 
+@bp.post("/api/queue/<task_id>/skip")
+def queue_skip(task_id: str):
+    payload = request.get_json(silent=True) or {}
+    reason = str(payload.get("reason") or "skipped by user")
+    try:
+        return jsonify(local_client().queue_skip(task_id, reason))
+    except KeyError:
+        return jsonify({"ok": False, "error": "not found"}), 404
+
+
 @bp.get("/api/cache")
 def cache_status():
     return jsonify(local_client().cache_status())
