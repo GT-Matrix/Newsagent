@@ -3,13 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from modnews.core.models import NewsItem, StepResult
 from modnews_pipeline.context import PipelineContext
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.repair_policy import classify_exception, should_auto_repair
 from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
 from modnews.service.extraction.web_runner import run_extractor, write_json
-from modnews_pipeline.models import NewsItem, StepResult
 from modnews_pipeline.sources import source_config_store
 from modnews.repository.web_jobs import WebJobStore
 

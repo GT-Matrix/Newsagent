@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews_pipeline.config import load_config
-from modnews_pipeline.paths import runtime_paths
+from modnews.core.paths import runtime_paths
 
 
 class OutputRepository:

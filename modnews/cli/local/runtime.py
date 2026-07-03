@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from modnews.repository.outputs import OutputRepository
-from modnews_pipeline.paths import runtime_paths
+from modnews.core.paths import runtime_paths
 from modnews_pipeline.progress import BUS, sse
 from modnews_pipeline.sources import source_config_store
 

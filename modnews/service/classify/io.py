@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from modnews.repository.runs import RunRepository
-from modnews_pipeline.models import NewsItem
+from modnews.core.models import NewsItem
 
 
 def resolve_input_path(project_root: Path, run_id: str, input_ref: object, fallback: Path) -> Path:

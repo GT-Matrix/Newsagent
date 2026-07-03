@@ -13,7 +13,7 @@ from typing import Any
 
 from modnews.service.extraction.metadata import ExtractorMetadata, metadata_comment, replace_metadata_comment
 from modnews.service.extraction.registry import ExtractorRegistry
-from modnews_pipeline.paths import runtime_paths
+from modnews.core.paths import runtime_paths
 
 
 @dataclass(slots=True)

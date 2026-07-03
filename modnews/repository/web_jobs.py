@@ -6,8 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from modnews_pipeline.paths import runtime_paths
 from modnews.repository.event_jsonl import append_event, read_events
+from modnews.core.paths import runtime_paths
 from modnews.service.extraction.web_contract import WebJob, WebSource
 
 
