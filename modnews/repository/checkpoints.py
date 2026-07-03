@@ -35,14 +35,14 @@ class CheckpointRepository:
         return payload
 
     def write(self, run_id: str, step_id: str, task_id: str, payload: dict[str, Any]) -> Path:
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        path = self.root / run_id / "checkpoints" / step_id / f"{stamp}-{task_id}" / "checkpoint.json"
+        now = _now()
+        path = self._checkpoint_dir(run_id, step_id, task_id) / "checkpoint.json"
         payload = {
             "run_id": run_id,
             "step_id": step_id,
             "task_id": task_id,
-            "started_at": payload.get("started_at"),
-            "finished_at": payload.get("finished_at") or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+            "started_at": payload.get("started_at") or now,
+            "finished_at": payload.get("finished_at") or now,
             **payload,
         }
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,8 +50,21 @@ class CheckpointRepository:
         return path
 
     def write_artifact(self, run_id: str, step_id: str, task_id: str, name: str, payload: Any) -> Path:
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        path = self.root / run_id / "checkpoints" / step_id / f"{stamp}-{task_id}" / name
+        path = self._checkpoint_dir(run_id, step_id, task_id) / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         return path
+
+    def _checkpoint_dir(self, run_id: str, step_id: str, task_id: str) -> Path:
+        step_dir = self.root / run_id / "checkpoints" / step_id
+        if step_dir.exists():
+            suffix = f"-{task_id}"
+            matches = sorted(path for path in step_dir.iterdir() if path.is_dir() and path.name.endswith(suffix))
+            if matches:
+                return matches[-1]
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        return step_dir / f"{stamp}-{task_id}"
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")

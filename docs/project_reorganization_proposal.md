@@ -407,6 +407,7 @@ def configure_services(container):
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
+- `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
 - managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`。
 - managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`。
