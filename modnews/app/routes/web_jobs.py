@@ -24,4 +24,6 @@ def web_job_events(job_id: str):
 
 @bp.post("/api/web-sources/<source_id>/run")
 def run_web_source(source_id: str):
-    return jsonify(LocalClient().web_source_run(source_id, request.get_json(silent=True) or {}))
+    result = LocalClient().web_source_run(source_id, request.get_json(silent=True) or {})
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status

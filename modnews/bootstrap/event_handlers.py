@@ -3,6 +3,7 @@ from __future__ import annotations
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
+from modnews.internal.service.extraction.tasks import run_web_source_task
 
 
 def register_event_handlers(router: EventRouter) -> None:
@@ -16,6 +17,7 @@ def register_event_handlers(router: EventRouter) -> None:
 
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
+    queue.register_executor("web_source.run", run_web_source_task)
 
 
 def _echo(task: TaskEvent) -> dict[str, object]:

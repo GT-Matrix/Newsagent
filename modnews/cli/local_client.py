@@ -171,15 +171,24 @@ class LocalClient:
         return WebJobStore(self.project_root).events(job_id)
 
     def web_source_run(self, source_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-        config = source_config_store(self.project_root).load()
-        raw = config.get("sources", {}).get("site_lists", {}).get(source_id)
-        if not isinstance(raw, dict):
-            return {"ok": False, "error": "source not found"}
-        source = WebSource.from_config(source_id, raw)
-        limit = int(payload.get("limit") or config.get("steps", {}).get("site_lists", {}).get("limit_per_site", 10))
-        scrape_date = str(payload.get("scrape_date") or datetime.now().astimezone().isoformat(timespec="seconds"))
-        job = WebExtractionOrchestrator(self.project_root).run_source(source, scrape_date=scrape_date, limit=limit)
-        return {"ok": True, "item": job.to_dict()}
+        task_id = str(payload.get("task_id") or f"web-source-{source_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+        task = TaskEvent(
+            id=task_id,
+            type="web_source.run",
+            step_id="web_source",
+            payload={
+                "project_root": str(self.project_root),
+                "source_id": source_id,
+                "limit": payload.get("limit"),
+                "scrape_date": payload.get("scrape_date"),
+            },
+            concurrency_key=f"web_source:{source_id}",
+            max_concurrency=1,
+        )
+        self.container.event_queue.dispatch(task)
+        result = self.queue_show(task_id)
+        job = result.get("result", {}).get("job") if isinstance(result.get("result"), dict) else None
+        return {"ok": result.get("state") == "succeeded", "task": result, "item": job}
 
     def repair_tasks(self) -> list[dict[str, Any]]:
         return RepairManager(self.project_root, registry_from_project(self.project_root)).list_tasks()
