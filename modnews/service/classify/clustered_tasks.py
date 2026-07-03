@@ -5,7 +5,7 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
-from modnews.service.classify.checkpoint import build_checkpoint_meta, load_resume_state, write_outputs
+from modnews.service.classify.checkpoint import build_checkpoint_meta, load_resume_state, write_outputs, write_run_output_artifacts
 from modnews.service.classify.llm_client import LlmClient
 from modnews.service.classify.retriever import EventVectorRetriever
 from modnews.service.classify.runner import ClassifyRuntime
@@ -102,18 +102,14 @@ def _write_run_checkpoint(
         merged_event_count=state.merged_event_count,
     )
     write_outputs(runtime.config, state.items, state.event_records, state.discarded, meta)
+    output_refs = write_run_output_artifacts(checkpoint, run_id, step_id, task.id, state.items, state.event_records, state.discarded, meta)
     checkpoint_payload = {
         "run_id": run_id,
         "step_id": step_id,
         "task_id": task.id,
         "status": "succeeded",
         "input_refs": {"items": str(input_path)},
-        "output_refs": {
-            "news_with_events": str(runtime.config.output_path),
-            "events": str(runtime.config.events_output_path),
-            "discarded_news": str(runtime.config.discarded_output_path),
-            "legacy_checkpoint": str(runtime.config.checkpoint_path) if runtime.config.checkpoint_path else None,
-        },
+        "output_refs": output_refs,
         "stats": {
             "item_count": len(state.items),
             "event_count": len(state.events),

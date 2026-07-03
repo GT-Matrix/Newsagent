@@ -400,6 +400,7 @@ def configure_services(container):
 - managed web source 单源运行已通过 `web_source.run` task 执行。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
 - `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
+- classify task 写统一 run checkpoint 时，已把 `news_with_events.json`、`events.json`、`discarded_news.json` 和 `classification_progress.json` 作为 checkpoint artifact 写入同一个时间戳任务目录；固定 `output/` 文件仍保留为兼容发布结果。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
 - managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`。
 - managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`。
@@ -421,7 +422,7 @@ def configure_services(container):
 
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
-- legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
+- legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，后续要把 resume 读取优先级迁到 run checkpoint。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口和主 pipeline 实现，但模型、规则、IO、评分/摘要/核验子模块仍暂时依赖 `src/` 命名空间。
 - 固定输出目前支持手动从 checkpoint 发布；后续要在关键 task 成功回调中自动发布最新成功 checkpoint。
 
