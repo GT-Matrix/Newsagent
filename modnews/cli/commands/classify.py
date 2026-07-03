@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
 from typing import Any
 
 from modnews.cli.api_client import ApiClient
-from modnews.core.task import TaskEvent
+from modnews.service.classify.planner import plan_clustered_classify_tasks
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
@@ -14,7 +13,6 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     run = nested.add_parser("run")
     run.add_argument("--input")
     run.add_argument("--run-id")
-    run.add_argument("--disable-classification", action="store_true")
     run.set_defaults(handler=run_classify)
 
 
@@ -22,19 +20,15 @@ def run_classify(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     payload = {
         "input_path": args.input,
         "run_id": args.run_id,
-        "disable_classification": args.disable_classification,
     }
     if isinstance(client, ApiClient):
         return client.post("/api/classify/run", payload)
-    task_id = f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    task = TaskEvent(
-        id=task_id,
-        type="classify.clustered_pipeline",
-        pipeline_run_id=args.run_id,
-        step_id="classify/clustered_pipeline",
-        payload={"project_root": str(client.project_root), **payload},
-        concurrency_key="classify",
-        max_concurrency=1,
+    tasks = plan_clustered_classify_tasks(
+        project_root=client.project_root,
+        run_id=args.run_id,
+        input_path=args.input,
     )
-    client.container.event_queue.submit(task)
-    return client.queue_show(task_id)
+    for task in tasks:
+        client.container.event_queue.register(task)
+    client.container.event_queue.drain_ready()
+    return {"ok": all(client.queue_show(task.id).get("state") == "succeeded" for task in tasks), "tasks": [client.queue_show(task.id) for task in tasks]}

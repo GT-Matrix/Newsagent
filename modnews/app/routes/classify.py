@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 from flask import Blueprint, jsonify, request
 
 from modnews.app.context import local_client
-from modnews.core.task import TaskEvent
+from modnews.service.classify.planner import plan_clustered_classify_tasks
 
 bp = Blueprint("classify", __name__)
 
@@ -14,16 +12,14 @@ bp = Blueprint("classify", __name__)
 def run_classify():
     payload = request.get_json(silent=True) or {}
     client = local_client()
-    task_id = f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    task = TaskEvent(
-        id=task_id,
-        type="classify.clustered_pipeline",
-        pipeline_run_id=payload.get("run_id"),
-        step_id="classify/clustered_pipeline",
-        payload={"project_root": str(client.project_root), **payload},
-        concurrency_key="classify",
-        max_concurrency=1,
+    tasks = plan_clustered_classify_tasks(
+        project_root=client.project_root,
+        run_id=payload.get("run_id"),
+        input_path=payload.get("input_path") or payload.get("input"),
+        config=payload.get("config"),
     )
-    client.container.event_queue.submit(task)
-    task_payload = client.queue_show(task_id)
-    return jsonify({"ok": task_payload.get("state") == "succeeded", "task": task_payload})
+    for task in tasks:
+        client.container.event_queue.register(task)
+    client.container.event_queue.drain_ready()
+    task_payloads = [client.queue_show(task.id) for task in tasks]
+    return jsonify({"ok": all(task.get("state") == "succeeded" for task in task_payloads), "tasks": task_payloads})

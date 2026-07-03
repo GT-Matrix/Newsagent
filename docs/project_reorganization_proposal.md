@@ -407,7 +407,7 @@ def configure_services(container):
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
 - 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。`PipelineManager.on_task_blocked` 会把 blocked 回调转发给已注册 step，step 可据此安全跳过可选任务或注册替代任务。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
-- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口已切到 `classify.clustered_pipeline`，队列中不再注册 `classify.run_legacy` 任务类型。
+- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口会注册同一套两阶段任务图，队列中不再注册 `classify.run_legacy` 或整段 `classify.clustered_pipeline` 任务类型。
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed`/`task.blocked` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
 - `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
@@ -435,7 +435,7 @@ def configure_services(container):
 仍是兼容层的部分：
 
 - 默认端到端 run 只注册任务图，不再提供公开 legacy fallback；但 ingest/classify 的具体业务 executor 仍有部分复用旧同步实现，后续要继续拆细。
-- clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用现有 step 实现；batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
+- clustered classify 已拆到 extraction/merge 两个 task，默认 pipeline 与手动 classify CLI/API 都注册这套任务图；但每个阶段内部仍复用现有 step 实现。batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - 任务执行期间的 progress/LLM 事件已通过当前 task 上下文写入 `TaskLogRepository`，`queue show` 可看到 `progress.llm_request_*` 等日志；Codex repair task 已把 `codex.jsonl` 路径、尾部摘要和字节数写入 task result，并通过 `progress.codex_repair_log` 进入 task logs；web extraction 的 `WebJobStore.append(...)` 事件也会以 `progress.web_job_event` 写入当前 task logs。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
 - report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 已不再发布 `src` 包，源码内 `src/` report 相关模块当前仅作为 repo 内兼容转发层保留，后续可在确认旧入口不再需要后删除。
