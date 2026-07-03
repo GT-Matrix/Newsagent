@@ -453,27 +453,27 @@ extractors/
 
 ## 文件整理建议
 
-### 建议移动到 docs/
+### 已移动到 docs/
 
-这些是文档，不应留在根目录：
+这些文档已经从根目录移到 `docs/`：
 
 - `News PRD 38ad6fd653bd803bb463e1d3654c8bd2.md` -> `docs/prd.md`
 - `信息源.md` -> `docs/sources.md`
 - `新闻归类流程.md` -> `docs/classification_flow.md`
-- `README.modnews.md` -> 合并进 `README.md` 或移动到 `docs/legacy_readme.md`
+- `README.modnews.md` -> `docs/legacy_readme.md`
 
 ### 建议删除或改为未跟踪运行态
 
 这些不应作为源码维护：
 
-- `events(1).json`：看起来是临时导出文件，应删除；如需保留案例，改名放入 `mock_data/events.sample.json`。
+- `events(1).json`：已作为案例改名放入 `mock_data/events.sample.json`。
 - 根目录 `output/`：运行输出，已在 `.gitignore`，不应提交新文件。
 - 根目录 `runtime/`：运行配置，已在 `.gitignore`；保留 `config.example.json` 作为模板。
 - 根目录 `var/`：缓存/checkpoint，已在 `.gitignore`。
 - `.agent_work/`：managed Codex 工作目录，已在 `.gitignore`。
 - 嵌套 `modnews/`：当前是历史运行目录，含 `.venv`、`.env.runtime`、输出和 pyc，应本地删除，不进仓库。
 
-注意：`git ls-files` 显示部分运行态/文档已经被跟踪。清理时需要用 `git mv` / `git rm --cached` 明确处理，不能只依赖 `.gitignore`。
+注意：根目录 Markdown 和 `events(1).json` 已用 `git mv` 清理；后续如果发现运行态文件被跟踪，也需要用 `git rm --cached` 明确处理，不能只依赖 `.gitignore`。
 
 ### 建议保留
 
