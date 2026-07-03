@@ -401,13 +401,13 @@ def configure_services(container):
 - 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`service`、`repository`、`cli` 骨架。
 - 旧 `modnews_pipeline.web` 的 API/server 职责已迁入新 `modnews.app`。
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作；`run resume` 会推进当前 run 的 queued/waiting task，`run cancel` 会取消未执行 task 并标记 run，`queue skip` 可在人工确认或 step 回调确认后安全跳过 blocked task。
-- 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
+- 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会注册 ingest/combine/classify 任务图并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败/业务阻断事件回调、`queue drain` 手动推进和 ready/waiting/blocked 状态查询。`waiting` 表示依赖或并发槽尚不可用；`blocked` 保留给依赖终止、CAPTCHA、权限、缺 extractor、需要人工修复等不会自动继续的业务阻断。
 - CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`queue skip <task_id>` / `POST /api/queue/<task_id>/skip` 可把确认可忽略的 blocked/queued/waiting task 标记为 skipped，并自动释放依赖它的下游任务；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
 - 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。`PipelineManager.on_task_blocked` 会把 blocked 回调转发给已注册 step，step 可据此安全跳过可选任务或注册替代任务。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
-- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口已切到 `classify.clustered_pipeline`，旧 `classify.run_legacy` 仅作为低层 executor 兼容路径保留。
+- classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口已切到 `classify.clustered_pipeline`，队列中不再注册 `classify.run_legacy` 任务类型。
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
 - `CompletionCallbackRegistry` 已接入 bootstrap，`task.completed`/`task.failed`/`task.blocked` 的自动发布、payload patch、run 状态推进统一通过回调注册层绑定到 `EventRouter`；`queue status` 会返回已注册回调摘要。
 - `CheckpointRepository` 已保证同一 `run_id`/`step_id`/`task_id` 的 artifact 与 `checkpoint.json` 写入同一个带 UTC 时间戳的目录，并补齐 `started_at`/`finished_at` 默认值。
@@ -424,7 +424,7 @@ def configure_services(container):
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
 - classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。standalone 调用默认仍使用本地线程池；bootstrap 注册的 classify task 会注入 `EventQueueBatchExecutionBackend`，使 LLM batch 和 embedding batch item 注册成 `TaskEvent` 并通过统一队列收集结果。
-- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口不再暴露 legacy fallback，旧同步 runner 只保留给显式低层兼容路径。
+- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口和队列 executor 不再暴露 legacy fallback，旧同步 runner 只保留给显式低层兼容导入路径。
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`，旧命令名 `newsagent-report` 仅作为指向同一 `modnews` report entry 的兼容别名保留。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src.main` 只保留为兼容转发壳。

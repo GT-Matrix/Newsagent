@@ -12,11 +12,6 @@ from modnews.service.classify.types import DiscardedRecord
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 
-
-def run_classify_task(task: TaskEvent) -> dict[str, object]:
-    return run_clustered_pipeline_task(task, checkpoint_step_id="classify")
-
-
 def run_clustered_pipeline_task(task: TaskEvent, *, checkpoint_step_id: str = "classify/clustered_pipeline") -> dict[str, object]:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")

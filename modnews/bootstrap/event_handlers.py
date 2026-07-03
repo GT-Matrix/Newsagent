@@ -10,11 +10,11 @@ from modnews.service.classify.clustered_tasks import (
     run_clustered_event_merge_task,
 )
 from modnews.service.classify.batch_executor import EventQueueBatchExecutionBackend, default_batch_backend
-from modnews.service.classify.tasks import run_classify_task, run_clustered_pipeline_task
+from modnews.service.classify.tasks import run_clustered_pipeline_task
 from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.extraction.repair_tasks import run_codex_repair_task
-from modnews.service.pipeline.tasks import combine_ingest_task, run_legacy_pipeline_task
+from modnews.service.pipeline.tasks import combine_ingest_task
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.service.pipeline.manager import PipelineManager
@@ -29,7 +29,6 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
 
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
-    queue.register_executor("classify.run_legacy", _with_classify_batch_queue(queue, run_classify_task))
     queue.register_executor("classify.clustered_pipeline", _with_classify_batch_queue(queue, run_clustered_pipeline_task))
     queue.register_executor(
         "classify.clustered_event_extraction",
@@ -40,7 +39,6 @@ def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("extractor.repair.codex", run_codex_repair_task)
     queue.register_executor("pipeline.combine_ingest", combine_ingest_task)
-    queue.register_executor("pipeline.run_legacy", run_legacy_pipeline_task)
 
 
 def _echo(task: TaskEvent) -> dict[str, object]:
