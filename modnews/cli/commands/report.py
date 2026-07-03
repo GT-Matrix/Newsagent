@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.service.report import generate_report
-from src.config import DEFAULT_INPUT, DEFAULT_OUTPUT_DIR
+from modnews.service.report.config import DEFAULT_INPUT, DEFAULT_OUTPUT_DIR
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
