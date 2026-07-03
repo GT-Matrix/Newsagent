@@ -6,7 +6,7 @@ from typing import Any
 from modnews.core.task import TaskEvent
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.registry import registry_from_project
-from modnews_pipeline.web_extraction.job_store import WebJobStore
+from modnews.repository.web_jobs import WebJobStore
 
 
 class ExtractionLocalMixin:

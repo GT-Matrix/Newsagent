@@ -4,9 +4,9 @@ from datetime import datetime
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
+from modnews.service.extraction.orchestrator import WebExtractionOrchestrator
+from modnews.service.extraction.web_contract import WebSource
 from modnews_pipeline.sources import source_config_store
-from modnews_pipeline.web_extraction.contract import WebSource
-from modnews_pipeline.web_extraction.orchestrator import WebExtractionOrchestrator
 
 
 def run_web_source_task(task: TaskEvent) -> dict[str, object]:

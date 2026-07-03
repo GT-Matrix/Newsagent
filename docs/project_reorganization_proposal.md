@@ -67,8 +67,12 @@
     extraction/
       contract.py
       metadata.py
+      web_contract.py
       registry.py
       runner.py
+      web_runner.py
+      repair_policy.py
+      orchestrator.py
       repair.py
     report/
       __init__.py
@@ -80,6 +84,7 @@
     cache.py
     checkpoints.py
     web_jobs.py
+    event_jsonl.py
     event_log.py
   cli/
     __init__.py
@@ -403,6 +408,7 @@ def configure_services(container):
 - managed web source 单源运行已通过 `web_source.run` task 执行。
 - managed extractor registry 实现已迁入 `modnews/service/extraction/registry.py`，旧 `modnews_pipeline.extractors.registry` 保留兼容 facade；安装方式继续靠扫描 `extractors/*/current/manifest.json`。
 - managed extractor contract、metadata、repair manager 实现已迁入 `modnews/service/extraction/`，旧 `modnews_pipeline.extractors.*` 保留兼容 facade。
+- managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`，旧 `modnews_pipeline.web_extraction.*` 保留兼容 facade。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。

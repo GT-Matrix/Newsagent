@@ -1,3 +1,3 @@
-from modnews_pipeline.web_extraction.runner import run_extractor, write_json
+from modnews.service.extraction.web_runner import run_extractor, write_json
 
 __all__ = ["run_extractor", "write_json"]
