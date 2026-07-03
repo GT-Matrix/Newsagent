@@ -20,7 +20,7 @@ from src.pipeline.reporter import (
 from src.pipeline.scorer import score_event
 from src.pipeline.summarizer import summarize_event
 from src.pipeline.verifier import verify_event
-from src.utils.text import text_quality
+from modnews.service.report.utils.text import text_quality
 
 
 def run_pipeline(

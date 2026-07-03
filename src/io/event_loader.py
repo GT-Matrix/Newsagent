@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any
 
 from modnews.service.report.models import EventCandidate, SourceItem
-from src.utils.time import parse_datetime
-from src.utils.validation import as_int_list, as_string_list, normalize_confidence
+from modnews.service.report.utils.time import parse_datetime
+from modnews.service.report.utils.validation import as_int_list, as_string_list, normalize_confidence
 
 
 def load_processed_candidates(path: Path) -> list[EventCandidate]:

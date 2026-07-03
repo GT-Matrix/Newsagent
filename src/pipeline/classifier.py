@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from modnews.service.report.models import ContentLayer, EventCandidate
-from src.rules.taxonomy import INSIGHT_TYPES, NEWS_TYPES, normalize_event_type
-from src.utils.text import has_any_word
+from modnews.service.report.rules.taxonomy import INSIGHT_TYPES, NEWS_TYPES, normalize_event_type
+from modnews.service.report.utils.text import has_any_word
 
 
 DEEP_ASSET_TYPES_STRICT = {

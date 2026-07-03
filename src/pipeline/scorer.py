@@ -4,11 +4,11 @@ from datetime import date, datetime, time, timezone
 
 from src.config import SCORE_WEIGHTS
 from modnews.service.report.models import EventCandidate, ScoreBreakdown
-from src.rules.scoring_rules import IMPORTANCE_BASE
-from src.rules.source_weights import platform_score, source_kind
-from src.rules.taxonomy import AI_KEYWORDS, HIGH_IMPACT_TYPES
-from src.utils.text import has_any_word
-from src.utils.time import ensure_aware
+from modnews.service.report.rules.scoring_rules import IMPORTANCE_BASE
+from modnews.service.report.rules.source_weights import platform_score, source_kind
+from modnews.service.report.rules.taxonomy import AI_KEYWORDS, HIGH_IMPACT_TYPES
+from modnews.service.report.utils.text import has_any_word
+from modnews.service.report.utils.time import ensure_aware
 
 ACTIONABLE_TYPES = {
     "model_release", "product_release", "open_source", "tooling", "framework",

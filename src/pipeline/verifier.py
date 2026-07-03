@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from modnews.service.report.models import EventCandidate, VerifyStatus
-from src.rules.source_weights import source_kind
-from src.rules.taxonomy import RUMOR_WORDS
-from src.utils.text import has_any_word
+from modnews.service.report.rules.source_weights import source_kind
+from modnews.service.report.rules.taxonomy import RUMOR_WORDS
+from modnews.service.report.utils.text import has_any_word
 
 
 def verify_event(candidate: EventCandidate, text_quality: str) -> tuple[VerifyStatus, str]:

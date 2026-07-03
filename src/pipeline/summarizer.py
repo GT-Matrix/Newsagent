@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 
 from modnews.service.report.models import EventCandidate
-from src.rules.scoring_rules import WHY_IMPORTANT_BY_TYPE
-from src.utils.text import choose_best_title, mostly_english, short_sentence
+from modnews.service.report.rules.scoring_rules import WHY_IMPORTANT_BY_TYPE
+from modnews.service.report.utils.text import choose_best_title, mostly_english, short_sentence
 
 
 TYPE_NOUNS = {

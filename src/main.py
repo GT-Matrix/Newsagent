@@ -5,7 +5,7 @@ from pathlib import Path
 
 from modnews.service.report import run_pipeline
 from src.config import DEFAULT_INPUT, DEFAULT_OUTPUT_DIR
-from src.utils.time import parse_report_date
+from modnews.service.report.utils.time import parse_report_date
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
