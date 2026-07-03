@@ -10,6 +10,7 @@ class QueueLocalMixin:
         return {
             "counts": self.container.event_queue.status(),
             "ready": [task.id for task in self.container.event_queue.ready()],
+            "completion_callbacks": self.container.completion_callbacks.list(),
         }
 
     def queue_list(self, states: set[str] | None = None) -> list[dict[str, Any]]:

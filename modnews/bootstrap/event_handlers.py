@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
-from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
 from modnews.service.classify.clustered_tasks import (
     run_clustered_event_extraction_task,
@@ -15,16 +15,13 @@ from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.pipeline.tasks import combine_ingest_task, run_legacy_pipeline_task
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
+from modnews.service.pipeline.manager import PipelineManager
 
 
-def register_event_handlers(router: EventRouter) -> None:
-    """Register default event callbacks.
-
-    The first migration stage keeps legacy execution paths, so no callbacks are
-    required yet. New task-based services should register their completion
-    handlers here instead of wiring them from route modules.
-    """
-    router.on("task.completed", _auto_publish_checkpoint)
+def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline_manager: PipelineManager) -> None:
+    registry.register("task.completed", _auto_publish_checkpoint)
+    registry.register("task.completed", pipeline_manager.on_task_completed)
+    registry.register("task.failed", pipeline_manager.on_task_failed)
 
 
 def register_task_executors(queue: EventQueue) -> None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.service.pipeline.manager import PipelineManager
@@ -11,7 +12,7 @@ from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config import RuntimeConfigRepository
 from modnews.repository.runs import RunRepository
 from modnews.repository.web_jobs import WebJobRepository
-from .event_handlers import register_event_handlers, register_task_executors
+from .event_handlers import register_completion_callbacks, register_task_executors
 from .pipeline_registry import register_pipeline_steps
 
 
@@ -20,6 +21,7 @@ class ServiceContainer:
     project_root: Path = field(default_factory=lambda: Path.cwd())
     event_router: EventRouter = field(default_factory=EventRouter)
     event_queue: EventQueue = field(default_factory=EventQueue)
+    completion_callbacks: CompletionCallbackRegistry = field(default_factory=CompletionCallbackRegistry)
     pipeline_manager: PipelineManager = field(default_factory=PipelineManager)
 
     def runtime_config(self) -> RuntimeConfigRepository:
@@ -44,8 +46,7 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     container.pipeline_manager.bind(container.event_queue, container.event_router)
     container.event_queue.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
-    register_event_handlers(container.event_router)
-    container.event_router.on("task.completed", container.pipeline_manager.on_task_completed)
-    container.event_router.on("task.failed", container.pipeline_manager.on_task_failed)
+    register_completion_callbacks(container.completion_callbacks, container.pipeline_manager)
+    container.completion_callbacks.bind(container.event_router)
     register_task_executors(container.event_queue)
     return container
