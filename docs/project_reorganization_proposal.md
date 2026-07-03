@@ -393,6 +393,7 @@ def configure_services(container):
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.run_legacy` task，可通过 CLI/API 从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
+- `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
 
 仍是兼容层的部分：
@@ -400,7 +401,7 @@ def configure_services(container):
 - legacy pipeline 的端到端运行仍会同步串联 ingest/classify；后续要改成 step 只注册 `TaskEvent`，由完成回调推进下一步。
 - classify 的 batch、embedding、cluster extraction、merge 子步骤仍由 legacy classify runner 执行，后续要拆成 task executor，并由完成回调推进下一步。
 - legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
-- `OutputRepository` 当前读取固定输出路径，后续要改成从最新成功 checkpoint 发布固定输出。
+- 固定输出目前支持手动从 checkpoint 发布；后续要在关键 task 成功回调中自动发布最新成功 checkpoint。
 
 ## Managed Extractors
 

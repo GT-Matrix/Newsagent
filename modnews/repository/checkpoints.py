@@ -26,6 +26,14 @@ class CheckpointRepository:
             rows.append({"path": str(path), **payload})
         return sorted(rows, key=lambda row: str(row.get("finished_at") or row.get("started_at") or row.get("path")))
 
+    def read(self, checkpoint_path: str | Path) -> dict[str, Any]:
+        path = Path(checkpoint_path).expanduser().resolve()
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError(f"invalid checkpoint payload: {path}")
+        payload.setdefault("path", str(path))
+        return payload
+
     def write(self, run_id: str, step_id: str, task_id: str, payload: dict[str, Any]) -> Path:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         path = self.root / run_id / "checkpoints" / step_id / f"{stamp}-{task_id}" / "checkpoint.json"

@@ -23,3 +23,7 @@ class ArtifactsLocalMixin:
 
     def checkpoints_list(self, run_id: str | None = None) -> list[dict[str, Any]]:
         return CheckpointRepository(self.project_root).list(run_id)
+
+    def checkpoint_publish(self, checkpoint_path: str) -> dict[str, Any]:
+        checkpoint = CheckpointRepository(self.project_root).read(checkpoint_path)
+        return {"ok": True, **OutputRepository(self.project_root).publish_from_checkpoint(checkpoint)}

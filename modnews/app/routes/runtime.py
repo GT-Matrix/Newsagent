@@ -51,3 +51,15 @@ def cache_clear():
 @bp.get("/api/checkpoints")
 def checkpoints():
     return jsonify({"items": LocalClient().checkpoints_list(request.args.get("run"))})
+
+
+@bp.post("/api/checkpoints/publish")
+def publish_checkpoint():
+    payload = request.get_json(silent=True) or {}
+    checkpoint_path = str(payload.get("checkpoint_path") or "")
+    if not checkpoint_path:
+        return jsonify({"ok": False, "error": "checkpoint_path is required"}), 400
+    try:
+        return jsonify(LocalClient().checkpoint_publish(checkpoint_path))
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
