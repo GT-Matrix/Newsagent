@@ -8,6 +8,7 @@ from typing import Any
 
 from modnews.repository.event_jsonl import append_event, read_events
 from modnews.core.paths import runtime_paths
+from modnews.core.progress import emit
 from modnews.service.extraction.web_contract import WebJob, WebSource
 
 
@@ -79,7 +80,15 @@ class WebJobStore:
 
     def append(self, job_id: str, event_type: str, **payload: Any) -> dict[str, Any]:
         job = self.get(job_id)
-        return append_event(self.job_dir(job.id, job.source_id) / "events.jsonl", event_type, job_id=job.id, **payload)
+        event = append_event(self.job_dir(job.id, job.source_id) / "events.jsonl", event_type, job_id=job.id, **payload)
+        emit(
+            "web_job_event",
+            web_job_id=job.id,
+            web_source_id=job.source_id,
+            web_event_type=event_type,
+            **payload,
+        )
+        return event
 
     def events(self, job_id: str, limit: int | None = None) -> list[dict[str, Any]]:
         job = self.get(job_id)
