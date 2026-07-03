@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
-from modnews.internal.service.classify.tasks import run_classify_task
-from modnews.internal.service.ingest.tasks import run_ingest_step_task
-from modnews.internal.service.extraction.tasks import run_web_source_task
-from modnews.internal.service.pipeline.tasks import run_legacy_pipeline_task
+from modnews.service.classify.tasks import run_classify_task
+from modnews.service.ingest.tasks import run_ingest_step_task
+from modnews.service.extraction.tasks import run_web_source_task
+from modnews.service.pipeline.tasks import run_legacy_pipeline_task
+from modnews.repository.checkpoints import CheckpointRepository
+from modnews.repository.outputs import OutputRepository
 
 
 def register_event_handlers(router: EventRouter) -> None:
@@ -16,6 +20,7 @@ def register_event_handlers(router: EventRouter) -> None:
     required yet. New task-based services should register their completion
     handlers here instead of wiring them from route modules.
     """
+    router.on("task.completed", _auto_publish_checkpoint)
 
 
 def register_task_executors(queue: EventQueue) -> None:
@@ -28,3 +33,17 @@ def register_task_executors(queue: EventQueue) -> None:
 
 def _echo(task: TaskEvent) -> dict[str, object]:
     return {"payload": dict(task.payload)}
+
+
+def _auto_publish_checkpoint(event: dict[str, object]) -> dict[str, object] | None:
+    result = event.get("result")
+    task = event.get("task")
+    if not isinstance(result, dict) or not isinstance(task, dict):
+        return None
+    checkpoint_path = result.get("auto_publish_checkpoint")
+    project_root = task.get("payload", {}).get("project_root") if isinstance(task.get("payload"), dict) else None
+    if not checkpoint_path or not project_root:
+        return None
+    checkpoint = CheckpointRepository(Path(str(project_root))).read(str(checkpoint_path))
+    publish_result = OutputRepository(Path(str(project_root))).publish_from_checkpoint(checkpoint)
+    return {"publish": publish_result}

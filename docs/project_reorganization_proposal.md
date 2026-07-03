@@ -45,28 +45,27 @@
     task.py
     models.py
     paths.py
-  internal/
-    service/
-      pipeline/
-        manager.py
-        registry.py
-        step.py
-        checkpoint.py
-      ingest/
-        registry.py
-        steps/
-          rss.py
-          newsnow.py
-          site_lists.py
-      classify/
-        ...
-      extraction/
-        contract.py
-        registry.py
-        runner.py
-        repair.py
-      report/
-        ...
+  service/
+    pipeline/
+      manager.py
+      registry.py
+      step.py
+      checkpoint.py
+    ingest/
+      registry.py
+      steps/
+        rss.py
+        newsnow.py
+        site_lists.py
+    classify/
+      ...
+    extraction/
+      contract.py
+      registry.py
+      runner.py
+      repair.py
+    report/
+      ...
   repository/
     runtime_config.py
     source_config.py
@@ -98,7 +97,7 @@
       checkpoints.py
 ```
 
-这不是要求一次性搬完，而是给迁移时的最终形态。`pipeline`、`ingest`、`classify` 不应作为顶层公开包暴露；它们属于内部服务层。顶层只暴露 `app`、`cli`、`core` 里稳定的基础类型，以及必要的 bootstrap 入口。短期可以先保留兼容壳：
+这不是要求一次性搬完，而是给迁移时的最终形态。`pipeline`、`ingest`、`classify` 不应作为顶层公开包暴露；它们统一放在 `modnews/service/` 服务层下。顶层只暴露 `app`、`cli`、`core` 里稳定的基础类型，以及必要的 bootstrap 入口。短期可以先保留兼容壳：
 
 ```text
 modnews_pipeline/__init__.py
@@ -157,7 +156,7 @@ modnews/cli/
     checkpoints.py     # run checkpoint 查询/恢复/发布
 ```
 
-CLI 不应直接 import `internal/service/ingest` 或 `internal/service/classify` 的具体实现。它只依赖 `api_client` 或 `local_client`，local client 通过 `bootstrap.configure_services()` 拿到统一服务。这样 CLI、API、未来前端调用的是同一套服务能力。
+CLI 不应直接 import `service/ingest` 或 `service/classify` 的具体实现。它只依赖 `api_client` 或 `local_client`，local client 通过 `bootstrap.configure_services()` 拿到统一服务。这样 CLI、API、未来前端调用的是同一套服务能力。
 
 建议命令形态：
 
@@ -294,7 +293,7 @@ step 不应再是“执行具体业务的 runner”。step 应该是“往事件
 
 ### 统一 checkpoint
 
-每个步骤 checkpoint 需要有统一位置和统一格式，不应由 classify 单独维护。建议由 `internal/service/pipeline/checkpoint.py` 提供 `CheckpointManager`，所有 step/task 通过它写 checkpoint。
+每个步骤 checkpoint 需要有统一位置和统一格式，不应由 classify 单独维护。建议由 `service/pipeline/checkpoint.py` 提供 `CheckpointManager`，所有 step/task 通过它写 checkpoint。
 
 目录建议：
 
@@ -352,7 +351,7 @@ var/process/runs/
 - `classify/runner.py` 用 `ClassifyStepRunner` 和 `ClassifyState.stage`。
 - `web_extraction/orchestrator.py` 自己维护 `WebJob.state` 和 retry/repair。
 
-建议统一到 `internal/service/pipeline/manager.py`，但它不直接 import 具体 ingest/classify step。具体 step 在 bootstrap 阶段注册：
+建议统一到 `service/pipeline/manager.py`，但它不直接 import 具体 ingest/classify step。具体 step 在 bootstrap 阶段注册：
 
 ```python
 class PipelineManager:
@@ -386,7 +385,7 @@ def configure_services(container):
 
 截至 `refactor/modnews-service-architecture` 分支当前阶段：
 
-- 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`internal/service`、`repository`、`cli` 骨架。
+- 已建立 `modnews/` 包、`app` router、`bootstrap`、`core`、`service`、`repository`、`cli` 骨架。
 - 旧 `modnews_pipeline.web` 已改为新 `modnews.app` 的兼容入口。
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
@@ -492,8 +491,8 @@ extractors/
      - `modnews-report = "modnews.report.cli:main"`
    - 旧命令 `modnews-pipeline` 暂时保留一个版本周期。
 
-3. 建立 internal/service 和 bootstrap 壳
-   - 新建 `modnews/internal/service/`，把 pipeline、ingest、classify、extraction 作为内部服务放进去。
+3. 建立 service 和 bootstrap 壳
+   - 新建 `modnews/service/`，把 pipeline、ingest、classify、extraction 作为内部服务放进去。
    - 新建 `modnews/bootstrap/`，集中注册 pipeline step、task executor、event handler。
    - 先只做转发和注册，不移动大量业务实现。
 
@@ -558,7 +557,7 @@ extractors/
 1. 把文档移动到 `docs/`。
 2. 删除或取消跟踪运行态文件。
 3. 补齐现有 managed extractors 的目录内 `manifest.json` 元数据，并确认 registry 只靠扫描目录安装。
-4. 新增 `modnews/` 包壳、`internal/service/`、`bootstrap/` 和 `modnews_pipeline/` 兼容转发，不移动内部实现。
+4. 新增 `modnews/` 包壳、`service/`、`bootstrap/` 和 `modnews_pipeline/` 兼容转发，不移动内部实现。
 5. 先定义 `TaskEvent`、`EventQueue`、`CheckpointManager` 接口，并用 adapter 包住现有同步实现。
 6. 建立 `modnews/cli/` 骨架，先实现 `config show`、`events list/watch`、`queue status`、`run start/status` 的 local 模式。
 7. 把 `web.py` 拆成 blueprint，但暂时保持原业务函数。

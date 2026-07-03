@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.task import TaskEvent
-from modnews.internal.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews_pipeline.classify.stage import run_classification
 from modnews_pipeline.config import load_config
@@ -47,7 +47,12 @@ def run_classify_task(task: TaskEvent) -> dict[str, object]:
     }
     checkpoint_path = checkpoint.write(run_id, "classify", task.id, checkpoint_payload)
     _append_run_checkpoint(project_root, run_id, checkpoint_path)
-    return {"step": result.to_dict(), "checkpoint_path": str(checkpoint_path), "stats": checkpoint_payload["stats"]}
+    return {
+        "step": result.to_dict(),
+        "checkpoint_path": str(checkpoint_path),
+        "auto_publish_checkpoint": str(checkpoint_path),
+        "stats": checkpoint_payload["stats"],
+    }
 
 
 def _load_items(path: Path) -> list[NewsItem]:

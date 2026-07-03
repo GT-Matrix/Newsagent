@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
-from modnews.internal.service.ingest.registry import default_ingest_registry
-from modnews.internal.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.ingest.registry import default_ingest_registry
+from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews_pipeline.config import load_config
 from modnews_pipeline.context import PipelineContext

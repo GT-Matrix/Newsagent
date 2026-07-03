@@ -4,7 +4,7 @@ from modnews_pipeline.config import StepConfig
 from modnews_pipeline.context import PipelineContext
 from modnews_pipeline.models import NewsItem, StepResult
 from modnews_pipeline.progress import emit
-from modnews.internal.service.ingest.registry import STEP_FACTORIES, default_ingest_registry
+from modnews.service.ingest.registry import STEP_FACTORIES, default_ingest_registry
 
 
 def run_ingest(ctx: PipelineContext, steps: list[StepConfig]) -> tuple[list[NewsItem], list[StepResult]]:

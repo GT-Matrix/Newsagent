@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from .events import EventRouter
 from .task import TaskEvent
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
@@ -17,7 +18,11 @@ class EventQueue:
     _tasks: dict[str, TaskEvent] = field(default_factory=dict)
     _results: dict[str, dict[str, Any]] = field(default_factory=dict)
     _executors: dict[str, TaskExecutor] = field(default_factory=dict)
+    _router: EventRouter | None = None
     _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    def bind_router(self, router: EventRouter) -> None:
+        self._router = router
 
     def register_executor(self, task_type: str, executor: TaskExecutor) -> None:
         self._executors[task_type] = executor
@@ -40,6 +45,7 @@ class EventQueue:
             with self._lock:
                 task.state = "failed"
                 self._results[task.id] = {"error": f"no executor registered for {task.type}"}
+            self._dispatch("task.failed", task)
             return task
         try:
             result = executor(task) or {}
@@ -49,10 +55,12 @@ class EventQueue:
                     "finished_at": datetime.now().astimezone().isoformat(timespec="seconds"),
                     **result,
                 }
+            self._dispatch("task.completed", task)
         except Exception as exc:
             with self._lock:
                 task.state = "failed"
                 self._results[task.id] = {"error": str(exc)}
+            self._dispatch("task.failed", task)
         return task
 
     def list(self, states: set[str] | None = None) -> list[TaskEvent]:
@@ -73,3 +81,12 @@ class EventQueue:
     def status(self) -> dict[str, int]:
         with self._lock:
             return dict(Counter(task.state for task in self._tasks.values()))
+
+    def _dispatch(self, event_type: str, task: TaskEvent) -> None:
+        if self._router:
+            patches = self._router.dispatch(event_type, {"task": task.to_dict(), "result": self.result(task.id)})
+            if patches:
+                with self._lock:
+                    current = self._results.setdefault(task.id, {})
+                    for patch in patches:
+                        current.update(patch)

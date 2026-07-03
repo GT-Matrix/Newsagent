@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from modnews.internal.service.ingest.steps.newsnow import NewsNowStep
-from modnews.internal.service.ingest.steps.rss import RssStep
-from modnews.internal.service.ingest.steps.site_lists import SiteListsStep
+from modnews.service.ingest.steps.newsnow import NewsNowStep
+from modnews.service.ingest.steps.rss import RssStep
+from modnews.service.ingest.steps.site_lists import SiteListsStep
 
 
 @dataclass(slots=True)

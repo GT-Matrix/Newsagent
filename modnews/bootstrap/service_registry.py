@@ -5,7 +5,7 @@ from pathlib import Path
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
-from modnews.internal.service.pipeline.manager import PipelineManager
+from modnews.service.pipeline.manager import PipelineManager
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config import RuntimeConfigRepository
@@ -42,6 +42,7 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     root = project_root.resolve() if project_root else Path.cwd().resolve()
     container = ServiceContainer(project_root=root)
     container.pipeline_manager.bind(container.event_queue, container.event_router)
+    container.event_queue.bind_router(container.event_router)
     register_pipeline_steps(container.pipeline_manager)
     register_event_handlers(container.event_router)
     register_task_executors(container.event_queue)

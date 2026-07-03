@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
-from modnews.internal.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews_pipeline.config import apply_runtime_overrides, load_config
 from modnews_pipeline.pipeline import run_pipeline
@@ -40,7 +40,7 @@ def run_legacy_pipeline_task(task: TaskEvent) -> dict[str, object]:
             checkpoint_path=str(checkpoint_path),
             stats=checkpoint_payload["stats"],
         )
-        return {"run": runs.get(run_id), "checkpoint_path": str(checkpoint_path)}
+        return {"run": runs.get(run_id), "checkpoint_path": str(checkpoint_path), "auto_publish_checkpoint": str(checkpoint_path)}
     except Exception as exc:
         checkpoint_payload = {
             "run_id": run_id,
