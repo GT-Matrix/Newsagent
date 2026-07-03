@@ -285,7 +285,7 @@ step 不应再是“执行具体业务的 runner”。step 应该是“往事件
 建议把所有“保存配置文件、读取配置文件、缓存/落库/运行态文件”收敛到 `modnews/repository/`：
 
 - `RuntimeConfigRepository`：现在的 `runtime_config.py`。
-- `SourceConfigRepository`：可以先是 `RuntimeConfigRepository` 的 facade，但命名要表达领域。
+- `SourceConfigRepository`：source 管理 facade，底层可复用 runtime config store，但对外暴露 `list`、RSS/site upsert、disable、restore builtins、enabled source 查询等领域方法。
 - `OutputRepository`：读取 `combined_news.json`、`news_with_events.json`、`events.json`、`discarded_news.json` 状态，替代 `web.py::_output_state`。
 - `CheckpointRepository`：classify checkpoint 读写，替代 `classify/checkpoint.py` 中直接写文件的部分。
 - `CacheRepository`：LLM/embedding cache 路径、清理、统计。
@@ -407,6 +407,7 @@ def configure_services(container):
 - managed web source contract、runner、repair policy、orchestrator 已迁入 `modnews/service/extraction/`；web job store 和 JSONL event helper 已迁入 `modnews/repository/`。
 - `RuntimePaths`/`runtime_paths` 和核心数据模型 `NewsItem`、`EventRecord`、`StepResult`、`PipelineResult` 已迁入 `modnews/core/`。
 - runtime/source config store 实现已迁入 `modnews/repository/runtime_config.py` 与 `modnews/repository/source_config.py`。
+- `SourceConfigRepository` 已从单纯别名改为 source 领域 facade；`modnews sources` 已支持 `list`、`rss add`、`rss disable` 和 `site add`，Local/API source 修改走 repository 层。
 - pipeline 配置 dataclass、`load_config`、`apply_runtime_overrides` 与 `PipelineContext` 已迁入 `modnews/core/config.py` 和 `modnews/core/context.py`。
 - legacy progress bus 已迁入 `modnews/core/progress.py`，并会把 `emit(...)` 事件桥接到当前容器的 `EventRouter`（`progress` 与 `progress.<event_type>`）；后续还需要继续减少 classify 内部直接使用旧式 progress event 的地方。
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。

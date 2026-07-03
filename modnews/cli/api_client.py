@@ -26,6 +26,9 @@ class ApiClient:
     def patch(self, path: str, payload: dict[str, Any] | None = None) -> Any:
         return self._request("PATCH", path, payload)
 
+    def put(self, path: str, payload: dict[str, Any] | None = None) -> Any:
+        return self._request("PUT", path, payload)
+
     def delete(self, path: str) -> Any:
         return self._request("DELETE", path)
 

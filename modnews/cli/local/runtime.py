@@ -6,7 +6,7 @@ from typing import Any
 from modnews.repository.outputs import OutputRepository
 from modnews.core.paths import runtime_paths
 from modnews.core.progress import BUS, sse
-from modnews.repository.source_config import source_config_store
+from modnews.repository.source_config import source_config_repository
 
 
 class RuntimeLocalMixin:
@@ -33,7 +33,7 @@ class RuntimeLocalMixin:
         return BUS.snapshot()["events"][-limit:]
 
     def config_show(self, include_paths: bool = False) -> dict[str, Any]:
-        payload = source_config_store(self.project_root).load()
+        payload = source_config_repository(self.project_root).load()
         if include_paths:
             paths = runtime_paths(self.project_root)
             payload["paths"] = {
@@ -47,28 +47,28 @@ class RuntimeLocalMixin:
         return payload
 
     def config_update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_step(step_id, patch)
+        return source_config_repository(self.project_root).update_step(step_id, patch)
 
     def config_update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_classification(patch)
+        return source_config_repository(self.project_root).update_classification(patch)
 
     def config_restore_builtins(self) -> dict[str, Any]:
-        return source_config_store(self.project_root).restore_builtin_sources()
+        return source_config_repository(self.project_root).restore_builtin_sources()
 
     def rss_update(self, items: list[dict[str, Any]]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_rss(items)
+        return source_config_repository(self.project_root).update_rss(items)
 
     def rss_update_item(self, source_id: str, row: dict[str, Any]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_rss_item(source_id, row)
+        return source_config_repository(self.project_root).upsert_rss(source_id, row)
 
     def rss_delete_item(self, source_id: str) -> dict[str, Any]:
-        return source_config_store(self.project_root).delete_rss_item(source_id)
+        return source_config_repository(self.project_root).delete_rss(source_id)
 
     def newsnow_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_newsnow_item(source_id, patch)
+        return source_config_repository(self.project_root).update_newsnow(source_id, patch)
 
     def site_list_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_store(self.project_root).update_site_list_item(source_id, patch)
+        return source_config_repository(self.project_root).upsert_site(source_id, patch)
 
     def config_set(self, key_path: str, value: Any) -> dict[str, Any]:
         parts = key_path.split(".")
@@ -78,16 +78,49 @@ class RuntimeLocalMixin:
         if parts[0] == "steps" and len(parts) >= 3:
             step = data.setdefault("steps", {}).setdefault(parts[1], {})
             _set_nested(step, parts[2:], value)
-            return source_config_store(self.project_root).save(data)
+            return source_config_repository(self.project_root).save(data)
         if parts[0] == "classification":
             classification = data.setdefault("classification", {})
             _set_nested(classification, parts[1:], value)
-            return source_config_store(self.project_root).save(data)
+            return source_config_repository(self.project_root).save(data)
         target = data
         for part in parts[:-1]:
             target = target.setdefault(part, {})
         target[parts[-1]] = value
-        return source_config_store(self.project_root).save(data)
+        return source_config_repository(self.project_root).save(data)
+
+    def sources_list(self, source_type: str | None = None) -> list[dict[str, Any]]:
+        return source_config_repository(self.project_root).list(source_type)
+
+    def sources_rss_add(self, source_id: str, url: str, name: str | None = None, content_type: str = "news") -> dict[str, Any]:
+        return source_config_repository(self.project_root).upsert_rss(
+            source_id,
+            {"id": source_id, "url": url, "name": name or source_id, "enabled": True, "content_type": content_type},
+        )
+
+    def sources_rss_disable(self, source_id: str) -> dict[str, Any]:
+        return source_config_repository(self.project_root).disable_rss(source_id)
+
+    def sources_site_add(
+        self,
+        source_id: str,
+        url: str,
+        *,
+        name: str | None = None,
+        extractor_id: str | None = None,
+        content_type: str = "news",
+    ) -> dict[str, Any]:
+        return source_config_repository(self.project_root).upsert_site(
+            source_id,
+            {
+                "id": source_id,
+                "url": url,
+                "name": name or source_id,
+                "enabled": True,
+                "extractor_id": extractor_id or source_id,
+                "content_type": content_type,
+            },
+        )
 
 
 def _set_nested(target: dict[str, Any], parts: list[str], value: Any) -> None:
