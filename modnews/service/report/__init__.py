@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from src.main import run_pipeline
+from modnews.service.report.pipeline import run_pipeline
 from src.models import EnrichedEvent
 from src.utils.time import parse_report_date
 

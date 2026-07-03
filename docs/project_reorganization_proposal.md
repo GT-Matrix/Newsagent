@@ -70,7 +70,8 @@
       runner.py
       repair.py
     report/
-      ...
+      __init__.py
+      pipeline.py
   repository/
     runtime_config.py
     source_config.py
@@ -399,7 +400,7 @@ def configure_services(container):
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行。
-- report 生成已接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report` 仍保留兼容。
+- report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
 
@@ -408,7 +409,7 @@ def configure_services(container):
 - 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用 legacy step 实现；batch relevance、embedding、LLM batch 执行后续要继续拆成更细 task executor，并由完成回调推进下一步。
 - legacy classify 自己的 `classification_progress.json` 仍存在；统一 checkpoint 目前先记录 pipeline-level checkpoint，后续要把 classify step checkpoint 发布到 run checkpoint 目录。
-- report 层已有 `modnews/service/report` facade 和新 CLI 入口，但 `src/` 内部模块尚未迁入 `modnews/service/report` 或 `modnews/report` 命名空间。
+- report 层已有 `modnews/service/report` facade、新 CLI 入口和主 pipeline 实现，但模型、规则、IO、评分/摘要/核验子模块仍暂时依赖 `src/` 命名空间。
 - 固定输出目前支持手动从 checkpoint 发布；后续要在关键 task 成功回调中自动发布最新成功 checkpoint。
 
 ## Managed Extractors
