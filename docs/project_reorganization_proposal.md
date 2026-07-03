@@ -61,7 +61,9 @@
         newsnow.py
         site_lists.py
     classify/
-      ...
+      tasks.py
+      clustered_tasks.py
+      io.py
     extraction/
       contract.py
       registry.py

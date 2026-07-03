@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any
 
 from modnews.core.task import TaskEvent
+from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
-from modnews.repository.runs import RunRepository
 from modnews_pipeline.classify.stage import run_classification
 from modnews_pipeline.config import load_config
 from modnews_pipeline.context import PipelineContext
-from modnews_pipeline.models import NewsItem
 
 
 def run_classify_task(task: TaskEvent) -> dict[str, object]:
@@ -23,11 +20,8 @@ def run_clustered_pipeline_task(task: TaskEvent, *, checkpoint_step_id: str = "c
     config = load_config(task.payload.get("config"))
     if task.payload.get("disable_classification"):
         config.classification.enabled = False
-    input_ref = str(task.payload.get("input_path") or config.output_path)
-    if input_ref == "__combined_ingest__":
-        input_ref = str(RunRepository(project_root).get(run_id).get("combined_ingest_path") or config.output_path)
-    input_path = Path(input_ref).resolve()
-    items = _load_items(input_path)
+    input_path = resolve_input_path(project_root, run_id, task.payload.get("input_path"), config.output_path)
+    items = load_news_items(input_path)
     ctx = PipelineContext.create(config)
     ctx.work_dir.mkdir(parents=True, exist_ok=True)
     classified_items, events, result = run_classification(ctx, items, config.classification)
@@ -53,53 +47,10 @@ def run_clustered_pipeline_task(task: TaskEvent, *, checkpoint_step_id: str = "c
         "error": None,
     }
     checkpoint_path = checkpoint.write(run_id, checkpoint_step_id, task.id, checkpoint_payload)
-    _append_run_checkpoint(project_root, run_id, checkpoint_path)
+    append_run_checkpoint(project_root, run_id, checkpoint_path)
     return {
         "step": result.to_dict(),
         "checkpoint_path": str(checkpoint_path),
         "auto_publish_checkpoint": str(checkpoint_path),
         "stats": checkpoint_payload["stats"],
     }
-
-
-def _load_items(path: Path) -> list[NewsItem]:
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    rows = raw["items"] if isinstance(raw, dict) and "items" in raw else raw
-    if not isinstance(rows, list):
-        raise ValueError(f"expected item list in {path}")
-    items: list[NewsItem] = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        items.append(
-            NewsItem(
-                platform=str(row["platform"]),
-                title=str(row["title"]),
-                url=str(row["url"]),
-                pubtime=row.get("pubtime"),
-                scrape_date=str(row["scrape_date"]),
-                event_id=row.get("event_id"),
-                event_label=row.get("event_label"),
-                event_confidence=row.get("event_confidence"),
-                is_ai_relevant=row.get("is_ai_relevant"),
-                relevance_score=row.get("relevance_score"),
-                canonical_summary=row.get("canonical_summary"),
-                entities=row.get("entities") or [],
-                event_type=row.get("event_type"),
-                classification_decision=row.get("classification_decision"),
-                classification_reason=row.get("classification_reason"),
-            )
-        )
-    return items
-
-
-def _append_run_checkpoint(project_root: Path, run_id: str, checkpoint_path: Path) -> None:
-    runs = RunRepository(project_root)
-    try:
-        record = runs.get(run_id)
-    except KeyError:
-        runs.create(run_id, {"source": "manual_classify_task"})
-        record = runs.get(run_id)
-    checkpoints = list(record.get("checkpoints", []))
-    checkpoints.append(str(checkpoint_path))
-    runs.update(run_id, checkpoints=checkpoints)
