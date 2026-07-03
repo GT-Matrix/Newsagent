@@ -1,3 +1,6 @@
-from .legacy import run_pipeline, run_pipeline_from_path
+from modnews.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.manager import PipelineManager
+from modnews.service.pipeline.planner import IngestClassifyPipelineStep
+from modnews.service.pipeline.step import PipelineStep
 
-__all__ = ["run_pipeline", "run_pipeline_from_path"]
+__all__ = ["CheckpointManager", "IngestClassifyPipelineStep", "PipelineManager", "PipelineStep"]

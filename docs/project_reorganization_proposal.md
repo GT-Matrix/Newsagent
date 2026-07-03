@@ -411,6 +411,7 @@ def configure_services(container):
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
 - classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。当前默认 backend 仍是本地线程池，同时已提供 `EventQueueBatchExecutionBackend` 适配层，可把 batch item 注册成 `TaskEvent` 并通过队列收集结果；后续再把默认执行切到该 backend，而不是让各 step 自己维护线程池。
 - legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
+- 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `src` 和 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
