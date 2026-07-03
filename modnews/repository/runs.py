@@ -37,6 +37,15 @@ class RunRepository:
         record.update(patch)
         return self.save(run_id, record)
 
+    def append_checkpoint(self, run_id: str, checkpoint_path: Path | str, *, create_payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        try:
+            record = self.get(run_id)
+        except KeyError:
+            record = self.create(run_id, create_payload or {})
+        checkpoints = list(record.get("checkpoints", []))
+        checkpoints.append(str(Path(checkpoint_path)))
+        return self.update(run_id, checkpoints=checkpoints)
+
     def get(self, run_id: str) -> dict[str, Any]:
         path = self.run_dir(run_id) / "run.json"
         if not path.exists():

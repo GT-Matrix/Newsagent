@@ -81,12 +81,4 @@ def _latest_run_classification_progress(project_root: Path, run_id: str) -> Path
 
 
 def append_run_checkpoint(project_root: Path, run_id: str, checkpoint_path: Path) -> None:
-    runs = RunRepository(project_root)
-    try:
-        record = runs.get(run_id)
-    except KeyError:
-        runs.create(run_id, {"source": "manual_classify_task"})
-        record = runs.get(run_id)
-    checkpoints = list(record.get("checkpoints", []))
-    checkpoints.append(str(checkpoint_path))
-    runs.update(run_id, checkpoints=checkpoints)
+    RunRepository(project_root).append_checkpoint(run_id, checkpoint_path, create_payload={"source": "manual_classify_task"})

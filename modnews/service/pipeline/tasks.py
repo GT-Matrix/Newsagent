@@ -48,9 +48,8 @@ def combine_ingest_task(task: TaskEvent) -> dict[str, object]:
         "error": None,
     }
     checkpoint_path = checkpoints.write(run_id, "pipeline/combine_ingest", task.id, checkpoint_payload)
-    run_checkpoints = list(record.get("checkpoints", []))
-    run_checkpoints.append(str(checkpoint_path))
-    runs.update(run_id, checkpoints=run_checkpoints, combined_ingest_path=str(artifact_path))
+    runs.append_checkpoint(run_id, checkpoint_path, create_payload={"source": "pipeline_task_graph"})
+    runs.update(run_id, combined_ingest_path=str(artifact_path))
     return {
         "checkpoint_path": str(checkpoint_path),
         "combined_ingest_path": str(artifact_path),

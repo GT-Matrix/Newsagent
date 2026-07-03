@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from modnews.core.task import TaskEvent
 from modnews.core.config import apply_runtime_overrides, load_config
+from modnews.repository.source_config import source_config_store
 
 
 @dataclass(slots=True)
@@ -18,7 +20,7 @@ class IngestClassifyPipelineStep:
         run_id = str(state.get("run_id") or request.get("run_id") or "local")
         project_root = str(request.get("project_root") or "")
         config_path = request.get("config")
-        config = load_config(config_path)
+        config = load_config(config_path, project_root=project_root)
         apply_runtime_overrides(
             config,
             only_ingest_steps=request.get("only_ingest_steps") or request.get("only"),
@@ -27,6 +29,9 @@ class IngestClassifyPipelineStep:
         ingest_tasks: list[TaskEvent] = []
         for step in config.ingest_steps:
             if not step.enabled:
+                continue
+            if step.type == "site_lists" and not config.site_lists_api_url:
+                ingest_tasks.extend(_plan_web_source_tasks(project_root, run_id, config_path, step.options))
                 continue
             ingest_tasks.append(
                 TaskEvent(
@@ -89,3 +94,42 @@ class IngestClassifyPipelineStep:
             )
             tasks.extend([extraction_task, merge_task])
         return tasks
+
+
+def _plan_web_source_tasks(project_root: str, run_id: str, config_path: object, options: dict[str, Any]) -> list[TaskEvent]:
+    source_config = source_config_store(Path(project_root) if project_root else Path.cwd()).load()
+    step_config = source_config.get("steps", {}).get("site_lists", {})
+    if isinstance(step_config, dict) and not step_config.get("enabled", True):
+        return []
+    requested_sites = options.get("sites") or (step_config.get("sites") if isinstance(step_config, dict) else None) or []
+    requested = {str(item) for item in requested_sites if item}
+    limit = int(options.get("limit_per_site") or (step_config.get("limit_per_site") if isinstance(step_config, dict) else 10) or 10)
+    max_concurrency = int(options.get("max_concurrency") or (step_config.get("max_concurrency") if isinstance(step_config, dict) else 4) or 4)
+    raw_sources = source_config.get("sources", {}).get("site_lists", {})
+    tasks: list[TaskEvent] = []
+    if not isinstance(raw_sources, dict):
+        return tasks
+    for source_id, raw in raw_sources.items():
+        if requested and source_id not in requested:
+            continue
+        if not isinstance(raw, dict) or not bool(raw.get("enabled", True)):
+            continue
+        tasks.append(
+            TaskEvent(
+                id=f"web-source-{run_id}-{source_id}",
+                type="web_source.run",
+                pipeline_run_id=run_id,
+                step_id=f"ingest/site_lists/{source_id}",
+                payload={
+                    "project_root": project_root,
+                    "run_id": run_id,
+                    "config": config_path,
+                    "source_id": source_id,
+                    "limit": limit,
+                },
+                concurrency_key="web_source",
+                max_concurrency=max(1, max_concurrency),
+                max_attempts=1,
+            )
+        )
+    return tasks

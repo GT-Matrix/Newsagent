@@ -196,9 +196,9 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
     )
 
 
-def load_config(config_path: str | None = None) -> PipelineConfig:
+def load_config(config_path: str | None = None, *, project_root: str | Path | None = None) -> PipelineConfig:
     if not config_path:
-        return build_config()
+        return build_config(base_dir=project_root)
     config_file = Path(config_path).resolve()
     raw = json.loads(config_file.read_text(encoding="utf-8"))
     return build_config(raw, base_dir=config_file.parent)

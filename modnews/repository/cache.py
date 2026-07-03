@@ -11,14 +11,14 @@ class CacheRepository:
         self.project_root = project_root
 
     def state(self) -> dict[str, Any]:
-        config = load_config()
+        config = load_config(project_root=self.project_root)
         return {
             "llm": self._path_info(config.classification.llm.cache_path),
             "embedding": self._path_info(config.classification.embedding.cache_path),
         }
 
     def clear(self, *, llm: bool = False, embedding: bool = False) -> list[str]:
-        config = load_config()
+        config = load_config(project_root=self.project_root)
         targets = []
         if llm:
             targets.append(config.classification.llm.cache_path)

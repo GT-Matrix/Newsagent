@@ -57,7 +57,7 @@ def run_clustered_event_merge_task(task: TaskEvent) -> dict[str, object]:
 def _prepare(task: TaskEvent) -> tuple[Path, str, Path, ClassifyState, ClassifyRuntime]:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
-    config = load_config(task.payload.get("config"))
+    config = load_config(task.payload.get("config"), project_root=project_root)
     input_path = resolve_input_path(project_root, run_id, task.payload.get("input_path"), config.output_path)
     items = load_news_items(input_path)
     ctx = PipelineContext.create(config)
