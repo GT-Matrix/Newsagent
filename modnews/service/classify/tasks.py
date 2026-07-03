@@ -5,7 +5,7 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
-from modnews_pipeline.classify.stage import run_classification
+from modnews.service.classify.stage import run_classification
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 

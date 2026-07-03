@@ -414,6 +414,7 @@ def configure_services(container):
 - pipeline 配置 dataclass、`load_config`、`apply_runtime_overrides` 与 `PipelineContext` 已迁入 `modnews/core/config.py` 和 `modnews/core/context.py`，旧 `modnews_pipeline.config`、`modnews_pipeline.context` 保留兼容 facade。
 - legacy progress bus 已迁入 `modnews/core/progress.py`，旧 `modnews_pipeline.progress` 保留兼容 facade；后续还需要继续收敛到统一 `EventRouter`/`EventQueue` 事件体系。
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`，旧 `modnews_pipeline.ingest.*` 保留兼容 facade。
+- classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`，旧 `modnews_pipeline.classify.*` 保留兼容 facade。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate` 和 `modnews-report` 新入口；旧 `newsagent-report`/`src.main` 仍保留兼容壳。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`。
 - WebUI Progress 页已展示 runs、queue、checkpoints。

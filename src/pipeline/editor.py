@@ -6,7 +6,7 @@ from typing import Any
 
 import requests
 
-from modnews_pipeline.classify.llm_client import LlmClient
+from modnews.service.classify.llm_client import LlmClient
 from modnews.core.config import LlmConfig
 from modnews.core.progress import emit
 from src.models import EnrichedEvent

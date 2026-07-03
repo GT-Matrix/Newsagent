@@ -5,13 +5,13 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.classify.io import append_run_checkpoint, load_news_items, resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
-from modnews_pipeline.classify.checkpoint import build_checkpoint_meta, load_resume_state, write_outputs
-from modnews_pipeline.classify.llm_client import LlmClient
-from modnews_pipeline.classify.retriever import EventVectorRetriever
-from modnews_pipeline.classify.runner import ClassifyRuntime
-from modnews_pipeline.classify.state import ClassifyState
-from modnews_pipeline.classify.steps import ClusteredEventExtractionStep, ClusteredEventMergeStep, StartCheckpointStep
-from modnews_pipeline.classify.utils import prepare_item
+from modnews.service.classify.checkpoint import build_checkpoint_meta, load_resume_state, write_outputs
+from modnews.service.classify.llm_client import LlmClient
+from modnews.service.classify.retriever import EventVectorRetriever
+from modnews.service.classify.runner import ClassifyRuntime
+from modnews.service.classify.state import ClassifyState
+from modnews.service.classify.steps import ClusteredEventExtractionStep, ClusteredEventMergeStep, StartCheckpointStep
+from modnews.service.classify.utils import prepare_item
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 
