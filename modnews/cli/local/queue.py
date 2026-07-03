@@ -30,6 +30,10 @@ class QueueLocalMixin:
         ran = self.container.event_queue.drain_ready(limit=limit)
         return {"ran": [task.to_dict() for task in ran], **self.queue_status()}
 
+    def queue_cancel(self, task_id: str, reason: str = "cancelled by user") -> dict[str, Any]:
+        task = self.container.event_queue.cancel(task_id, reason=reason)
+        return {"ok": task.state == "cancelled", "task": self.queue_show(task_id)}
+
     def _task_payload(self, task: TaskEvent) -> dict[str, Any]:
         payload = task.to_dict()
         reason = self.container.event_queue.blocked_reason(task)

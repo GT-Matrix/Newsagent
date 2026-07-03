@@ -19,6 +19,10 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     drain_cmd = nested.add_parser("drain")
     drain_cmd.add_argument("--limit", type=int)
     drain_cmd.set_defaults(handler=drain_queue)
+    cancel_cmd = nested.add_parser("cancel")
+    cancel_cmd.add_argument("task_id")
+    cancel_cmd.add_argument("--reason", default="cancelled by user")
+    cancel_cmd.set_defaults(handler=cancel_queue)
     echo_cmd = nested.add_parser("echo")
     echo_cmd.add_argument("task_id")
     echo_cmd.add_argument("--message", default="ok")
@@ -56,3 +60,10 @@ def echo_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.post("/api/queue/echo", {"task_id": args.task_id, "payload": payload})
     return client.queue_echo(args.task_id, payload)
+
+
+def cancel_queue(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    payload = {"reason": args.reason}
+    if isinstance(client, ApiClient):
+        return client.post(f"/api/queue/{args.task_id}/cancel", payload)
+    return client.queue_cancel(args.task_id, args.reason)

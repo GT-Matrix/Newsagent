@@ -394,6 +394,7 @@ def configure_services(container):
 - CLI 已支持 local/API 双模式，覆盖配置、事件、队列、run、extractor、job、repair、output、cache、checkpoint 查询和基础操作；`run resume` 会推进当前 run 的 queued/blocked task，`run cancel` 会取消未执行 task 并标记 run。
 - 已新增 `RunRepository`、`CheckpointManager`、`EventQueue`、`TaskEvent`，pipeline run 会通过 `pipeline.run_legacy` task 执行并写入 `var/process/runs/<run_id>/...`。
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败事件回调、`queue drain` 手动推进和 ready/blocked 状态查询。
+- CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/blocked task；running task 当前只记录无法取消原因。
 - 默认 pipeline run 已开始注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；`--legacy-pipeline` 保留旧同步端到端 runner 作为兼容 fallback。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
