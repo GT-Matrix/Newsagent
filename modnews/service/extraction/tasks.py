@@ -6,7 +6,7 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.extraction.orchestrator import WebExtractionOrchestrator
 from modnews.service.extraction.web_contract import WebSource
-from modnews_pipeline.sources import source_config_store
+from modnews.repository.source_config import source_config_store
 
 
 def run_web_source_task(task: TaskEvent) -> dict[str, object]:

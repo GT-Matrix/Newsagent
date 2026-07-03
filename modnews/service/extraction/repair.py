@@ -109,7 +109,7 @@ class RepairManager:
                 }
             )
             _write_json(record.manifest_path, manifest)
-            from modnews_pipeline.sources import source_config_store
+            from modnews.repository.source_config import source_config_store
 
             source_config_store(self.project_root).update_site_list_item(
                 task.source_id,
