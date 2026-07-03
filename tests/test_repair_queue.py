@@ -13,20 +13,23 @@ class RepairQueueTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))
 
-            with (
-                patch("modnews.service.extraction.repair.RepairManager.run_task", return_value=None),
-                patch(
-                    "modnews.service.extraction.repair.RepairManager.get_task",
-                    return_value={"id": "source-1-20200101000000", "source_id": "source-1", "status": "succeeded"},
-                ),
-            ):
+            def write_log(self, task_id: str) -> None:
+                task = self._load_task(task_id)
+                task.log_path.write_text("codex line 1\ncodex line 2\n", encoding="utf-8")
+                task.status = "succeeded"
+                task.error = None
+                self._save_task(task)
+
+            with patch("modnews.service.extraction.repair.RepairManager.run_task", new=write_log):
                 result = client.repair_create({"source_id": "source-1", "reason": "test repair"})
 
             self.assertTrue(result["ok"])
             self.assertEqual(result["task"]["type"], "extractor.repair.codex")
             self.assertEqual(result["task"]["state"], "succeeded")
             self.assertEqual(result["task"]["result"]["repair_task"]["status"], "succeeded")
+            self.assertIn("codex line 2", result["task"]["result"]["codex_log_tail"])
             self.assertIn("task.completed", {row["type"] for row in result["task"]["logs"]})
+            self.assertIn("progress.codex_repair_log", {row["type"] for row in result["task"]["logs"]})
 
     def test_repair_create_can_queue_without_auto_start(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -41,4 +44,3 @@ class RepairQueueTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
