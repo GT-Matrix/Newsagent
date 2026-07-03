@@ -1,3 +1,22 @@
-from src.main import run_pipeline
+from __future__ import annotations
 
-__all__ = ["run_pipeline"]
+from datetime import date
+from pathlib import Path
+
+from src.main import run_pipeline
+from src.models import EnrichedEvent
+from src.utils.time import parse_report_date
+
+
+def generate_report(
+    input_path: Path,
+    output_dir: Path,
+    *,
+    report_date: date | str | None = None,
+    config_path: Path | None = None,
+) -> list[EnrichedEvent]:
+    parsed_date = parse_report_date(report_date) if isinstance(report_date, str) or report_date is None else report_date
+    return run_pipeline(input_path, output_dir, parsed_date, config_path)
+
+
+__all__ = ["generate_report", "run_pipeline"]

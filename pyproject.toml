@@ -17,6 +17,7 @@ modnews-pipeline = "modnews_pipeline.cli:main"
 modnews-classify = "modnews_pipeline.classify.cli:main"
 modnews-classify-snapshot = "modnews_pipeline.classify.cli:main"
 modnews-progress = "modnews_pipeline.web:main"
+modnews-report = "modnews.cli.commands.report_entry:report_main"
 newsagent-report = "src.main:main"
 
 [build-system]

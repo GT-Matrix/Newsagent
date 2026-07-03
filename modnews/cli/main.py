@@ -41,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", action="store_true")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    from .commands import cache, checkpoints, classify, config, events, extractors, ingest, jobs, outputs, queue, repair, run, server, sources
+    from .commands import cache, checkpoints, classify, config, events, extractors, ingest, jobs, outputs, queue, repair, report, run, server, sources
 
     server.register(subparsers)
     run.register(subparsers)
@@ -54,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     extractors.register(subparsers)
     jobs.register(subparsers)
     repair.register(subparsers)
+    report.register(subparsers)
     cache.register(subparsers)
     checkpoints.register(subparsers)
     outputs.register(subparsers)
