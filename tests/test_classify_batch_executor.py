@@ -3,8 +3,10 @@ from __future__ import annotations
 import unittest
 from typing import Callable, TypeVar
 
+from modnews.core.event_queue import EventQueue
 from modnews.service.classify.batch_executor import (
     BatchExecutionItem,
+    EventQueueBatchExecutionBackend,
     build_batch_items,
     describe_batch_items,
     run_batch_parallel,
@@ -84,6 +86,31 @@ class BatchExecutorTest(unittest.TestCase):
                 }
             ],
         )
+
+    def test_event_queue_backend_registers_batch_tasks(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(queue, run_id="run-1", step_id="classify/relevance")
+
+        result = run_batch_parallel(
+            lambda value: value.upper(),
+            ["a", "b"],
+            max_workers=2,
+            task_type="classify.batch_relevance",
+            concurrency_key="classify.llm",
+            batch_indexes=[1, 2],
+            batch_count=2,
+            labels={"stage": "relevance"},
+            backend=backend,
+        )
+
+        self.assertEqual(result, ["A", "B"])
+        tasks = queue.list()
+        self.assertEqual(len(tasks), 2)
+        self.assertEqual([task.state for task in tasks], ["succeeded", "succeeded"])
+        self.assertEqual({task.concurrency_key for task in tasks}, {"classify.llm"})
+        self.assertEqual({task.max_concurrency for task in tasks}, {2})
+        self.assertEqual([queue.result(task.id)["batch_result"] for task in tasks], ["A", "B"])
+        self.assertEqual(queue._executors, {})
 
 
 if __name__ == "__main__":

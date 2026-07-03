@@ -27,6 +27,9 @@ class EventQueue:
     def register_executor(self, task_type: str, executor: TaskExecutor) -> None:
         self._executors[task_type] = executor
 
+    def unregister_executor(self, task_type: str) -> None:
+        self._executors.pop(task_type, None)
+
     def register(self, task: TaskEvent) -> TaskEvent:
         with self._lock:
             if task.created_at is None:
