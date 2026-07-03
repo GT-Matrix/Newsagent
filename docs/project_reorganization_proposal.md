@@ -424,8 +424,8 @@ def configure_services(container):
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
 - classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。standalone 调用默认仍使用本地线程池；bootstrap 注册的 classify task 会注入 `EventQueueBatchExecutionBackend`，使 LLM batch 和 embedding batch item 注册成 `TaskEvent` 并通过统一队列收集结果。
-- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口和队列 executor 不再暴露 legacy fallback，旧同步 runner 只保留给显式低层兼容导入路径。
-- 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
+- 旧同步 pipeline runner 已删除；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口和队列 executor 只保留任务图路径，不再暴露 legacy fallback。
+- 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；`modnews.service.pipeline.compat`/`legacy` 兼容导入路径已删除，避免把旧 runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`，旧命令名 `newsagent-report` 仅作为指向同一 `modnews` report entry 的兼容别名保留。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src/` report 兼容转发层已删除。
 - report 配置默认值、数据模型、utils、规则表、IO helper、evidence/editor/reporter 和分类/评分/摘要/核验 stages 已迁入 `modnews/service/report/`，report 子模块已改用新路径。
@@ -434,7 +434,7 @@ def configure_services(container):
 
 仍是兼容层的部分：
 
-- 默认端到端 run 只注册任务图，不再提供公开 legacy fallback；但 ingest/classify 的具体业务 executor 仍有部分复用旧同步实现，后续要继续拆细。
+- 默认端到端 run 只注册任务图，不再提供公开 legacy fallback；但 ingest/classify 的具体业务 executor 仍有部分复用原有阶段实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，默认 pipeline 与手动 classify CLI/API 都注册这套任务图；但每个阶段内部仍复用现有 step 实现。batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - 任务执行期间的 progress/LLM 事件已通过当前 task 上下文写入 `TaskLogRepository`，`queue show` 可看到 `progress.llm_request_*` 等日志；Codex repair task 已把 `codex.jsonl` 路径、尾部摘要和字节数写入 task result，并通过 `progress.codex_repair_log` 进入 task logs；web extraction 的 `WebJobStore.append(...)` 事件也会以 `progress.web_job_event` 写入当前 task logs。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
