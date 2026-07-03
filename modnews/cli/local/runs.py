@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.core.progress import BUS, emit
 
@@ -13,55 +12,30 @@ class RunsLocalMixin:
         run_id = str(payload.get("run_id") or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-main")
         runs = RunRepository(self.project_root)
         runs.create(run_id, payload)
-        if not payload.get("legacy_pipeline"):
-            request = {
-                "project_root": str(self.project_root),
-                "run_id": run_id,
-                "config": payload.get("config"),
-                "only": payload.get("only"),
-                "only_ingest_steps": payload.get("only_ingest_steps"),
-                "disable_classification": payload.get("disable_classification"),
-            }
-            planned = self.container.pipeline_manager.start_run(request)
-            runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
-            if not payload.get("background", True):
-                BUS.clear()
-                emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
-                self.container.event_queue.drain_ready()
-            return {"ok": True, "run": runs.get(run_id), "tasks": planned["registered_tasks"]}
-
-        task_id = str(payload.get("task_id") or f"pipeline-{run_id}")
-        task = TaskEvent(
-            id=task_id,
-            type="pipeline.run_legacy",
-            pipeline_run_id=run_id,
-            step_id="pipeline",
-            payload={
-                "project_root": str(self.project_root),
-                "run_id": run_id,
-                "config": payload.get("config"),
-                "only": payload.get("only"),
-                "only_ingest_steps": payload.get("only_ingest_steps"),
-                "disable_classification": payload.get("disable_classification"),
-            },
-            concurrency_key="pipeline",
-            max_concurrency=1,
-        )
-        self.container.event_queue.register(task)
-        runs.update(run_id, state="queued", task_id=task_id)
+        request = {
+            "project_root": str(self.project_root),
+            "run_id": run_id,
+            "config": payload.get("config"),
+            "only": payload.get("only"),
+            "only_ingest_steps": payload.get("only_ingest_steps"),
+            "disable_classification": payload.get("disable_classification"),
+        }
+        planned = self.container.pipeline_manager.start_run(request)
+        runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
         if payload.get("background", True):
-            return {"ok": True, "run": runs.get(run_id), "task": task.to_dict()}
+            return {"ok": True, "run": runs.get(run_id), "tasks": planned["registered_tasks"]}
         BUS.clear()
         emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
         self.container.event_queue.drain_ready()
-        task_payload = self.queue_show(task_id)
         run_record = runs.get(run_id)
-        ok = task_payload.get("state") == "succeeded"
+        tasks = self._run_tasks(run_id)
+        ok = bool(tasks) and all(task.get("state") == "succeeded" for task in tasks)
         if ok:
             emit("pipeline_done", run_id=run_id, output_path=run_record.get("output_path"), stats=run_record.get("stats", {}))
         else:
-            emit("pipeline_error", run_id=run_id, error=task_payload.get("result", {}).get("error"))
-        return {"ok": ok, "run": run_record, "task": task_payload}
+            failed = next((task for task in tasks if task.get("state") in {"failed", "blocked", "cancelled"}), {})
+            emit("pipeline_error", run_id=run_id, error=failed.get("status_reason") or failed.get("state"))
+        return {"ok": ok, "run": run_record, "tasks": tasks}
 
     def run_list(self) -> list[dict[str, Any]]:
         return RunRepository(self.project_root).list()

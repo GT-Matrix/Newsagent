@@ -10,6 +10,17 @@ from modnews.core.task import TaskEvent
 
 
 class RunControlTest(unittest.TestCase):
+    def test_run_start_registers_task_graph(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            result = client.run_start({"background": True, "disable_classification": True})
+
+            self.assertTrue(result["ok"])
+            self.assertIn("tasks", result)
+            self.assertNotIn("task", result)
+            self.assertIn("pipeline-", result["tasks"][-1]["id"])
+
     def test_run_cancel_marks_queued_tasks_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))

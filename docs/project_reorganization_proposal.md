@@ -396,7 +396,7 @@ def configure_services(container):
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败/业务阻断事件回调、`queue drain` 手动推进和 ready/waiting/blocked 状态查询。`waiting` 表示依赖或并发槽尚不可用；`blocked` 保留给依赖终止、CAPTCHA、权限、缺 extractor、需要人工修复等不会自动继续的业务阻断。
 - CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
-- 默认 pipeline run 已开始注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；`--legacy-pipeline` 保留旧同步端到端 runner 作为兼容 fallback。
+- 默认 pipeline run 已注册任务图：ingest step task -> `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`，任务依赖由 `EventQueue` 推进；公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；`classify.clustered_pipeline` 和旧 `classify.run_legacy` 仍保留给兼容入口，并都可从 snapshot 运行并写入 run checkpoint。
 - managed web source 单源运行已通过 `web_source.run` task 执行，且 `skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
@@ -415,7 +415,7 @@ def configure_services(container):
 - ingest base/stage 和 RSS、NewsNow、site_lists step 实现已迁入 `modnews/service/ingest/`。
 - classify runtime、LLM client、retriever、checkpoint、clustered/event/relevance step 实现已迁入 `modnews/service/classify/`。
 - classify 内部 batch/embedding 并发已集中到 `modnews/service/classify/batch_executor.py`；executor 现在带有 `task_type`、`concurrency_key`、batch index 和 labels 元数据，并定义了可替换 backend 协议。standalone 调用默认仍使用本地线程池；bootstrap 注册的 classify task 会注入 `EventQueueBatchExecutionBackend`，使 LLM batch 和 embedding batch item 注册成 `TaskEvent` 并通过统一队列收集结果。
-- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。
+- legacy pipeline runner 已迁入 `modnews/service/pipeline/legacy_runner.py`；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口不再暴露 legacy fallback，旧同步 runner 只保留给显式低层兼容路径。
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；旧同步 runner 只通过显式兼容路径 `modnews.service.pipeline.compat`/`legacy` 保留，避免把 legacy runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`，旧命令名 `newsagent-report` 仅作为指向同一 `modnews` report entry 的兼容别名保留。
 - report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src.main` 只保留为兼容转发壳。
@@ -425,7 +425,7 @@ def configure_services(container):
 
 仍是兼容层的部分：
 
-- 默认端到端 run 已不再只注册 `pipeline.run_legacy` 大任务；但 ingest/classify 的具体业务 executor 仍复用 legacy 实现，后续要继续拆细。
+- 默认端到端 run 只注册任务图，不再提供公开 legacy fallback；但 ingest/classify 的具体业务 executor 仍有部分复用旧同步实现，后续要继续拆细。
 - clustered classify 已拆到 extraction/merge 两个 task，但每个阶段内部仍复用现有 step 实现；batch relevance、embedding、LLM batch item 在队列执行 classify task 时已走 `EventQueueBatchExecutionBackend`，后续还需要把阶段级 executor 继续拆小，并把更细粒度的完成回调和 checkpoint 发布补齐。
 - LLM 调用、Codex stdout/JSONL 和 web extraction retry/repair 的细粒度内部日志仍未完全汇入 `TaskLogRepository`；当前已先统一队列状态语义、自动重试字段、队列级 task 日志、Codex repair task 执行入口和 web_source task 的业务 blocked 映射。
 - legacy classify 自己的固定路径 `classification_progress.json` 仍存在，当前作为 standalone/旧入口 resume 兼容文件保留；新 task checkpoint 已在 run checkpoint 目录内保存同名 artifact，task 流程会优先使用 run checkpoint artifact。
