@@ -12,6 +12,7 @@ from modnews_pipeline.models import EventRecord, NewsItem, PaperItem, StepResult
 from modnews_pipeline.progress import emit
 
 from .arxiv import fetch_arxiv_papers
+from .huggingface import fetch_huggingface_papers
 
 
 def attach_papers_to_events(
@@ -24,17 +25,15 @@ def attach_papers_to_events(
     if not config.enabled:
         return items, events, [], StepResult(step="paper_attach", item_count=0, meta={"enabled": False})
 
-    if config.source != "arxiv":
-        raise ValueError(f"Unsupported paper source: {config.source}")
-
-    papers, fetch_result = fetch_arxiv_papers(ctx, config)
-    if not papers or fetch_result.errors:
+    papers, fetch_results = _fetch_all_papers(ctx, config)
+    fetch_errors = [error for result in fetch_results for error in result.errors]
+    if not papers:
         return items, events, papers, StepResult(
             step="paper_attach",
             item_count=0,
             output_path=str(config.decisions_output_path),
-            errors=fetch_result.errors,
-            meta={"paper_count": len(papers), "attached_count": 0, "created_event_count": 0, "skipped_count": 0},
+            errors=fetch_errors,
+            meta={"paper_count": 0, "attached_count": 0, "created_event_count": 0, "skipped_count": 0},
         )
 
     client = LlmClient(classification_config.llm, ctx.session)
@@ -125,8 +124,35 @@ def attach_papers_to_events(
             "created_event_count": created_count,
             "skipped_count": skipped_count,
             "source_output_path": str(config.output_path),
+            "fetch_errors": fetch_errors,
         },
     )
+
+
+def _fetch_all_papers(ctx: PipelineContext, config: PaperAttachConfig) -> tuple[list[PaperItem], list[StepResult]]:
+    papers: list[PaperItem] = []
+    results: list[StepResult] = []
+    seen_urls: set[str] = set()
+    for source in config.sources:
+        normalized = source.strip().lower()
+        if normalized == "arxiv":
+            source_papers, result = fetch_arxiv_papers(ctx, config)
+        elif normalized in {"huggingface", "huggingface_papers", "huggingface_papers_trending"}:
+            source_papers, result = fetch_huggingface_papers(ctx, config)
+        else:
+            result = StepResult(step=f"paper_source_{normalized or 'unknown'}", item_count=0, errors=[f"Unsupported paper source: {source}"])
+            source_papers = []
+        results.append(result)
+        for paper in source_papers:
+            key = paper.url.strip().lower()
+            if not key or key in seen_urls:
+                continue
+            seen_urls.add(key)
+            papers.append(paper)
+    config.output_path.parent.mkdir(parents=True, exist_ok=True)
+    config.output_path.write_text(json.dumps([paper.to_dict() for paper in papers], ensure_ascii=False, indent=2), encoding="utf-8")
+    ctx.artifacts["papers"] = config.output_path
+    return papers, results
 
 
 def _decide_paper_attach(

@@ -40,7 +40,7 @@ def extract_events_from_title_clusters(
     config: ClassificationConfig,
     discarded: list[DiscardedRecord],
 ) -> list[EventState]:
-    batches = _cluster_prepared_items(prepared, retriever, config.batch_size, config.batch_concurrency)
+    batches = _cluster_prepared_items(prepared, retriever, config.batch_size, config.embedding_concurrency)
     emit(
         "clustered_extraction_start",
         item_count=len(prepared),
@@ -143,7 +143,7 @@ def merge_event_clusters(
     events: list[EventState],
     config: ClassificationConfig,
 ) -> int:
-    batches = _cluster_events(events, retriever, config.batch_size, config.batch_concurrency)
+    batches = _cluster_events(events, retriever, config.batch_size, config.embedding_concurrency)
     emit(
         "clustered_merge_start",
         event_count=len(events),

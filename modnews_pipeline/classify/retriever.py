@@ -5,6 +5,7 @@ import json
 import math
 import sqlite3
 import threading
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -115,15 +116,36 @@ class EventVectorRetriever:
             raise ValueError("EMBEDDING_API_KEY is required for vector event retrieval")
 
         emit("embedding_request_start", request_id=request_id, model=self.config.model, text_preview=text[:240])
-        response = self.session.post(
-            f"{self.config.base_url.rstrip('/')}/embeddings",
-            headers={"Authorization": f"Bearer {self.config.api_key}"},
-            json={"model": self.config.model, "input": text},
-            timeout=self.config.timeout_seconds,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        vector = payload["data"][0]["embedding"]
+        last_error: Exception | None = None
+        for attempt in range(1, max(1, self.config.max_retries) + 1):
+            try:
+                response = self.session.post(
+                    f"{self.config.base_url.rstrip('/')}/embeddings",
+                    headers={"Authorization": f"Bearer {self.config.api_key}"},
+                    json={"model": self.config.model, "input": text},
+                    timeout=self.config.timeout_seconds,
+                )
+                response.raise_for_status()
+                payload = response.json()
+                vector = payload["data"][0]["embedding"]
+                break
+            except (requests.RequestException, ValueError, KeyError, IndexError, json.JSONDecodeError) as exc:
+                last_error = exc
+                emit(
+                    "embedding_request_retry",
+                    request_id=request_id,
+                    model=self.config.model,
+                    attempt=attempt,
+                    max_retries=max(1, self.config.max_retries),
+                    error=str(exc),
+                )
+                if attempt >= max(1, self.config.max_retries):
+                    emit("embedding_request_error", request_id=request_id, model=self.config.model, error=str(exc))
+                    raise
+                time.sleep(_retry_delay_seconds(exc, attempt))
+        else:
+            assert last_error is not None
+            raise last_error
         with self._memory_lock:
             self._memory_cache[memory_key] = vector
         self._write_cache(text, vector)
@@ -238,3 +260,18 @@ def _outside_time_window(left: datetime | None, right: datetime | None, hours: i
     if left is None or right is None:
         return False
     return abs(left - right) > timedelta(hours=hours)
+
+
+def _retry_delay_seconds(exc: Exception, attempt: int) -> float:
+    response = getattr(exc, "response", None)
+    retry_after = None
+    if response is not None:
+        retry_after = response.headers.get("Retry-After")
+    if retry_after:
+        try:
+            return min(float(retry_after), 60.0)
+        except ValueError:
+            pass
+    status_code = getattr(response, "status_code", None)
+    base = 6.0 if status_code in {429, 500, 502, 503, 504} else 2.0
+    return min(base * (2 ** max(attempt - 1, 0)), 60.0)

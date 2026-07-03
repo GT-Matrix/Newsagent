@@ -21,6 +21,7 @@ from src.pipeline.reporter import (
 )
 from src.pipeline.scorer import score_event
 from src.pipeline.summarizer import summarize_event
+from src.pipeline.trend_writer import generate_trend_summary
 from src.pipeline.verifier import verify_event
 from src.utils.text import text_quality
 from src.utils.time import parse_report_date
@@ -86,6 +87,7 @@ def run_pipeline(
     assign_report_sections(enriched)
     evidence_payload = enrich_report_evidence(enriched)
 
+    trend_summary: str | None = None
     if config_path is not None:
         from modnews_pipeline.config import load_config
         from modnews_pipeline.context import PipelineContext
@@ -93,14 +95,16 @@ def run_pipeline(
         modnews_config = load_config(str(config_path))
         ctx = PipelineContext.create(modnews_config)
         polish_report_events(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
+        trend_summary = generate_trend_summary(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     write_enriched_events(output_dir / "enriched_events.json", enriched)
     write_json(output_dir / "evidence_events.json", evidence_payload)
     write_json(output_dir / "report_candidates.json", report_candidates_payload(enriched))
     write_json(output_dir / "review_candidates.json", review_candidates_payload(enriched))
-    write_text(output_dir / "daily_report.md", build_report_markdown(enriched, report_date))
-    write_text(output_dir / "daily_report_debug.md", build_debug_report_markdown(enriched, report_date))
+    write_json(output_dir / "trend_summary.json", {"trend_summary": trend_summary, "mode": "llm" if trend_summary else "fallback"})
+    write_text(output_dir / "daily_report.md", build_report_markdown(enriched, report_date, trend_summary))
+    write_text(output_dir / "daily_report_debug.md", build_debug_report_markdown(enriched, report_date, trend_summary))
     return enriched
 
 

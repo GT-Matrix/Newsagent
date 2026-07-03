@@ -45,6 +45,7 @@ class EmbeddingConfig:
     api_key: str | None = None
     cache_path: Path | None = None
     timeout_seconds: int = 60
+    max_retries: int = 5
     simulate_cache_stream: bool = False
     cache_first_token_delay_seconds: float = 1.0
     cache_tokens_per_second: float = 120.0
@@ -58,6 +59,7 @@ class ClassificationConfig:
     discarded_output_path: Path = field(default_factory=lambda: Path("output/discarded_news.json"))
     batch_size: int = 40
     batch_concurrency: int = 20
+    embedding_concurrency: int = 8
     event_candidate_count: int = 5
     merge_candidate_count: int = 5
     time_window_hours: int = 72
@@ -72,8 +74,11 @@ class PaperAttachConfig:
     enabled: bool = True
     output_path: Path = field(default_factory=lambda: Path("output/arxiv_papers.json"))
     decisions_output_path: Path = field(default_factory=lambda: Path("output/paper_attach_decisions.json"))
-    source: str = "arxiv"
+    source: str = "huggingface_papers_trending"
+    sources: list[str] = field(default_factory=lambda: ["huggingface_papers_trending"])
     limit: int = 40
+    huggingface_limit: int = 30
+    huggingface_url: str = "https://huggingface.co/papers/trending"
     query: str = (
         "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML "
         'OR all:"large language model" OR all:"LLM" OR all:"agent"'
@@ -187,6 +192,10 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
                 "batch_concurrency",
                 int(os.environ.get("CLASSIFICATION_BATCH_CONCURRENCY", "20")),
             ),
+            embedding_concurrency=classification_raw.get(
+                "embedding_concurrency",
+                int(os.environ.get("EMBEDDING_CONCURRENCY", "8")),
+            ),
             event_candidate_count=classification_raw.get("event_candidate_count", 5),
             merge_candidate_count=classification_raw.get("merge_candidate_count", 5),
             time_window_hours=classification_raw.get("time_window_hours", 72),
@@ -233,6 +242,7 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
                     else None
                 ),
                 timeout_seconds=embedding_raw.get("timeout_seconds", 60),
+                max_retries=embedding_raw.get("max_retries", int(os.environ.get("EMBEDDING_MAX_RETRIES", "5"))),
                 simulate_cache_stream=embedding_raw.get(
                     "simulate_cache_stream",
                     _env_bool("CACHE_SIMULATION_ENABLED", False),
@@ -268,8 +278,11 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
             decisions_output_path=(
                 project_root / paper_attach_raw.get("decisions_output_path", "output/paper_attach_decisions.json")
             ).resolve(),
-            source=paper_attach_raw.get("source", "arxiv"),
+            source=paper_attach_raw.get("source", "huggingface_papers_trending"),
+            sources=_paper_sources(paper_attach_raw),
             limit=int(paper_attach_raw.get("limit", 40)),
+            huggingface_limit=int(paper_attach_raw.get("huggingface_limit", 30)),
+            huggingface_url=paper_attach_raw.get("huggingface_url", "https://huggingface.co/papers/trending"),
             query=paper_attach_raw.get(
                 "query",
                 (
@@ -297,3 +310,14 @@ def _env_bool(name: str, default: bool) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _paper_sources(raw: dict[str, Any]) -> list[str]:
+    value = raw.get("sources")
+    if isinstance(value, list):
+        sources = [str(item).strip() for item in value if str(item).strip()]
+        return sources or ["huggingface_papers_trending"]
+    source = str(raw.get("source") or "huggingface_papers_trending").strip()
+    if source in {"all", "default"}:
+        return ["huggingface_papers_trending"]
+    return [source or "huggingface_papers_trending"]

@@ -54,19 +54,26 @@
       "model": "text-embedding-v4",
       "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "cache_path": "output/event_vector_cache.sqlite3",
-      "timeout_seconds": 60
-    }
+      "timeout_seconds": 90,
+      "max_retries": 5
+    },
+    "embedding_concurrency": 8
   },
   "paper_attach": {
     "enabled": true,
-    "source": "arxiv",
+    "source": "huggingface_papers_trending",
     "limit": 40,
     "query": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG OR cat:cs.CV OR cat:stat.ML OR all:\"large language model\" OR all:\"LLM\" OR all:\"agent\"",
     "sort_by": "submittedDate",
     "sort_order": "descending",
     "output_path": "output/arxiv_papers.json",
     "decisions_output_path": "output/paper_attach_decisions.json",
-    "max_summary_chars": 700
+    "max_summary_chars": 700,
+    "sources": [
+      "huggingface_papers_trending"
+    ],
+    "huggingface_limit": 30,
+    "huggingface_url": "https://huggingface.co/papers/trending"
   },
   "history_dedupe": {
     "enabled": true,

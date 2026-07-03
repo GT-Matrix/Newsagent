@@ -7,8 +7,10 @@ OFFICIAL_PLATFORMS = {
     "google-deepmind",
     "nvidia",
     "microsoft",
+    "aws-ml",
     "meta-ai",
     "huggingface",
+    "huggingface_papers_trending",
     "stanford_hai",
     "arxiv",
 }
@@ -46,13 +48,13 @@ COMMUNITY_PLATFORMS = {
 def platform_score(platform: str) -> float:
     normalized = platform.strip().lower()
     if normalized in OFFICIAL_PLATFORMS:
-        return 96.0
+        return 94.0
     if normalized in AUTHORITY_MEDIA:
-        return 84.0
+        return 86.0
     if normalized in CHINESE_MEDIA:
-        return 70.0
+        return 78.0
     if normalized in COMMUNITY_PLATFORMS:
-        return 48.0
+        return 64.0
     return 62.0
 
 

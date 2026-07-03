@@ -27,6 +27,13 @@ NOVELTY_WORDS = {
     "first", "new", "launch", "release", "introduce", "announce", "open source",
     "\u9996\u6b21", "\u65b0", "\u53d1\u5e03", "\u63a8\u51fa", "\u5f00\u6e90", "\u4e0a\u7ebf",
 }
+PAPER_PLATFORMS = {"arxiv", "huggingface_papers_trending"}
+PAPER_SIGNAL_WORDS = {
+    "paper", "arxiv", "research", "benchmark", "dataset", "method", "model", "architecture",
+    "evaluation", "agent", "ocr", "memory", "retrieval", "rl", "reinforcement learning",
+    "\u8bba\u6587", "\u7814\u7a76", "\u57fa\u51c6", "\u6570\u636e\u96c6", "\u65b9\u6cd5", "\u6a21\u578b",
+    "\u67b6\u6784", "\u8bc4\u6d4b", "\u667a\u80fd\u4f53", "\u8bb0\u5fc6", "\u68c0\u7d22", "\u5f3a\u5316\u5b66\u4e60",
+}
 STRATEGIC_FOCUS_KEYWORDS = {
     "ai_compute_chip": {
         "chip", "semiconductor", "gpu", "hbm", "memory", "wafer", "foundry", "tsmc", "samsung",
@@ -53,6 +60,7 @@ STRATEGIC_FOCUS_BOOSTS = {
 
 def score_event(candidate: EventCandidate, normalized_type: str, report_date: date) -> ScoreBreakdown:
     focuses = _strategic_focuses(candidate)
+    paper_signal = _is_paper_signal(candidate, normalized_type)
     importance = _importance_score(candidate, normalized_type, focuses)
     source = _source_score(candidate)
     freshness = _freshness_score(candidate, report_date)
@@ -60,6 +68,12 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
     actionability = _actionability_score(candidate, normalized_type, focuses)
     novelty = _novelty_score(candidate, normalized_type, focuses)
     risk_penalty = _risk_penalty(candidate)
+
+    if paper_signal:
+        importance = _clamp(importance + 5.0)
+        relevance = _clamp(relevance + 6.0)
+        novelty = _clamp(novelty + 5.0)
+        actionability = _clamp(actionability + _paper_actionability_bonus(candidate))
 
     final = (
         importance * SCORE_WEIGHTS.impact
@@ -72,7 +86,12 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
     )
 
     final = round(max(0.0, min(100.0, final)), 2)
-    focus_reason = ", focus=" + "+".join(focuses) if focuses else ""
+    reason_parts = []
+    if focuses:
+        reason_parts.append("focus=" + "+".join(focuses))
+    if paper_signal:
+        reason_parts.append("paper_signal")
+    focus_reason = ", " + ", ".join(reason_parts) if reason_parts else ""
     reason = (
         f"impact={importance:.0f}, source={source:.0f}, freshness={freshness:.0f}, "
         f"relevance={relevance:.0f}, actionability={actionability:.0f}, "
@@ -119,14 +138,14 @@ def _source_score(candidate: EventCandidate) -> float:
 
     if len(platforms) <= 1:
         if "official" in source_kinds:
-            return min(base, 88.0)
+            return min(base, 90.0)
         if "authority_media" in source_kinds:
-            return min(base, 76.0)
+            return min(base, 84.0)
         if "chinese_media" in source_kinds:
-            return min(base, 66.0)
+            return min(base, 76.0)
         if "community" in source_kinds:
-            return min(base, 42.0)
-        return min(base, 58.0)
+            return min(base, 64.0)
+        return min(base, 62.0)
 
     diversity_bonus = min(12.0, (len(platforms) - 1) * 4.0)
     official_bonus = 4.0 if "official" in source_kinds else 0.0
@@ -197,9 +216,9 @@ def _risk_penalty(candidate: EventCandidate) -> float:
     distinct_platforms = {platform.strip().lower() for platform in candidate.platforms if platform.strip()}
     source_kinds = {source_kind(platform) for platform in distinct_platforms}
     if len(distinct_platforms) <= 1 and "official" not in source_kinds:
-        penalty += 8.0
+        penalty += 2.0
     if "community" in source_kinds and len(distinct_platforms) <= 1:
-        penalty += 8.0
+        penalty += 3.0
     if candidate.confidence < 0.7:
         penalty += 8.0
     if candidate.latest_pubtime is None:
@@ -207,6 +226,28 @@ def _risk_penalty(candidate: EventCandidate) -> float:
     if _has_possible_mismatch(candidate):
         penalty += 18.0
     return min(penalty, 40.0)
+
+
+def _is_paper_signal(candidate: EventCandidate, normalized_type: str) -> bool:
+    platforms = {platform.strip().lower() for platform in candidate.platforms if platform.strip()}
+    if platforms & PAPER_PLATFORMS:
+        return True
+    if normalized_type in {"research", "benchmark"} and has_any_word(_haystack(candidate), PAPER_SIGNAL_WORDS):
+        return True
+    return False
+
+
+def _paper_actionability_bonus(candidate: EventCandidate) -> float:
+    haystack = _haystack(candidate)
+    if has_any_word(
+        haystack,
+        {
+            "code", "github", "dataset", "benchmark", "framework", "toolkit", "open source",
+            "\u4ee3\u7801", "\u5f00\u6e90", "\u6570\u636e\u96c6", "\u57fa\u51c6", "\u6846\u67b6", "\u5de5\u5177",
+        },
+    ):
+        return 8.0
+    return 3.0
 
 
 def _has_possible_mismatch(candidate: EventCandidate) -> bool:
