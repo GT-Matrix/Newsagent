@@ -12,6 +12,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     list_cmd = nested.add_parser("list")
     list_cmd.add_argument("--type", choices=["rss", "newsnow", "site_lists"], default=None)
     list_cmd.set_defaults(handler=list_sources)
+    nested.add_parser("diagnostics").set_defaults(handler=diagnostics)
     rss_cmd = nested.add_parser("rss")
     rss_nested = rss_cmd.add_subparsers(dest="rss_command", required=True)
     rss_add = rss_nested.add_parser("add")
@@ -45,6 +46,12 @@ def list_sources(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
             rows.extend(_rows(source_type, value))
         return rows
     return client.sources_list(args.type)
+
+
+def diagnostics(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.get("/api/source-config/diagnostics")
+    return client.source_diagnostics()
 
 
 def add_rss_source(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:

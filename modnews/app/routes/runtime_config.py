@@ -12,9 +12,19 @@ def runtime_config():
     return jsonify(local_client().config_show(include_paths=True))
 
 
+@bp.get("/api/runtime/env-health")
+def runtime_env_health():
+    return jsonify(local_client().config_env_health())
+
+
 @bp.get("/api/source-config")
 def source_config():
     return jsonify(local_client().config_show())
+
+
+@bp.get("/api/source-config/diagnostics")
+def source_diagnostics():
+    return jsonify(local_client().source_diagnostics())
 
 
 @bp.post("/api/source-config/restore-builtins")
