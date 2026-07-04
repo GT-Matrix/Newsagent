@@ -5,15 +5,17 @@ from flask import Blueprint, jsonify
 bp = Blueprint("health", __name__)
 
 
-@bp.get("/")
-def index():
+@bp.get("/api/health")
+def health():
     return jsonify(
         {
             "service": "modnews api",
             "endpoints": [
+                "/",
                 "/api/state",
                 "/api/events",
                 "/api/runtime-config",
+                "/api/report/generate",
                 "/api/web-jobs",
                 "/api/repair-tasks",
             ],

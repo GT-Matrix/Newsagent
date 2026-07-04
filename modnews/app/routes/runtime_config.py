@@ -53,7 +53,10 @@ def update_rss_sources():
 
 @bp.put("/api/source-config/rss/<source_id>")
 def update_rss_source(source_id: str):
-    return jsonify({"ok": True, "config": local_client().rss_update_item(source_id, request.get_json(silent=True) or {})})
+    payload = request.get_json(silent=True) or {}
+    current = next((row for row in local_client().sources_list("rss") if row.get("id") == source_id), {})
+    merged = {**current, **payload, "id": source_id}
+    return jsonify({"ok": True, "config": local_client().rss_update_item(source_id, merged)})
 
 
 @bp.delete("/api/source-config/rss/<source_id>")
