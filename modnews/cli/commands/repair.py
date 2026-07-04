@@ -12,6 +12,8 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     nested.add_parser("list").set_defaults(handler=list_tasks)
     create = nested.add_parser("create")
     create.add_argument("source_id")
+    create.add_argument("--reason")
+    create.add_argument("--no-start", action="store_true")
     create.set_defaults(handler=create_task)
     retry = nested.add_parser("retry")
     retry.add_argument("task_id")
@@ -29,7 +31,9 @@ def list_tasks(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
 
 
 def create_task(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
-    payload = {"source_id": args.source_id}
+    payload = {"source_id": args.source_id, "auto_start": not args.no_start}
+    if args.reason:
+        payload["reason"] = args.reason
     return client.post("/api/repair-tasks", payload) if isinstance(client, ApiClient) else client.repair_create(payload)
 
 
