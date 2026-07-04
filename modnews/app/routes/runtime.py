@@ -12,6 +12,18 @@ def outputs():
     return jsonify(local_client().outputs_status())
 
 
+@bp.get("/api/outputs/<key>/content")
+def output_content(key: str):
+    try:
+        return jsonify(local_client().outputs_cat(key))
+    except KeyError:
+        return jsonify({"ok": False, "error": "unknown output key"}), 404
+    except FileNotFoundError:
+        return jsonify({"ok": False, "error": "artifact not found"}), 404
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
 @bp.get("/api/queue")
 def queue_list():
     states = {item for item in request.args.get("state", "").split(",") if item}

@@ -60,6 +60,9 @@ class SourceConfigRepository:
     def disable_site(self, source_id: str) -> dict[str, Any]:
         return self.store.update_site_list_item(source_id, {"enabled": False})
 
+    def delete_site(self, source_id: str) -> dict[str, Any]:
+        return self.store.delete_site_list_item(source_id)
+
     def enabled_rss_sources(self) -> list[dict[str, Any]]:
         return self.store.enabled_rss_sources()
 

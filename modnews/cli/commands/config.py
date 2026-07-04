@@ -11,6 +11,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser("config", help="Read and update runtime configuration.")
     nested = parser.add_subparsers(dest="config_command", required=True)
     nested.add_parser("show").set_defaults(handler=show)
+    nested.add_parser("env").set_defaults(handler=env)
     set_cmd = nested.add_parser("set")
     set_cmd.add_argument("key")
     set_cmd.add_argument("value")
@@ -20,6 +21,10 @@ def register(subparsers: argparse._SubParsersAction) -> None:
 
 def show(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
     return client.get("/api/runtime-config") if isinstance(client, ApiClient) else client.config_show(include_paths=True)
+
+
+def env(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
+    return client.get("/api/runtime/env-health") if isinstance(client, ApiClient) else client.config_env_health()
 
 
 def set_value(ctx: Any, client: Any, args: argparse.Namespace) -> Any:

@@ -12,9 +12,19 @@ def runtime_config():
     return jsonify(local_client().config_show(include_paths=True))
 
 
+@bp.get("/api/runtime/env-health")
+def runtime_env_health():
+    return jsonify(local_client().config_env_health())
+
+
 @bp.get("/api/source-config")
 def source_config():
     return jsonify(local_client().config_show())
+
+
+@bp.get("/api/source-config/diagnostics")
+def source_diagnostics():
+    return jsonify(local_client().source_diagnostics())
 
 
 @bp.post("/api/source-config/restore-builtins")
@@ -43,7 +53,10 @@ def update_rss_sources():
 
 @bp.put("/api/source-config/rss/<source_id>")
 def update_rss_source(source_id: str):
-    return jsonify({"ok": True, "config": local_client().rss_update_item(source_id, request.get_json(silent=True) or {})})
+    payload = request.get_json(silent=True) or {}
+    current = next((row for row in local_client().sources_list("rss") if row.get("id") == source_id), {})
+    merged = {**current, **payload, "id": source_id}
+    return jsonify({"ok": True, "config": local_client().rss_update_item(source_id, merged)})
 
 
 @bp.delete("/api/source-config/rss/<source_id>")
@@ -70,3 +83,8 @@ def upsert_site_list_source(source_id: str):
     if not payload.get("name") or not payload.get("url"):
         return jsonify({"ok": False, "error": "name and url are required"}), 400
     return jsonify({"ok": True, "config": local_client().site_list_update_item(source_id, payload)})
+
+
+@bp.delete("/api/source-config/site-lists/<source_id>")
+def delete_site_list_source(source_id: str):
+    return jsonify({"ok": True, "config": local_client().site_list_delete_item(source_id)})

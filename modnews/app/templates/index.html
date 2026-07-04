@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ModNews Console</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <h1>ModNews Console</h1>
+          <p>运行、任务队列、网页抓取、配置与 checkpoint 管理</p>
+        </div>
+        <div class="topbar-actions">
+          <label class="switch">
+            <input id="auto-refresh" type="checkbox" checked>
+            <span>自动刷新</span>
+          </label>
+          <button id="refresh-all" class="button secondary" type="button">刷新</button>
+          <div id="last-updated" class="muted"></div>
+        </div>
+      </header>
+
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="overview" type="button">概览</button>
+        <button class="tab" data-tab="runs" type="button">运行</button>
+        <button class="tab" data-tab="queue" type="button">任务队列</button>
+        <button class="tab" data-tab="web" type="button">网页抓取</button>
+        <button class="tab" data-tab="config" type="button">配置</button>
+        <button class="tab" data-tab="artifacts" type="button">产物</button>
+      </nav>
+
+      <main>
+        <section class="panel active" data-panel="overview">
+          <div class="grid cards" id="summary-cards"></div>
+          <div class="grid two-columns">
+            <section class="section">
+              <div class="section-head">
+                <h2>实时事件</h2>
+                <button id="clear-event-feed" class="button ghost" type="button">清空</button>
+              </div>
+              <div id="event-feed" class="feed"></div>
+            </section>
+            <section class="section">
+              <div class="section-head">
+                <h2>最近任务</h2>
+              </div>
+              <div id="recent-tasks" class="list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="runs">
+          <div class="grid two-columns">
+            <section class="section">
+              <div class="section-head">
+                <h2>启动新运行</h2>
+              </div>
+              <form id="run-form" class="form">
+                <label>Run ID<input name="run_id" type="text" placeholder="可留空自动生成"></label>
+                <label>仅执行步骤<input name="only" type="text" placeholder="rss,newsnow,site_lists"></label>
+                <label class="inline"><input name="disable_classification" type="checkbox">跳过 classify</label>
+                <label class="inline"><input name="background" type="checkbox" checked>后台模式</label>
+                <div class="actions">
+                  <button class="button primary" type="submit">启动</button>
+                </div>
+              </form>
+            </section>
+            <section class="section">
+              <div class="section-head">
+                <h2>生成报告</h2>
+              </div>
+              <form id="report-form" class="form">
+                <label>输入路径<input name="input" type="text" placeholder="目录 / checkpoint.json / classification_progress.json"></label>
+                <label>输出目录<input name="output_dir" type="text" placeholder="默认 data/output"></label>
+                <label>日期<input name="date" type="text" placeholder="YYYY-MM-DD，可留空"></label>
+                <div class="actions">
+                  <button class="button primary" type="submit">生成 Report</button>
+                </div>
+              </form>
+            </section>
+          </div>
+          <section class="section">
+            <div class="section-head">
+              <h2>运行列表</h2>
+            </div>
+            <div id="runs-list" class="list"></div>
+          </section>
+        </section>
+
+        <section class="panel" data-panel="queue">
+          <div class="section">
+            <div class="section-head">
+              <h2>任务队列</h2>
+              <div class="toolbar">
+                <select id="queue-filter">
+                  <option value="">全部状态</option>
+                  <option value="queued">queued</option>
+                  <option value="waiting">waiting</option>
+                  <option value="running">running</option>
+                  <option value="succeeded">succeeded</option>
+                  <option value="failed">failed</option>
+                  <option value="blocked">blocked</option>
+                  <option value="cancelled">cancelled</option>
+                  <option value="skipped">skipped</option>
+                </select>
+                <button id="drain-queue" class="button secondary" type="button">执行 Ready</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Type</th>
+                    <th>Step</th>
+                    <th>State</th>
+                    <th>Run</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="queue-body"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="section">
+            <div class="section-head">
+              <h2>任务详情</h2>
+            </div>
+            <pre id="queue-detail" class="code-block empty">选择任务后显示详情与日志</pre>
+          </section>
+        </section>
+
+        <section class="panel" data-panel="web">
+          <div class="grid two-columns">
+            <section class="section">
+              <div class="section-head">
+                <h2>Managed Extractors</h2>
+              </div>
+              <div id="extractors-list" class="list"></div>
+            </section>
+            <section class="section">
+              <div class="section-head">
+                <h2>Repair Tasks</h2>
+              </div>
+              <div id="repair-list" class="list"></div>
+            </section>
+          </div>
+          <section class="section">
+            <div class="section-head">
+              <h2>Web Jobs</h2>
+            </div>
+            <div id="web-jobs-list" class="list"></div>
+          </section>
+        </section>
+
+        <section class="panel" data-panel="config">
+          <div class="grid two-columns">
+            <section class="section">
+              <div class="section-head">
+                <h2>步骤配置</h2>
+              </div>
+              <form id="steps-form" class="form compact"></form>
+            </section>
+            <section class="section">
+              <div class="section-head">
+                <h2>分类配置</h2>
+              </div>
+              <form id="classification-form" class="form compact"></form>
+            </section>
+          </div>
+          <section class="section">
+            <div class="section-head">
+              <h2>数据源</h2>
+              <button id="restore-builtins" class="button secondary" type="button">恢复内置源</button>
+            </div>
+            <div id="sources-list" class="list"></div>
+          </section>
+          <section class="section">
+            <div class="section-head">
+              <h2>运行时路径</h2>
+            </div>
+            <div id="paths-list" class="kv-list"></div>
+          </section>
+        </section>
+
+        <section class="panel" data-panel="artifacts">
+          <div class="grid two-columns">
+            <section class="section">
+              <div class="section-head">
+                <h2>产物状态</h2>
+              </div>
+              <div id="outputs-list" class="kv-list"></div>
+            </section>
+            <section class="section">
+              <div class="section-head">
+                <h2>缓存</h2>
+                <button id="clear-cache" class="button secondary" type="button">清理缓存</button>
+              </div>
+              <div id="cache-list" class="kv-list"></div>
+            </section>
+          </div>
+          <section class="section">
+            <div class="section-head">
+              <h2>Checkpoints</h2>
+            </div>
+            <div id="checkpoints-list" class="list"></div>
+          </section>
+        </section>
+      </main>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
