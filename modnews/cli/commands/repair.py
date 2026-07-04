@@ -19,6 +19,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     promote = nested.add_parser("promote")
     promote.add_argument("task_id")
     promote.set_defaults(handler=promote_task)
+    delete = nested.add_parser("delete")
+    delete.add_argument("task_id")
+    delete.set_defaults(handler=delete_task)
 
 
 def list_tasks(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
@@ -36,3 +39,7 @@ def retry_task(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
 
 def promote_task(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     return client.post(f"/api/repair-tasks/{args.task_id}/promote", {}) if isinstance(client, ApiClient) else client.repair_promote(args.task_id)
+
+
+def delete_task(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    return client.delete(f"/api/repair-tasks/{args.task_id}") if isinstance(client, ApiClient) else client.repair_delete(args.task_id)
