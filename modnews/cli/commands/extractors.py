@@ -24,6 +24,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     run.add_argument("id")
     run.add_argument("--limit", type=int, default=None)
     run.set_defaults(handler=run_extractor)
+    delete = nested.add_parser("delete")
+    delete.add_argument("id")
+    delete.set_defaults(handler=delete_extractor)
 
 
 def list_extractors(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
@@ -49,3 +52,10 @@ def run_extractor(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.post(f"/api/web-sources/{args.id}/run", payload)
     return client.web_source_run(args.id, payload)
+
+
+def delete_extractor(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.delete(f"/api/extractors/{args.id}")
+    client.extractor_delete(args.id)
+    return {"ok": True}
