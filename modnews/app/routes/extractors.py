@@ -12,6 +12,14 @@ def list_extractors():
     return jsonify({"items": local_client().extractors_list()})
 
 
+@bp.get("/api/extractors/<source_id>")
+def show_extractor(source_id: str):
+    try:
+        return jsonify({"item": local_client().extractor_show(source_id)})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+
+
 @bp.patch("/api/extractors/<source_id>")
 def update_extractor(source_id: str):
     payload = request.get_json(silent=True) or {}

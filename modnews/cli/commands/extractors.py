@@ -11,6 +11,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     nested = parser.add_subparsers(dest="extractors_command", required=True)
     nested.add_parser("list").set_defaults(handler=list_extractors)
     nested.add_parser("scan").set_defaults(handler=list_extractors)
+    show = nested.add_parser("show")
+    show.add_argument("id")
+    show.set_defaults(handler=show_extractor)
     enable = nested.add_parser("enable")
     enable.add_argument("id")
     enable.set_defaults(handler=lambda ctx, client, args: set_enabled(ctx, client, args.id, True))
@@ -27,6 +30,12 @@ def list_extractors(_ctx: Any, client: Any, _args: argparse.Namespace) -> Any:
     if isinstance(client, ApiClient):
         return client.get("/api/extractors").get("items", [])
     return client.extractors_list()
+
+
+def show_extractor(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.get(f"/api/extractors/{args.id}").get("item")
+    return client.extractor_show(args.id)
 
 
 def set_enabled(_ctx: Any, client: Any, source_id: str, enabled: bool) -> Any:

@@ -13,6 +13,31 @@ class ExtractionLocalMixin:
     def extractors_list(self) -> list[dict[str, Any]]:
         return [record.to_dict() for record in registry_from_project(self.project_root).list()]
 
+    def extractor_show(self, source_id: str) -> dict[str, Any]:
+        registry = registry_from_project(self.project_root)
+        record = registry.get(source_id).to_dict()
+        web_jobs = WebJobStore(self.project_root).list()
+        repair_tasks = RepairManager(self.project_root, registry).list_tasks()
+        config = self.config_show()
+        site_sources = config.get("sources", {}).get("site_lists", {})
+        bound_sources = []
+        if isinstance(site_sources, dict):
+            for site_id, row in site_sources.items():
+                if isinstance(row, dict) and (row.get("extractor_id") or site_id) == source_id:
+                    bound_sources.append({"id": site_id, **row})
+        return {
+            "record": record,
+            "bound_sources": bound_sources,
+            "recent_jobs": [
+                job for job in web_jobs
+                if job.get("extractor_id") == source_id or job.get("source_id") == source_id
+            ][:10],
+            "repair_tasks": [
+                task for task in repair_tasks
+                if task.get("source_id") == source_id
+            ][:10],
+        }
+
     def extractor_set_enabled(self, source_id: str, enabled: bool) -> dict[str, Any]:
         return registry_from_project(self.project_root).set_enabled(source_id, enabled).to_dict()
 
