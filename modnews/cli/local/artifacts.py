@@ -11,6 +11,9 @@ class ArtifactsLocalMixin:
     def outputs_status(self) -> dict[str, Any]:
         return OutputRepository(self.project_root).state()
 
+    def outputs_cat(self, key: str) -> dict[str, Any]:
+        return OutputRepository(self.project_root).read_artifact(key)
+
     def cache_status(self) -> dict[str, Any]:
         return CacheRepository(self.project_root).state()
 

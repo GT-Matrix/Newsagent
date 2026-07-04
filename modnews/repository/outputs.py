@@ -15,16 +15,44 @@ class OutputRepository:
 
     def state(self, config: Any | None = None) -> dict[str, Any]:
         config = config or build_config(base_dir=self.project_root)
-        paths = {
-            "combined_news": runtime_paths(self.project_root).combined_news_path,
+        return {key: self._path_info(path) for key, path in self.paths(config).items()}
+
+    def paths(self, config: Any | None = None) -> dict[str, Path | None]:
+        config = config or build_config(base_dir=self.project_root)
+        report_dir = self.project_root / "data" / "output"
+        paths = runtime_paths(self.project_root)
+        return {
+            "combined_news": paths.combined_news_path,
             "news_with_events": config.classification.output_path,
             "events": config.classification.events_output_path,
             "discarded_news": config.classification.discarded_output_path,
             "checkpoint": config.classification.checkpoint_path,
             "llm_cache": config.classification.llm.cache_path,
             "embedding_cache": config.classification.embedding.cache_path,
+            "report_markdown": report_dir / "daily_report.md",
+            "report_debug_markdown": report_dir / "daily_report_debug.md",
+            "report_events": report_dir / "enriched_events.json",
+            "report_evidence_events": report_dir / "evidence_events.json",
+            "report_candidates": report_dir / "report_candidates.json",
+            "report_review_candidates": report_dir / "review_candidates.json",
+            "report_trend_summary": report_dir / "trend_summary.json",
         }
-        return {key: self._path_info(path) for key, path in paths.items()}
+
+    def read_artifact(self, key: str) -> dict[str, Any]:
+        paths = self.paths()
+        if key not in paths:
+            raise KeyError(key)
+        path = paths[key]
+        if path is None or not path.exists():
+            raise FileNotFoundError(key)
+        if path.suffix not in {".md", ".json", ".txt"}:
+            raise ValueError(f"artifact is not previewable: {key}")
+        return {
+            "key": key,
+            "path": str(path),
+            "content_type": "application/json" if path.suffix == ".json" else "text/markdown" if path.suffix == ".md" else "text/plain",
+            "content": path.read_text(encoding="utf-8"),
+        }
 
     def publish_from_checkpoint(self, checkpoint: dict[str, Any]) -> dict[str, Any]:
         config = build_config(base_dir=self.project_root)
