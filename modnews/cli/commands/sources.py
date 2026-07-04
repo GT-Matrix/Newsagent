@@ -33,6 +33,12 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     site_add.add_argument("--extractor")
     site_add.add_argument("--content-type", default="news")
     site_add.set_defaults(handler=add_site_source)
+    site_disable = site_nested.add_parser("disable")
+    site_disable.add_argument("id")
+    site_disable.set_defaults(handler=disable_site_source)
+    site_delete = site_nested.add_parser("delete")
+    site_delete.add_argument("id")
+    site_delete.set_defaults(handler=delete_site_source)
 
 
 def list_sources(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
@@ -86,6 +92,18 @@ def add_site_source(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
         extractor_id=args.extractor,
         content_type=args.content_type,
     )
+
+
+def disable_site_source(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.patch(f"/api/source-config/site-lists/{args.id}", {"enabled": False})
+    return client.sources_site_disable(args.id)
+
+
+def delete_site_source(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
+    if isinstance(client, ApiClient):
+        return client.delete(f"/api/source-config/site-lists/{args.id}")
+    return client.sources_site_delete(args.id)
 
 
 def _rows(source_type: str, value: Any) -> list[dict[str, Any]]:

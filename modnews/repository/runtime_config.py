@@ -136,6 +136,16 @@ class RuntimeConfigStore:
                     sites.append(source_id)
         return self.save(data)
 
+    def delete_site_list_item(self, source_id: str) -> dict[str, Any]:
+        data = self.load()
+        sources = data["sources"].setdefault("site_lists", {})
+        if isinstance(sources, dict):
+            sources.pop(source_id, None)
+        step = data["steps"].setdefault("site_lists", {})
+        if isinstance(step, dict) and isinstance(step.get("sites"), list):
+            step["sites"] = [item for item in step["sites"] if item != source_id]
+        return self.save(data)
+
     def restore_builtin_sources(self) -> dict[str, Any]:
         data = self.load()
         _merge_builtin_rss(data["sources"], self.rss_seed_path)

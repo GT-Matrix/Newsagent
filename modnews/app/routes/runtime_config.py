@@ -80,3 +80,8 @@ def upsert_site_list_source(source_id: str):
     if not payload.get("name") or not payload.get("url"):
         return jsonify({"ok": False, "error": "name and url are required"}), 400
     return jsonify({"ok": True, "config": local_client().site_list_update_item(source_id, payload)})
+
+
+@bp.delete("/api/source-config/site-lists/<source_id>")
+def delete_site_list_source(source_id: str):
+    return jsonify({"ok": True, "config": local_client().site_list_delete_item(source_id)})

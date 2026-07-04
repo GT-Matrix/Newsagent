@@ -181,6 +181,9 @@ class RuntimeLocalMixin:
     def site_list_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         return source_config_repository(self.project_root).upsert_site(source_id, patch)
 
+    def site_list_delete_item(self, source_id: str) -> dict[str, Any]:
+        return source_config_repository(self.project_root).delete_site(source_id)
+
     def config_set(self, key_path: str, value: Any) -> dict[str, Any]:
         parts = key_path.split(".")
         if len(parts) < 2:
@@ -232,6 +235,12 @@ class RuntimeLocalMixin:
                 "content_type": content_type,
             },
         )
+
+    def sources_site_disable(self, source_id: str) -> dict[str, Any]:
+        return source_config_repository(self.project_root).disable_site(source_id)
+
+    def sources_site_delete(self, source_id: str) -> dict[str, Any]:
+        return source_config_repository(self.project_root).delete_site(source_id)
 
 
 def _set_nested(target: dict[str, Any], parts: list[str], value: Any) -> None:
