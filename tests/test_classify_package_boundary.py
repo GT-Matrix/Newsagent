@@ -19,6 +19,13 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
         self.assertTrue(hasattr(module, "run_clustered_event_merge_task"))
         self.assertTrue(hasattr(module, "REGISTERED_CLASSIFY_TASK_EXECUTORS"))
 
+    def test_batch_compat_modules_are_explicit_shims(self) -> None:
+        batch_tasks = importlib.import_module("modnews.service.classify.batch_tasks")
+        llm_batch_registry = importlib.import_module("modnews.service.classify.llm_batch_registry")
+
+        self.assertTrue(getattr(batch_tasks, "COMPATIBILITY_SHIM", False))
+        self.assertTrue(getattr(llm_batch_registry, "COMPATIBILITY_SHIM", False))
+
 
 if __name__ == "__main__":
     unittest.main()

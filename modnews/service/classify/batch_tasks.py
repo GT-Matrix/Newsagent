@@ -8,7 +8,10 @@ from .batch_task_registry import (
     run_registered_llm_batch_item,
 )
 
+COMPATIBILITY_SHIM = True
+
 __all__ = [
+    "COMPATIBILITY_SHIM",
     "BATCH_TASK_EXECUTORS",
     "run_clustered_event_extraction_batch_item",
     "run_clustered_event_merge_batch_item",
