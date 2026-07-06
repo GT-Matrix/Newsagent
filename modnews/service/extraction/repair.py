@@ -34,12 +34,10 @@ class RepairManager:
         return task
 
     def retry_task(self, task_id: str) -> RepairTask:
-        from modnews.service.extraction.repair_support import now
+        from modnews.service.extraction.repair_state_ops import queue_repair_task
 
         task = self._load_task(task_id)
-        task.status = "queued"
-        task.error = None
-        task.updated_at = now()
+        queue_repair_task(task)
         self._save_task(task)
         return task
 
