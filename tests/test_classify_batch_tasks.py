@@ -7,8 +7,8 @@ from unittest.mock import patch
 from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_stage import LlmBatchStage, run_llm_batch_stage, run_llm_batch_task, task_batch_progress
 from modnews.service.classify.batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
-from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASK_BY_TYPE
-from modnews.service.classify.batch_tasks import BATCH_TASK_EXECUTORS, run_clustered_event_extraction_batch_item
+from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASK_BY_TYPE, REGISTERED_BATCH_TASKS
+from modnews.service.classify.batch_tasks import run_clustered_event_extraction_batch_item
 from modnews.service.classify.llm_batch_registry import REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE
 from modnews.service.classify.task_registry import REGISTERED_CLASSIFY_TASK_BY_TYPE
 
@@ -122,9 +122,9 @@ class ClassifyBatchTaskTest(unittest.TestCase):
         self.assertEqual(helper.call_args.kwargs["stage"].request_event, "clustered_extraction_request")
         self.assertEqual(helper.call_args.kwargs["task"].id, "task-1")
 
-    def test_batch_task_executors_are_registered_by_task_type(self) -> None:
+    def test_batch_task_registry_exposes_registered_task_types(self) -> None:
         self.assertEqual(
-            sorted(BATCH_TASK_EXECUTORS),
+            sorted(spec.task_type for spec in REGISTERED_BATCH_TASKS),
             [
                 "classify.clustered_event_extraction.batch",
                 "classify.clustered_event_merge.batch",
