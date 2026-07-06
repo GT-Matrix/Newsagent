@@ -1,15 +1,17 @@
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.pipeline.manager import PipelineManager
-from modnews.service.pipeline.planner import (
+from modnews.service.pipeline.planner import load_runtime_plan
+from modnews.service.pipeline.step import PipelineStep
+from modnews.service.pipeline.steps import (
     ClassifyPipelineStep,
     CombineIngestPipelineStep,
     IngestPipelineStep,
     ReportPipelineStep,
 )
-from modnews.service.pipeline.step import PipelineStep
 
 __all__ = [
     "CheckpointManager",
+    "load_runtime_plan",
     "IngestPipelineStep",
     "CombineIngestPipelineStep",
     "ClassifyPipelineStep",
