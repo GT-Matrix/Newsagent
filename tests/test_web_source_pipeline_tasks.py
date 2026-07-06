@@ -148,6 +148,59 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in result["tasks"]], ["web_source.run", "web_source.run"])
+            self.assertEqual(result["run"]["steps"][0]["step_id"], "ingest/site_lists/site-1")
+
+    def test_cli_ingest_site_lists_supports_per_source_filter(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            repo = SourceConfigRepository(project_root)
+            repo.upsert_site(
+                "site-1",
+                {
+                    "url": "https://example.com/1",
+                    "name": "Site 1",
+                    "extractor_id": "extractor-1",
+                    "enabled": True,
+                },
+            )
+            repo.upsert_site(
+                "site-2",
+                {
+                    "url": "https://example.com/2",
+                    "name": "Site 2",
+                    "extractor_id": "extractor-2",
+                    "enabled": True,
+                },
+            )
+            captured = []
+
+            def execute(task):
+                captured.append(task)
+                return {"job": {"id": task.id, "source_id": task.payload["source_id"]}}
+
+            client.container.event_queue.register_executor("web_source.run", execute)
+
+            result = run_ingest(
+                None,
+                client,
+                type(
+                    "Args",
+                    (),
+                    {
+                        "step": "site_lists",
+                        "run_id": "run-1",
+                        "sites": ["site-2"],
+                        "limit_per_site": 7,
+                        "max_concurrency": 2,
+                    },
+                )(),
+            )
+
+            self.assertTrue(result["ok"])
+            self.assertEqual([task.payload["source_id"] for task in captured], ["site-2"])
+            self.assertEqual(result["tasks"][0]["payload"]["limit"], 7)
+            self.assertEqual(result["run"]["steps"][0]["step_id"], "ingest/site_lists/site-2")
 
     def test_api_ingest_site_lists_uses_web_source_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -188,6 +241,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in response.get_json()["tasks"]], ["web_source.run", "web_source.run"])
+            self.assertTrue(response.get_json()["run"]["steps"])
 
     def test_blocked_web_source_task_auto_queues_repair_and_skips_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
