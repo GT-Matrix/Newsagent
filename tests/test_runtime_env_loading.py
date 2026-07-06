@@ -6,10 +6,54 @@ import unittest
 from pathlib import Path
 
 from modnews.core.config import build_config
+from modnews.repository.runtime_config_facade import RuntimeConfigFacade
 from modnews.repository.runtime_config_store import runtime_config_store
 
 
 class RuntimeEnvLoadingTest(unittest.TestCase):
+    def test_runtime_config_facade_reports_env_health(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            (project_root / ".env.runtime").write_text(
+                "\n".join(
+                    [
+                        "LLM_MODEL=test-llm",
+                        "LLM_BASE_URL=https://example-llm.test/v1",
+                        "LLM_API_KEY=test-llm-key",
+                        "EMBEDDING_MODEL=test-embedding",
+                        "EMBEDDING_BASE_URL=https://example-embedding.test/v1",
+                        "EMBEDDING_API_KEY=test-embedding-key",
+                        "NEWS_MODE=real",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            old_values = {
+                key: os.environ.pop(key, None)
+                for key in (
+                    "LLM_MODEL",
+                    "LLM_BASE_URL",
+                    "LLM_API_KEY",
+                    "EMBEDDING_MODEL",
+                    "EMBEDDING_BASE_URL",
+                    "EMBEDDING_API_KEY",
+                    "NEWS_MODE",
+                )
+            }
+            try:
+                health = RuntimeConfigFacade(project_root).env_health()
+            finally:
+                for key, value in old_values.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+
+            self.assertTrue(health["models"]["llm"]["api_key_present"])
+            self.assertEqual(health["models"]["embedding"]["model"], "test-embedding")
+            self.assertEqual(health["runtime"]["news_mode"], "real")
+            self.assertTrue(health["env_file"].endswith(".env.runtime"))
+
     def test_build_config_loads_root_env_runtime_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)

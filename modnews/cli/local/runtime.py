@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import Any
 
-from modnews.core.env import ensure_runtime_env
 from modnews.core.progress import BUS, sse
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config_facade import RuntimeConfigFacade
@@ -64,43 +62,7 @@ class RuntimeLocalMixin:
         return self._runtime_config().show(include_paths=include_paths)
 
     def config_env_health(self) -> dict[str, Any]:
-        env_file = ensure_runtime_env(self.project_root)
-        return {
-            "env_file": str(env_file) if env_file else None,
-            "models": {
-                "llm": {
-                    "model": os.environ.get("LLM_MODEL"),
-                    "base_url": os.environ.get("LLM_BASE_URL"),
-                    "api_key_present": bool(os.environ.get("LLM_API_KEY")),
-                    "timeout_seconds": os.environ.get("LLM_TIMEOUT_SECONDS"),
-                    "max_retries": os.environ.get("LLM_MAX_RETRIES"),
-                },
-                "embedding": {
-                    "model": os.environ.get("EMBEDDING_MODEL"),
-                    "base_url": os.environ.get("EMBEDDING_BASE_URL"),
-                    "api_key_present": bool(os.environ.get("EMBEDDING_API_KEY")),
-                    "timeout_seconds": os.environ.get("EMBEDDING_TIMEOUT_SECONDS"),
-                },
-            },
-            "runtime": {
-                "news_mode": os.environ.get("NEWS_MODE"),
-                "source_lab_proxy": os.environ.get("SOURCE_LAB_PROXY"),
-                "newsnow_api_url": os.environ.get("NEWSNOW_API_URL"),
-                "rss_api_url_present": bool(os.environ.get("MODNEWS_RSS_API_URL")),
-                "site_lists_api_url_present": bool(os.environ.get("MODNEWS_SITE_LISTS_API_URL")),
-                "cache_simulation_enabled": os.environ.get("CACHE_SIMULATION_ENABLED"),
-            },
-            "paths": {
-                name: {"value": os.environ.get(name), "is_set": bool(os.environ.get(name))}
-                for name in (
-                    "MODNEWS_RUNTIME_DIR",
-                    "MODNEWS_OUTPUT_DIR",
-                    "MODNEWS_PROCESS_DIR",
-                    "MODNEWS_CACHE_DIR",
-                    "MODNEWS_AGENT_WORK_DIR",
-                )
-            },
-        }
+        return self._runtime_config().env_health()
 
     def source_diagnostics(self) -> dict[str, Any]:
         return self._runtime_config().source_diagnostics()
