@@ -29,8 +29,11 @@ class PipelineStepDescriptor:
     group: str
     kind: str
     description: str | None = None
+    depends_on: tuple[str, ...] = ()
     callback_handlers: tuple[str, ...] = ()
     followups: tuple[PipelineFollowupDescriptor, ...] = ()
+    concrete_step_ids: tuple[str, ...] = ()
+    concrete_step_prefixes: tuple[str, ...] = ()
 
 
 class PipelineStep(Protocol):
@@ -58,8 +61,11 @@ class PipelineStepBase:
     group: str = "pipeline"
     kind: str = "root"
     description: str | None = None
+    depends_on: tuple[str, ...] = ()
     callback_handlers: tuple[str, ...] = ()
     followup_descriptors: tuple[PipelineFollowupDescriptor, ...] = ()
+    concrete_step_ids: tuple[str, ...] = ()
+    concrete_step_prefixes: tuple[str, ...] = ()
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         raise NotImplementedError
@@ -80,6 +86,9 @@ class PipelineStepBase:
             group=self.group,
             kind=self.kind,
             description=self.description,
+            depends_on=self.depends_on,
             callback_handlers=self.callback_handlers,
             followups=self.followup_descriptors,
+            concrete_step_ids=self.concrete_step_ids,
+            concrete_step_prefixes=self.concrete_step_prefixes,
         )

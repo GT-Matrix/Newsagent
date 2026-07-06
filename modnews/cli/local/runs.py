@@ -45,14 +45,25 @@ class RunsLocalMixin:
         return {"ok": ok, "run": run_record, "tasks": tasks}
 
     def run_list(self) -> list[dict[str, Any]]:
+        descriptors = self.container.pipeline_manager.describe_steps()
         return [
-            build_run_list_item(self.project_root, self.container.event_queue, record)
+            build_run_list_item(
+                self.project_root,
+                self.container.event_queue,
+                record,
+                pipeline_descriptors=descriptors,
+            )
             for record in RunRepository(self.project_root).list()
         ]
 
     def run_status(self, run_id: str | None = None) -> dict[str, Any]:
         if run_id:
-            return build_run_detail(self.project_root, self.container.event_queue, run_id)
+            return build_run_detail(
+                self.project_root,
+                self.container.event_queue,
+                run_id,
+                pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
+            )
         return {"runs": self.run_list(), "state": self.state()}
 
     def run_resume(self, run_id: str) -> dict[str, Any]:

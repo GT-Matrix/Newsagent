@@ -30,9 +30,15 @@ class PipelineTaskGraphTest(unittest.TestCase):
             self.assertEqual([item.step_id for item in descriptors], ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"])
             self.assertEqual(descriptors[0].group, "ingest")
             self.assertEqual(descriptors[0].kind, "root")
+            self.assertEqual(descriptors[0].concrete_step_prefixes, ("ingest/",))
             self.assertEqual(descriptors[1].callback_handlers, ("completed", "failed", "blocked"))
+            self.assertEqual(descriptors[1].depends_on, ("pipeline_ingest",))
             self.assertEqual(descriptors[1].followups[0].builder_id, "combine_ingest_for_run")
             self.assertEqual(descriptors[2].followups[0].task_type, "pipeline.combine_ingest")
+            self.assertEqual(
+                descriptors[2].concrete_step_ids,
+                ("classify/clustered_event_extraction", "classify/clustered_event_merge"),
+            )
             self.assertEqual(descriptors[3].group, "report")
 
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:

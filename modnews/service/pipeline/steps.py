@@ -53,6 +53,7 @@ class IngestPipelineStep(PipelineStepBase):
     title: str = "Ingest Planner"
     group: str = "ingest"
     description: str = "负责根据运行配置注册 ingest 入口任务。"
+    concrete_step_prefixes: tuple[str, ...] = ("ingest/",)
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
@@ -73,6 +74,8 @@ class CombineIngestPipelineStep(FollowupPipelineStepBase):
     title: str = "Combine Ingest Outputs"
     group: str = "ingest"
     description: str = "等待 ingest 任务结束后注册合并任务。"
+    depends_on: tuple[str, ...] = ("pipeline_ingest",)
+    concrete_step_ids: tuple[str, ...] = ("pipeline/combine_ingest",)
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="ingest_terminal",
@@ -92,6 +95,11 @@ class ClassifyPipelineStep(FollowupPipelineStepBase):
     title: str = "Classify Followups"
     group: str = "classify"
     description: str = "按统一 followup 规则串联分类抽取与合并任务。"
+    depends_on: tuple[str, ...] = ("pipeline_combine_ingest",)
+    concrete_step_ids: tuple[str, ...] = (
+        "classify/clustered_event_extraction",
+        "classify/clustered_event_merge",
+    )
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="combine_ingest_completed",
@@ -116,6 +124,8 @@ class ReportPipelineStep(FollowupPipelineStepBase):
     title: str = "Report Followups"
     group: str = "report"
     description: str = "在分类完成后注册报告生成任务。"
+    depends_on: tuple[str, ...] = ("pipeline_classify",)
+    concrete_step_ids: tuple[str, ...] = ("report/generate",)
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="classify_merge_completed",

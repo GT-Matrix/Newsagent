@@ -6,6 +6,7 @@ from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
+from modnews.service.pipeline.step import PipelineStepDescriptor
 
 
 def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -50,6 +51,59 @@ def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) 
             }
         )
     return step_views
+
+
+def build_pipeline_step_views(
+    descriptors: list[PipelineStepDescriptor],
+    concrete_steps: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    concrete_by_step_id = {
+        str(step.get("step_id") or ""): step
+        for step in concrete_steps
+        if isinstance(step, dict) and step.get("step_id")
+    }
+    rows: list[dict[str, Any]] = []
+    for descriptor in descriptors:
+        matched_steps = [
+            step
+            for step_id, step in concrete_by_step_id.items()
+            if _matches_pipeline_descriptor(descriptor, step_id)
+        ]
+        concrete_step_ids = sorted(str(step.get("step_id") or "") for step in matched_steps if step.get("step_id"))
+        latest_checkpoint = _latest_pipeline_checkpoint(matched_steps)
+        row = {
+            "step_id": descriptor.step_id,
+            "title": descriptor.title,
+            "group": descriptor.group,
+            "kind": descriptor.kind,
+            "description": descriptor.description,
+            "depends_on": list(descriptor.depends_on),
+            "callback_handlers": list(descriptor.callback_handlers),
+            "followups": [
+                {
+                    "trigger": followup.trigger,
+                    "builder_id": followup.builder_id,
+                    "task_type": followup.task_type,
+                    "step_prefix": followup.step_prefix,
+                }
+                for followup in descriptor.followups
+            ],
+            "concrete_step_ids": concrete_step_ids,
+            "status": _aggregate_pipeline_step_status(matched_steps),
+            "task_ids": _merge_step_ids(matched_steps, "task_ids"),
+            "queued_task_ids": _merge_step_ids(matched_steps, "queued_task_ids"),
+            "completed_task_ids": _merge_step_ids(matched_steps, "completed_task_ids"),
+            "blocked_task_ids": _merge_step_ids(matched_steps, "blocked_task_ids"),
+            "skipped_task_ids": _merge_step_ids(matched_steps, "skipped_task_ids"),
+            "failed_task_ids": _merge_step_ids(matched_steps, "failed_task_ids"),
+            "checkpoint_count": sum(int(step.get("checkpoint_count") or 0) for step in matched_steps),
+            "latest_checkpoint": latest_checkpoint,
+            "artifacts": checkpoint_artifacts(latest_checkpoint),
+            "stats": latest_checkpoint.get("stats", {}) if latest_checkpoint else {},
+            "callback_events": _merge_callback_events(matched_steps),
+        }
+        rows.append(row)
+    return rows
 
 
 def step_status(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> str:
@@ -239,6 +293,68 @@ def collect_callbacks(result: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(publish, dict):
         callbacks.append({"type": "publish", "payload": publish})
     return callbacks
+
+
+def _matches_pipeline_descriptor(descriptor: PipelineStepDescriptor, step_id: str) -> bool:
+    if step_id == descriptor.step_id:
+        return True
+    if step_id in descriptor.concrete_step_ids:
+        return True
+    return any(step_id.startswith(prefix) for prefix in descriptor.concrete_step_prefixes)
+
+
+def _aggregate_pipeline_step_status(steps: list[dict[str, Any]]) -> str:
+    statuses = [str(step.get("status") or "") for step in steps if step.get("status")]
+    if not statuses:
+        return "idle"
+    if "failed" in statuses:
+        return "failed"
+    if "blocked" in statuses:
+        return "blocked"
+    if "running" in statuses:
+        return "running"
+    if "queued" in statuses:
+        return "queued"
+    if "partial" in statuses:
+        return "partial"
+    if all(status == "succeeded" for status in statuses):
+        return "succeeded"
+    return statuses[-1]
+
+
+def _merge_step_ids(steps: list[dict[str, Any]], key: str) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for step in steps:
+        for value in step.get(key, []):
+            if not isinstance(value, str) or value in seen:
+                continue
+            seen.add(value)
+            merged.append(value)
+    return merged
+
+
+def _latest_pipeline_checkpoint(steps: list[dict[str, Any]]) -> dict[str, Any] | None:
+    latest: dict[str, Any] | None = None
+    latest_key = ""
+    for step in steps:
+        checkpoint = step.get("latest_checkpoint")
+        if not isinstance(checkpoint, dict):
+            continue
+        key = str(checkpoint.get("finished_at") or checkpoint.get("started_at") or checkpoint.get("path") or "")
+        if key >= latest_key:
+            latest = checkpoint
+            latest_key = key
+    return latest
+
+
+def _merge_callback_events(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for step in steps:
+        for event in step.get("callback_events", []):
+            if isinstance(event, dict) and event.get("handler"):
+                rows.append(event)
+    return rows[-50:]
 
 
 def task_logs(project_root: Path, task_id: str) -> list[dict[str, Any]]:

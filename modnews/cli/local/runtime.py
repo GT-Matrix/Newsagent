@@ -26,7 +26,10 @@ class RuntimeLocalMixin:
                 "group": descriptor.group,
                 "kind": descriptor.kind,
                 "description": descriptor.description,
+                "depends_on": list(descriptor.depends_on),
                 "callback_handlers": list(descriptor.callback_handlers),
+                "concrete_step_ids": list(descriptor.concrete_step_ids),
+                "concrete_step_prefixes": list(descriptor.concrete_step_prefixes),
                 "followups": [
                     {
                         "trigger": followup.trigger,

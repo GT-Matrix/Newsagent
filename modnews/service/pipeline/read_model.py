@@ -9,6 +9,7 @@ from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.read_model_support import (
     build_domain_view,
+    build_pipeline_step_views,
     build_step_views,
     collect_artifacts,
     collect_callbacks,
@@ -19,13 +20,27 @@ from modnews.service.pipeline.read_model_support import (
     task_logs,
     task_summary,
 )
+from modnews.service.pipeline.step import PipelineStepDescriptor
 
 
-def build_run_list_item(project_root: Path, queue: EventQueue, run_record: dict[str, Any]) -> dict[str, Any]:
+def build_run_list_item(
+    project_root: Path,
+    queue: EventQueue,
+    run_record: dict[str, Any],
+    *,
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
+) -> dict[str, Any]:
     run = dict(run_record)
     run_id = str(run.get("run_id") or "")
-    tasks, checkpoints, steps = _load_run_view(project_root, queue, run_id, persisted_steps=run.get("steps"))
+    tasks, checkpoints, steps, pipeline_steps = _load_run_view(
+        project_root,
+        queue,
+        run_id,
+        persisted_steps=run.get("steps"),
+        pipeline_descriptors=pipeline_descriptors,
+    )
     run["steps_summary"] = status_summary(step.get("status") for step in steps)
+    run["pipeline_steps_summary"] = status_summary(step.get("status") for step in pipeline_steps)
     run["task_summary"] = status_summary(task.state for task in tasks)
     run["active_task_ids"] = [task.id for task in tasks if task.state in {"queued", "waiting", "running"}]
     run["blocked_task_ids"] = [task.id for task in tasks if task.state == "blocked"]
@@ -35,14 +50,27 @@ def build_run_list_item(project_root: Path, queue: EventQueue, run_record: dict[
     return run
 
 
-def build_run_detail(project_root: Path, queue: EventQueue, run_id: str) -> dict[str, Any]:
+def build_run_detail(
+    project_root: Path,
+    queue: EventQueue,
+    run_id: str,
+    *,
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
+) -> dict[str, Any]:
     runs = RunRepository(project_root)
     run = dict(runs.get(run_id))
-    tasks, checkpoints, steps = _load_run_view(project_root, queue, run_id, persisted_steps=run.get("steps"))
+    tasks, checkpoints, steps, pipeline_steps = _load_run_view(
+        project_root,
+        queue,
+        run_id,
+        persisted_steps=run.get("steps"),
+        pipeline_descriptors=pipeline_descriptors,
+    )
     artifacts = collect_artifacts(run, checkpoints)
     return {
         "run": run,
         "steps": steps,
+        "pipeline_steps": pipeline_steps,
         "tasks": [task_summary(queue, task, include_result=True) for task in tasks],
         "checkpoints": checkpoints,
         "artifacts": artifacts,
@@ -103,7 +131,8 @@ def _load_run_view(
     run_id: str,
     *,
     persisted_steps: Any,
-) -> tuple[list[TaskEvent], list[dict[str, Any]], list[dict[str, Any]]]:
+    pipeline_descriptors: list[PipelineStepDescriptor] | None,
+) -> tuple[list[TaskEvent], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     checkpoints_repo = CheckpointRepository(project_root)
     tasks = [task for task in queue.list() if task.pipeline_run_id == run_id]
     checkpoints = normalize_checkpoints(
@@ -112,7 +141,8 @@ def _load_run_view(
         if str(checkpoint.get("run_id") or run_id) == run_id
     )
     steps = merge_steps(build_step_views(tasks, checkpoints), normalize_steps(persisted_steps))
-    return tasks, checkpoints, steps
+    pipeline_steps = build_pipeline_step_views(pipeline_descriptors or [], steps)
+    return tasks, checkpoints, steps, pipeline_steps
 
 
 def _task_checkpoints(project_root: Path, task: TaskEvent) -> list[dict[str, Any]]:

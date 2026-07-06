@@ -154,6 +154,11 @@ class RunControlTest(unittest.TestCase):
                 ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"],
             )
             classify = next(item for item in state["pipeline"]["steps"] if item["step_id"] == "pipeline_classify")
+            self.assertEqual(classify["depends_on"], ["pipeline_combine_ingest"])
+            self.assertEqual(
+                classify["concrete_step_ids"],
+                ["classify/clustered_event_extraction", "classify/clustered_event_merge"],
+            )
             self.assertEqual(classify["callback_handlers"], ["completed"])
             self.assertEqual(classify["followups"][0]["builder_id"], "classify_extraction_after_combine")
 

@@ -41,6 +41,8 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result[0]["run_id"], "run-1")
             self.assertEqual(result[0]["task_summary"]["blocked"], 1)
             self.assertEqual(result[0]["steps_summary"]["by_status"]["blocked"], 1)
+            self.assertEqual(result[0]["pipeline_steps_summary"]["by_status"]["blocked"], 1)
+            self.assertEqual(result[0]["pipeline_steps_summary"]["by_status"]["idle"], 3)
             self.assertEqual(result[0]["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(result[0]["artifact_count"], 1)
 
@@ -187,7 +189,7 @@ class PipelineReadModelTest(unittest.TestCase):
                     id="ingest-1",
                     type="diagnostic.echo",
                     pipeline_run_id="run-1",
-                    step_id="test/ingest",
+                    step_id="ingest/rss",
                     state="succeeded",
                     payload={"project_root": tmp, "run_id": "run-1"},
                 )
@@ -205,7 +207,7 @@ class PipelineReadModelTest(unittest.TestCase):
             artifact = client.container.checkpoints().write_artifact("run-1", "ingest/rss", "ingest-1", "items.json", [{"title": "A"}])
             checkpoint = client.container.checkpoints().write(
                 "run-1",
-                "test/ingest",
+                "ingest/rss",
                 "ingest-1",
                 {
                     "status": "succeeded",
@@ -219,14 +221,22 @@ class PipelineReadModelTest(unittest.TestCase):
 
             self.assertEqual(result["run"]["run_id"], "run-1")
             self.assertTrue(result["steps"])
-            self.assertEqual({step["step_id"] for step in result["steps"]}, {"test/ingest", "pipeline/combine_ingest"})
+            self.assertTrue(result["pipeline_steps"])
+            self.assertEqual({step["step_id"] for step in result["steps"]}, {"ingest/rss", "pipeline/combine_ingest"})
             combine_step = next(step for step in result["steps"] if step["step_id"] == "pipeline/combine_ingest")
-            self.assertEqual(combine_step["depends_on"], ["test/ingest"])
+            self.assertEqual(combine_step["depends_on"], ["ingest/rss"])
             self.assertEqual(combine_step["status"], "queued")
-            ingest_step = next(step for step in result["steps"] if step["step_id"] == "test/ingest")
+            ingest_step = next(step for step in result["steps"] if step["step_id"] == "ingest/rss")
             self.assertEqual(ingest_step["status"], "succeeded")
             self.assertEqual(ingest_step["stats"]["item_count"], 1)
-            self.assertEqual(result["steps"][0]["step_id"], "pipeline/combine_ingest")
+            self.assertEqual([step["step_id"] for step in result["steps"]], ["ingest/rss", "pipeline/combine_ingest"])
+            pipeline_ingest = next(step for step in result["pipeline_steps"] if step["step_id"] == "pipeline_ingest")
+            self.assertEqual(pipeline_ingest["status"], "succeeded")
+            self.assertEqual(pipeline_ingest["concrete_step_ids"], ["ingest/rss"])
+            pipeline_combine = next(step for step in result["pipeline_steps"] if step["step_id"] == "pipeline_combine_ingest")
+            self.assertEqual(pipeline_combine["depends_on"], ["pipeline_ingest"])
+            self.assertEqual(pipeline_combine["status"], "queued")
+            self.assertEqual(pipeline_combine["concrete_step_ids"], ["pipeline/combine_ingest"])
             self.assertEqual(result["checkpoints"][0]["output_artifacts"][0]["name"], "items")
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
 
