@@ -4,6 +4,7 @@ from typing import Any
 
 from modnews.service.extraction.repair_runtime_facade import RepairRuntimeFacade
 from modnews.service.extraction.registry import registry_from_project
+from modnews.service.extraction.web_source_runtime import WebSourceRuntimeFacade
 from modnews.repository.web_jobs import WebJobStore
 
 
@@ -52,24 +53,7 @@ class ExtractionLocalMixin:
         return WebJobStore(self.project_root).events(job_id)
 
     def web_source_run(self, source_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-        task_id = str(payload.get("task_id") or f"web-source-{source_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-        task = TaskEvent(
-            id=task_id,
-            type="web_source.run",
-            step_id="web_source",
-            payload={
-                "project_root": str(self.project_root),
-                "source_id": source_id,
-                "limit": payload.get("limit"),
-                "scrape_date": payload.get("scrape_date"),
-            },
-            concurrency_key=f"web_source:{source_id}",
-            max_concurrency=1,
-        )
-        self.container.event_queue.submit(task)
-        result = self.queue_show(task_id)
-        job = result.get("result", {}).get("job") if isinstance(result.get("result"), dict) else None
-        return {"ok": result.get("state") == "succeeded", "task": result, "item": job}
+        return self._web_source_runtime().run_source(source_id, payload)
 
     def repair_tasks(self) -> list[dict[str, Any]]:
         return self._repair_runtime().list_tasks()
@@ -91,6 +75,13 @@ class ExtractionLocalMixin:
 
     def _repair_runtime(self) -> RepairRuntimeFacade:
         return RepairRuntimeFacade(
+            project_root=self.project_root,
+            queue=self.container.event_queue,
+            queue_show=self.queue_show,
+        )
+
+    def _web_source_runtime(self) -> WebSourceRuntimeFacade:
+        return WebSourceRuntimeFacade(
             project_root=self.project_root,
             queue=self.container.event_queue,
             queue_show=self.queue_show,

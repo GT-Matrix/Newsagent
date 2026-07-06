@@ -16,6 +16,7 @@ from modnews.repository.runs import RunRepository
 from modnews.repository.source_config import SourceConfigRepository
 from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.registry import registry_from_project
+from modnews.service.extraction.web_source_runtime import WebSourceRuntimeFacade
 from modnews.service.extraction.web_contract import WebJob
 from modnews.service.ingest.queue_runtime import submit_ingest_step_run
 from modnews.service.ingest.planner import plan_ingest_tasks
@@ -25,6 +26,32 @@ from modnews.service.ingest.tasks import run_ingest_step_task
 
 
 class WebSourcePipelineTasksTest(unittest.TestCase):
+    def test_web_source_runtime_facade_submits_registered_queue_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            facade = WebSourceRuntimeFacade(
+                project_root=project_root,
+                queue=client.container.event_queue,
+                queue_show=client.queue_show,
+            )
+            captured = []
+
+            def execute(task):
+                captured.append(task)
+                return {"job": {"id": task.id, "source_id": task.payload["source_id"]}}
+
+            client.container.event_queue.register_executor("web_source.run", execute)
+
+            result = facade.run_source("site-1", {"limit": 3, "task_id": "manual-web-1"})
+
+            self.assertTrue(result["ok"])
+            self.assertEqual([task.type for task in captured], ["web_source.run"])
+            self.assertEqual(captured[0].id, "manual-web-1")
+            self.assertEqual(captured[0].payload["source_id"], "site-1")
+            self.assertEqual(captured[0].payload["limit"], 3)
+            self.assertEqual(result["task"]["id"], "manual-web-1")
+
     def test_submit_ingest_step_run_uses_planned_site_list_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
