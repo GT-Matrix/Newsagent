@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-import json
-
 from modnews.core.config import ClassificationConfig
 from modnews.core.models import EventRecord
 from modnews.core.progress import emit
 
+from .event_merge_codec import build_merge_candidate_payload, build_merge_messages, decode_merge_event_ids
 from .llm_client import LlmClient
-from .prompts import merge_system_prompt
 from .retriever import EventVectorRetriever
 from .types import EventState, PreparedItem
-from .utils import clean_list, clean_string, event_payload, parse_datetime
+from .utils import parse_datetime
 
 
 def merge_similar_events(
@@ -66,34 +64,19 @@ def run_merge_round(
         candidates = recall_merge_candidates(state, events, config, retriever, skipped)
         if not candidates:
             continue
+        payload = build_merge_candidate_payload(state, candidates)
         emit(
             "merge_candidates",
             round=round_index,
-            seed_event=event_payload(state.record),
-            candidates=[event_payload(candidate.record) for candidate in candidates],
+            seed_event=payload["seed_event"],
+            candidates=payload["candidate_events"],
         )
         response = client.complete_json(
             task="event_merge_group",
-            messages=[
-                {"role": "system", "content": merge_system_prompt()},
-                {
-                    "role": "user",
-                    "content": json.dumps(
-                        {
-                            "seed_event": event_payload(state.record),
-                            "candidate_events": [event_payload(candidate.record) for candidate in candidates],
-                        },
-                        ensure_ascii=False,
-                    ),
-                },
-            ],
+            messages=build_merge_messages(state, candidates),
         )
         allowed = {candidate.record.event_id for candidate in candidates}
-        selected = {
-            event_id
-            for event_id in clean_list(response.get("merge_event_ids"))
-            if event_id in allowed and event_id in by_id
-        }
+        selected = decode_merge_event_ids(response, allowed_event_ids=allowed, known_event_ids=set(by_id))
         if selected:
             merge_groups.setdefault(seed_id, set()).update(selected)
             skipped.update(selected)

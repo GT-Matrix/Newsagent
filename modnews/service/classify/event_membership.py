@@ -1,22 +1,15 @@
 from __future__ import annotations
 
-import json
-
 from modnews.core.context import PipelineContext
 from modnews.core.models import EventRecord
 from modnews.core.progress import emit
 
+from .event_membership_codec import build_membership_candidate_payload, build_membership_messages, decode_membership_decision
 from .llm_client import LlmClient
-from .prompts import membership_system_prompt
 from .types import DiscardedRecord, EventState, PreparedItem
 from .utils import (
     clean_event_type,
-    clean_list,
-    clean_string,
     discard,
-    event_payload,
-    news_payload,
-    normalize_confidence,
     parse_datetime,
 )
 
@@ -26,27 +19,16 @@ def decide_event_membership(
     entry: PreparedItem,
     candidates: list[EventState],
 ) -> dict:
+    payload = build_membership_candidate_payload(entry, candidates)
     emit(
         "membership_candidates",
         index=entry.index,
-        news=news_payload(entry),
-        candidates=[event_payload(candidate.record) for candidate in candidates],
+        news=payload["news"],
+        candidates=payload["candidate_events"],
     )
     return client.complete_json(
         task="event_membership",
-        messages=[
-            {"role": "system", "content": membership_system_prompt()},
-            {
-                "role": "user",
-                "content": json.dumps(
-                    {
-                        "news": news_payload(entry),
-                        "candidate_events": [event_payload(candidate.record) for candidate in candidates],
-                    },
-                    ensure_ascii=False,
-                ),
-            },
-        ],
+        messages=build_membership_messages(entry, candidates),
     )
 
 
@@ -58,13 +40,14 @@ def apply_event_decision(
     discarded: list[DiscardedRecord],
 ) -> None:
     item = entry.item
-    action = str(decision.get("decision", "discard")).lower()
-    confidence = normalize_confidence(decision.get("confidence"))
-    reason = clean_string(decision.get("reason"))
+    decoded = decode_membership_decision(decision)
+    action = str(decoded["action"])
+    confidence = decoded["confidence"]
+    reason = decoded["reason"]
     item.classification_reason = reason
 
     if action == "assign":
-        event_id = clean_string(decision.get("matched_event_id"))
+        event_id = str(decoded["matched_event_id"] or "")
         target = next((event for event in events if event.record.event_id == event_id), None)
         if target is not None:
             assign_item_to_event(entry, target, confidence)
@@ -83,15 +66,15 @@ def apply_event_decision(
         event_id = new_event_id(ctx.scrape_date, len(events) + 1)
         event = EventRecord(
             event_id=event_id,
-            event_label=clean_string(decision.get("event_label")) or item.canonical_summary or item.title,
+            event_label=str(decoded["event_label"] or item.canonical_summary or item.title),
             member_count=0,
             platforms=[],
             latest_pubtime=None,
             representative_titles=[],
             confidence=confidence,
-            event_summary=clean_string(decision.get("event_summary")) or item.canonical_summary,
-            event_type=clean_event_type(decision.get("event_type") or item.event_type),
-            key_entities=clean_list(decision.get("key_entities")) or item.entities,
+            event_summary=str(decoded["event_summary"] or item.canonical_summary),
+            event_type=clean_event_type(decoded["event_type"] or item.event_type),
+            key_entities=list(decoded["key_entities"]) or item.entities,
             source_news_ids=[],
             last_llm_updated_at=ctx.scrape_date,
         )
