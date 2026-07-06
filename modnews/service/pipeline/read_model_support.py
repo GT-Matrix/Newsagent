@@ -78,10 +78,13 @@ def step_status(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> st
 def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) -> dict[str, Any]:
     payload = task.to_dict()
     waiting_reason = queue.waiting_reason(task)
+    waiting_details = queue.waiting_details(task)
     blocked_reason = queue.blocked_reason(task)
     result = queue.result(task.id)
     if waiting_reason:
         payload["waiting_reason"] = waiting_reason
+    if waiting_details:
+        payload["waiting_details"] = waiting_details
     if blocked_reason:
         payload["blocked_reason"] = blocked_reason
     if result.get("retry_scheduled") is not None:
@@ -90,7 +93,7 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
         payload["retry_delay_seconds"] = result.get("retry_delay_seconds")
     if result.get("next_attempt_at") is not None:
         payload["scheduled_next_attempt_at"] = result.get("next_attempt_at")
-    payload["ready"] = waiting_reason is None and task.state in {"queued", "waiting"}
+    payload["ready"] = waiting_details is None and task.state in {"queued", "waiting"}
     if include_result:
         payload["result"] = result
     return payload

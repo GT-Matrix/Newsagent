@@ -85,6 +85,7 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(queue.result("second")["waiting_reason"], "waiting for dependency first")
         self.assertIsNone(queue.blocked_reason(second))
         self.assertEqual(queue.waiting_reason(second), "waiting for dependency first")
+        self.assertEqual(queue.waiting_details(second), {"kind": "dependency", "dependency_id": "first", "dependency_state": "running"})
 
     def test_terminal_dependency_blocks_dependent_task(self) -> None:
         queue = EventQueue()
@@ -149,6 +150,7 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(queue.result("flaky-1")["retry_delay_seconds"], 30)
         self.assertIsNotNone(task.next_attempt_at)
         self.assertEqual(queue.waiting_reason(task), f"waiting until retry window {task.next_attempt_at}")
+        self.assertEqual(queue.waiting_details(task), {"kind": "retry_window", "next_attempt_at": task.next_attempt_at})
         self.assertIsNone(queue._next_ready())  # type: ignore[union-attr]
 
     def test_manual_retry_clears_scheduled_retry_window(self) -> None:

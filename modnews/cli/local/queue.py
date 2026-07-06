@@ -9,15 +9,31 @@ from modnews.service.pipeline.read_model import build_task_detail, build_task_li
 class QueueLocalMixin:
     def queue_status(self) -> dict[str, Any]:
         snapshot = self.container.queue_state().load()
-        waiting_retry_ids = [
-            task.id
-            for task in self.container.event_queue.list()
-            if task.next_attempt_at and self.container.event_queue.waiting_reason(task) == f"waiting until retry window {task.next_attempt_at}"
-        ]
+        waiting_retry_ids: list[str] = []
+        waiting_dependency_ids: list[str] = []
+        waiting_concurrency_ids: list[str] = []
+        next_retry_at: str | None = None
+        for task in self.container.event_queue.list():
+            details = self.container.event_queue.waiting_details(task)
+            if not details:
+                continue
+            kind = details.get("kind")
+            if kind == "retry_window":
+                waiting_retry_ids.append(task.id)
+                candidate = details.get("next_attempt_at")
+                if isinstance(candidate, str) and (next_retry_at is None or candidate < next_retry_at):
+                    next_retry_at = candidate
+            elif kind == "dependency":
+                waiting_dependency_ids.append(task.id)
+            elif kind == "concurrency":
+                waiting_concurrency_ids.append(task.id)
         return {
             "counts": self.container.event_queue.status(),
             "ready": [task.id for task in self.container.event_queue.ready()],
             "waiting_retry_ids": waiting_retry_ids,
+            "waiting_dependency_ids": waiting_dependency_ids,
+            "waiting_concurrency_ids": waiting_concurrency_ids,
+            "next_retry_at": next_retry_at,
             "completion_callbacks": self.container.completion_callbacks.list(),
             "snapshot": {
                 "version": int(snapshot.get("version") or 1),

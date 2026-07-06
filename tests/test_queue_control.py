@@ -41,6 +41,23 @@ class QueueControlTest(unittest.TestCase):
             result = client.queue_status()
 
             self.assertEqual(result["waiting_retry_ids"], ["task-1"])
+            self.assertEqual(result["waiting_dependency_ids"], [])
+            self.assertEqual(result["waiting_concurrency_ids"], [])
+            self.assertEqual(result["next_retry_at"], next_attempt_at)
+
+    def test_queue_status_separates_dependency_and_concurrency_waiting(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="running"))
+            client.container.event_queue.register(TaskEvent(id="wait-dep", type="diagnostic.echo", depends_on=["dep-1"]))
+            client.container.event_queue.register(TaskEvent(id="run-slot", type="diagnostic.echo", state="running", concurrency_key="classify", max_concurrency=1))
+            client.container.event_queue.register(TaskEvent(id="wait-slot", type="diagnostic.echo", concurrency_key="classify", max_concurrency=1))
+            client.container.event_queue.drain_ready(limit=0)
+
+            result = client.queue_status()
+
+            self.assertEqual(result["waiting_dependency_ids"], ["wait-dep"])
+            self.assertEqual(result["waiting_concurrency_ids"], ["wait-slot"])
 
     def test_queue_cancel_marks_task_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

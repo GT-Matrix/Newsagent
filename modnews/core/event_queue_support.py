@@ -38,12 +38,15 @@ def dependency_blocked_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> s
     return None
 
 
-def waiting_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
+def waiting_details(task: TaskEvent, tasks: dict[str, TaskEvent]) -> dict[str, Any] | None:
     retry_at = parse_ts(task.next_attempt_at)
     if retry_at is not None:
         current = parse_ts(now())
         if current is not None and retry_at > current:
-            return f"waiting until retry window {task.next_attempt_at}"
+            return {
+                "kind": "retry_window",
+                "next_attempt_at": task.next_attempt_at,
+            }
     for dependency_id in task.depends_on:
         dependency = tasks.get(dependency_id)
         if dependency is None:
@@ -51,7 +54,11 @@ def waiting_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
         if dependency.state not in SUCCESS_STATES:
             if dependency.state in TERMINAL_STATES:
                 continue
-            return f"waiting for dependency {dependency_id}"
+            return {
+                "kind": "dependency",
+                "dependency_id": dependency_id,
+                "dependency_state": dependency.state,
+            }
     if task.concurrency_key and task.max_concurrency:
         running = sum(
             1
@@ -61,7 +68,26 @@ def waiting_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
             and other.concurrency_key == task.concurrency_key
         )
         if running >= task.max_concurrency:
-            return f"waiting for concurrency slot {task.concurrency_key}"
+            return {
+                "kind": "concurrency",
+                "concurrency_key": task.concurrency_key,
+                "max_concurrency": task.max_concurrency,
+                "running_count": running,
+            }
+    return None
+
+
+def waiting_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
+    details = waiting_details(task, tasks)
+    if not details:
+        return None
+    kind = details.get("kind")
+    if kind == "retry_window":
+        return f"waiting until retry window {details.get('next_attempt_at')}"
+    if kind == "dependency":
+        return f"waiting for dependency {details.get('dependency_id')}"
+    if kind == "concurrency":
+        return f"waiting for concurrency slot {details.get('concurrency_key')}"
     return None
 
 

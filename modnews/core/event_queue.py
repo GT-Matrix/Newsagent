@@ -24,6 +24,7 @@ from .event_queue_support import (
     snapshot_tasks,
     status_counts,
     unblock_released_tasks,
+    waiting_details,
     waiting_reason,
 )
 from .task import SUCCESS_STATES, TERMINAL_STATES, TaskBlocked, TaskEvent, task_context
@@ -273,6 +274,12 @@ class EventQueue:
         with self._lock:
             tasks = snapshot_tasks(self._tasks)
         return waiting_reason(task, tasks)
+
+    def waiting_details(self, task: TaskEvent) -> dict[str, Any] | None:
+        with self._lock:
+            tasks = snapshot_tasks(self._tasks)
+        details = waiting_details(task, tasks)
+        return dict(details) if isinstance(details, dict) else None
 
     def blocked_reason(self, task: TaskEvent) -> str | None:
         if task.state == "blocked":

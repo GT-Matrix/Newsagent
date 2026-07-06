@@ -147,6 +147,7 @@ class PipelineReadModelTest(unittest.TestCase):
             task = next(item for item in result if item["id"] == "task-1")
 
             self.assertEqual(task["waiting_reason"], f"waiting until retry window {next_attempt_at}")
+            self.assertEqual(task["waiting_details"], {"kind": "retry_window", "next_attempt_at": next_attempt_at})
             self.assertTrue(task["retry_scheduled"])
             self.assertEqual(task["retry_delay_seconds"], 120)
             self.assertEqual(task["scheduled_next_attempt_at"], next_attempt_at)
