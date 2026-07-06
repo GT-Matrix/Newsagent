@@ -10,7 +10,7 @@ from modnews.service.pipeline.registry_support import (
     plan_followup_tasks,
     plan_run_tasks,
 )
-from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep
+from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep, PipelineStepDescriptor
 
 
 @dataclass(slots=True)
@@ -22,6 +22,9 @@ class PipelineRegistry:
 
     def list(self) -> list[PipelineStep]:
         return list(self.steps.values())
+
+    def describe(self) -> list[PipelineStepDescriptor]:
+        return [step.describe() for step in self.list()]
 
     def plan_run(self, context: PipelinePlanContext) -> list[TaskEvent]:
         return plan_run_tasks(self.list(), context)

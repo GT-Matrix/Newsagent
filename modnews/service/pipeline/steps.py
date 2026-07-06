@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
+
 from modnews.core.task import TaskEvent
 
 from .followups import FollowupRule, register_followup_for_event
 from .runtime import load_runtime_plan
-from .step import PipelinePlanContext, PipelineStepBase
+from .step import PipelineFollowupDescriptor, PipelinePlanContext, PipelineStepBase
 from .task_builder import (
     build_ingest_tasks,
 )
@@ -13,28 +15,44 @@ from .task_builder import (
 
 @dataclass(slots=True)
 class FollowupPipelineStepBase(PipelineStepBase):
+    kind: str = "followup"
     followup_rules: tuple[FollowupRule, ...] = ()
-    followup_handlers: frozenset[str] = frozenset()
+    callback_handlers: tuple[str, ...] = ()
 
     def on_task_completed(self, event, queue):
-        if "completed" not in self.followup_handlers:
+        if "completed" not in self.callback_handlers:
             return None
         return register_followup_for_event(queue, event, self.followup_rules)
 
     def on_task_failed(self, event, queue):
-        if "failed" not in self.followup_handlers:
+        if "failed" not in self.callback_handlers:
             return None
         return register_followup_for_event(queue, event, self.followup_rules)
 
     def on_task_blocked(self, event, queue):
-        if "blocked" not in self.followup_handlers:
+        if "blocked" not in self.callback_handlers:
             return None
         return register_followup_for_event(queue, event, self.followup_rules)
+
+    @property
+    def followup_descriptors(self) -> tuple[PipelineFollowupDescriptor, ...]:
+        return tuple(
+            PipelineFollowupDescriptor(
+                trigger=rule.trigger,
+                builder_id=rule.builder_id,
+                task_type=rule.task_type,
+                step_prefix=rule.step_prefix,
+            )
+            for rule in self.followup_rules
+        )
 
 
 @dataclass(slots=True)
 class IngestPipelineStep(PipelineStepBase):
     id: str = "pipeline_ingest"
+    title: str = "Ingest Planner"
+    group: str = "ingest"
+    description: str = "负责根据运行配置注册 ingest 入口任务。"
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
@@ -52,6 +70,9 @@ class IngestPipelineStep(PipelineStepBase):
 @dataclass(slots=True)
 class CombineIngestPipelineStep(FollowupPipelineStepBase):
     id: str = "pipeline_combine_ingest"
+    title: str = "Combine Ingest Outputs"
+    group: str = "ingest"
+    description: str = "等待 ingest 任务结束后注册合并任务。"
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="ingest_terminal",
@@ -59,7 +80,7 @@ class CombineIngestPipelineStep(FollowupPipelineStepBase):
             builder_id="combine_ingest_for_run",
         ),
     )
-    followup_handlers: frozenset[str] = frozenset({"completed", "failed", "blocked"})
+    callback_handlers: tuple[str, ...] = ("completed", "failed", "blocked")
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         return []
@@ -68,6 +89,9 @@ class CombineIngestPipelineStep(FollowupPipelineStepBase):
 @dataclass(slots=True)
 class ClassifyPipelineStep(FollowupPipelineStepBase):
     id: str = "pipeline_classify"
+    title: str = "Classify Followups"
+    group: str = "classify"
+    description: str = "按统一 followup 规则串联分类抽取与合并任务。"
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="combine_ingest_completed",
@@ -80,7 +104,7 @@ class ClassifyPipelineStep(FollowupPipelineStepBase):
             builder_id="classify_merge_after_extraction",
         ),
     )
-    followup_handlers: frozenset[str] = frozenset({"completed"})
+    callback_handlers: tuple[str, ...] = ("completed",)
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         return []
@@ -89,6 +113,9 @@ class ClassifyPipelineStep(FollowupPipelineStepBase):
 @dataclass(slots=True)
 class ReportPipelineStep(FollowupPipelineStepBase):
     id: str = "pipeline_report"
+    title: str = "Report Followups"
+    group: str = "report"
+    description: str = "在分类完成后注册报告生成任务。"
     followup_rules: tuple[FollowupRule, ...] = (
         FollowupRule(
             trigger="classify_merge_completed",
@@ -96,7 +123,7 @@ class ReportPipelineStep(FollowupPipelineStepBase):
             builder_id="report_after_classify_merge",
         ),
     )
-    followup_handlers: frozenset[str] = frozenset({"completed"})
+    callback_handlers: tuple[str, ...] = ("completed",)
 
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         return []

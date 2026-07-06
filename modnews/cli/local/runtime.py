@@ -15,7 +15,30 @@ class RuntimeLocalMixin:
     def state(self) -> dict[str, Any]:
         payload = BUS.snapshot()
         payload["outputs"] = OutputRepository(self.project_root).state()
+        payload["pipeline"] = {"steps": self.pipeline_steps()}
         return payload
+
+    def pipeline_steps(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "step_id": descriptor.step_id,
+                "title": descriptor.title,
+                "group": descriptor.group,
+                "kind": descriptor.kind,
+                "description": descriptor.description,
+                "callback_handlers": list(descriptor.callback_handlers),
+                "followups": [
+                    {
+                        "trigger": followup.trigger,
+                        "builder_id": followup.builder_id,
+                        "task_type": followup.task_type,
+                        "step_prefix": followup.step_prefix,
+                    }
+                    for followup in descriptor.followups
+                ],
+            }
+            for descriptor in self.container.pipeline_manager.describe_steps()
+        ]
 
     def event_stream(self):
         def stream():

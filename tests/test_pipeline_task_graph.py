@@ -21,6 +21,20 @@ class PipelineTaskGraphTest(unittest.TestCase):
                 ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"],
             )
 
+    def test_pipeline_registry_exposes_step_descriptors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            container = configure_services(Path(tmp))
+
+            descriptors = container.pipeline_manager.describe_steps()
+
+            self.assertEqual([item.step_id for item in descriptors], ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"])
+            self.assertEqual(descriptors[0].group, "ingest")
+            self.assertEqual(descriptors[0].kind, "root")
+            self.assertEqual(descriptors[1].callback_handlers, ("completed", "failed", "blocked"))
+            self.assertEqual(descriptors[1].followups[0].builder_id, "combine_ingest_for_run")
+            self.assertEqual(descriptors[2].followups[0].task_type, "pipeline.combine_ingest")
+            self.assertEqual(descriptors[3].group, "report")
+
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)

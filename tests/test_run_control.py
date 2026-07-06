@@ -143,6 +143,29 @@ class RunControlTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.get_json()["run"]["state"], "cancelled")
 
+    def test_pipeline_step_metadata_is_exposed_via_state_and_api(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            state = client.state()
+            self.assertIn("pipeline", state)
+            self.assertEqual(
+                [item["step_id"] for item in state["pipeline"]["steps"]],
+                ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"],
+            )
+            classify = next(item for item in state["pipeline"]["steps"] if item["step_id"] == "pipeline_classify")
+            self.assertEqual(classify["callback_handlers"], ["completed"])
+            self.assertEqual(classify["followups"][0]["builder_id"], "classify_extraction_after_combine")
+
+            app = create_app(Path(tmp))
+            http = app.test_client()
+            response = http.get("/api/pipeline/steps")
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.get_json()
+            self.assertEqual(payload["items"][0]["title"], "Ingest Planner")
+            self.assertEqual(payload["items"][-1]["group"], "report")
+
     def test_blocked_step_callback_can_safely_skip_task(self) -> None:
         class SkipBlockedStep(PipelineStepBase):
             id = "skip_blocked"

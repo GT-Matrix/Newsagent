@@ -17,6 +17,11 @@ def runs():
     return jsonify({"items": local_client().run_list()})
 
 
+@bp.get("/api/pipeline/steps")
+def pipeline_steps():
+    return jsonify({"items": local_client().pipeline_steps()})
+
+
 @bp.get("/api/runs/<run_id>")
 def run_status(run_id: str):
     try:

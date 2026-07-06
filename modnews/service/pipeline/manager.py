@@ -12,7 +12,7 @@ from modnews.service.pipeline.manager_support import (
     start_pipeline_run,
 )
 from modnews.service.pipeline.registry import PipelineRegistry
-from modnews.service.pipeline.step import PipelineStep
+from modnews.service.pipeline.step import PipelineStep, PipelineStepDescriptor
 
 
 @dataclass(slots=True)
@@ -25,6 +25,9 @@ class PipelineManager:
     @property
     def steps(self) -> list[PipelineStep]:
         return self.step_registry.list()
+
+    def describe_steps(self) -> list[PipelineStepDescriptor]:
+        return self.step_registry.describe()
 
     def bind(self, event_queue: EventQueue, event_router: EventRouter) -> None:
         self.event_queue = event_queue
