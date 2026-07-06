@@ -7,9 +7,12 @@ from unittest.mock import patch
 from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_stage import LlmBatchStage, run_llm_batch_stage, run_llm_batch_task, task_batch_progress
 from modnews.service.classify.batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
-from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASK_BY_TYPE, REGISTERED_BATCH_TASKS
-from modnews.service.classify.batch_tasks import run_clustered_event_extraction_batch_item
-from modnews.service.classify.llm_batch_registry import REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE
+from modnews.service.classify.batch_task_registry import (
+    REGISTERED_BATCH_TASK_BY_TYPE,
+    REGISTERED_BATCH_TASKS,
+    REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE,
+    run_clustered_event_extraction_batch_item,
+)
 from modnews.service.classify.task_registry import REGISTERED_CLASSIFY_TASK_BY_TYPE
 
 
