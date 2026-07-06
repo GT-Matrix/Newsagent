@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from modnews.core.task import TaskEvent
+from modnews.service.pipeline.read_model import build_task_detail
 
 
 class QueueLocalMixin:
@@ -17,10 +18,7 @@ class QueueLocalMixin:
         return [self._task_payload(task) for task in self.container.event_queue.list(states)]
 
     def queue_show(self, task_id: str) -> dict[str, Any]:
-        task = self._task_payload(self.container.event_queue.get(task_id))
-        task["result"] = self.container.event_queue.result(task_id)
-        task["logs"] = self.container.task_logs().list(task_id, limit=200)
-        return task
+        return build_task_detail(self.project_root, self.container.event_queue, task_id)
 
     def queue_echo(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         task = TaskEvent(id=task_id, type="diagnostic.echo", payload=payload)
