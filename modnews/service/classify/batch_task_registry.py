@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Callable, TypeVar
 
-from modnews.core.config import load_config
-from modnews.core.context import PipelineContext
 from modnews.core.task import TaskEvent
 
 from .batch_profile import (
@@ -18,6 +15,7 @@ from .batch_stage import LlmBatchStage, run_llm_batch_task
 from .clustered_extract import CLUSTERED_EXTRACTION_STAGE
 from .clustered_merge import CLUSTERED_MERGE_STAGE
 from .llm_client import LlmClient
+from .runtime_build import resolve_classify_task_environment
 from .retriever import EventVectorRetriever
 
 T = TypeVar("T")
@@ -45,10 +43,8 @@ class RegisteredBatchTask:
 
 
 def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
-    project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
-    config = load_config(task.payload.get("config"), project_root=project_root)
-    ctx = PipelineContext.create(config)
-    retriever = EventVectorRetriever(config.classification.embedding, ctx.session)
+    env = resolve_classify_task_environment(task)
+    retriever = EventVectorRetriever(env.config.classification.embedding, env.ctx.session)
     item_payload = task.payload.get("item_payload") if isinstance(task.payload.get("item_payload"), dict) else {}
     key = item_payload.get("key")
     text = str(item_payload.get("text") or "")
@@ -86,10 +82,8 @@ def _run_llm_batch_stage_task(
 
 
 def _build_llm_client(task: TaskEvent) -> LlmClient:
-    project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
-    config = load_config(task.payload.get("config"), project_root=project_root)
-    ctx = PipelineContext.create(config)
-    return LlmClient(config.classification.llm, ctx.session)
+    env = resolve_classify_task_environment(task)
+    return LlmClient(env.config.classification.llm, env.ctx.session)
 
 
 REGISTERED_BATCH_TASKS: tuple[RegisteredBatchTask, ...] = (

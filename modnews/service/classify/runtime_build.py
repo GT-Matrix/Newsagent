@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from modnews.core.task import TaskEvent
+from modnews.core.config import load_config
 from modnews.core.config import ClassificationConfig, PipelineConfig
 from modnews.core.context import PipelineContext
 from modnews.core.models import NewsItem
@@ -21,6 +23,14 @@ class ResolvedClassifyStateInput:
     items: list[NewsItem]
     resume_checkpoint_path: Path | None
     input_path: Path | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvedClassifyTaskEnvironment:
+    project_root: Path
+    run_id: str
+    config: PipelineConfig
+    ctx: PipelineContext
 
 
 def build_classify_runtime(config: PipelineConfig, *, write_fixed_outputs: bool = True) -> ClassifyRuntime:
@@ -66,6 +76,19 @@ def resolve_classify_state_input(
         items=resolved_items,
         resume_checkpoint_path=resume_checkpoint_path,
         input_path=input_path.resolve() if input_path else None,
+    )
+
+
+def resolve_classify_task_environment(task: TaskEvent) -> ResolvedClassifyTaskEnvironment:
+    project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
+    run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
+    config = load_config(task.payload.get("config"), project_root=project_root)
+    ctx = PipelineContext.create(config)
+    return ResolvedClassifyTaskEnvironment(
+        project_root=project_root,
+        run_id=run_id,
+        config=config,
+        ctx=ctx,
     )
 
 
