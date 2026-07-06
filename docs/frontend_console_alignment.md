@@ -9,6 +9,27 @@
 
 目的不是重写前端设计，而是明确现在这个新前端已经具备什么能力、它和当前重构中的后端还差哪些关键接口与语义，以及后续每次后端重构时需要同步遵守的联动原则。
 
+## 0. 当前判断
+
+先给结论，避免后面讨论跑偏：
+
+1. `modnews_webUI` 已经不是“后面再适配”的状态，而是已经接上了大部分运行控制能力。
+2. 当前不需要重做一套前端信息架构，后续重构可以继续沿用这个前端仓库同步推进。
+3. 接下来前后端联动的重点，不是补更多零散页面，而是把后端统一 step/task/checkpoint 语义继续收敛，让前端减少硬编码。
+
+结合 2026-07-06 的代码看，前端已经明确覆盖了这些后端能力：
+
+- `RunsPage` 可启动 run、恢复 run、取消 run、查看 queue、发布 checkpoint、触发 classify、触发 report。
+- `RunDrawer` 已能读取 `/api/runs/:id` 的 detail 读模型，展示 `pipeline_steps`、`callback_events`、`followups`、`checkpoints`、`artifacts`。
+- `QueueTaskDrawer`、`TaskDrawer`、`CodexLogViewer` 已经把“按任务类型展示不同细节”的方向做出来了。
+- `ReportsPage` 已支持基于 checkpoint 或产物继续生成 report。
+- `useRuntimeSnapshot` 已经把 source / extractor / web job / repair / run / queue / checkpoint / outputs 聚合成统一运行态快照。
+
+所以，后续“带着前端一起改”应理解为：
+
+- 后端每次收敛统一语义时，顺手保证前端读模型不退化。
+- 当前端还写死旧分类步骤名或任务类型特判时，跟着后端重构一起收口。
+
 ## 1. 当前前端已经具备的能力
 
 新前端已经不是简单配置页集合，而是一个基本可用的运维控制台。
@@ -112,6 +133,19 @@
 
 但从架构上看，report 仍然更像“独立动作”，不是 pipeline 默认末端 step 的统一表现。
 
+虽然当前后端已经注册了：
+
+- `pipeline_ingest`
+- `pipeline_combine_ingest`
+- `pipeline_classify`
+- `pipeline_report`
+
+并且 `RunDrawer` 也已经能显示 `pipeline_report`，但 report 的运行语义还没完全收平，主要问题仍然是：
+
+- `report.generate` 的 followup 构造还是写死在 `task_builder.py`。
+- 默认 run 输入里还没有明确的 report 开关语义。
+- report 目前更像“跟在 classify 后面的固定 followup”，还不是一等的可配置 step 规划结果。
+
 因此前端现在看到的是：
 
 - 先 run
@@ -163,6 +197,14 @@
 - 看不到某个任务的自动重试历史和最终决策。
 - 看不到 step 和 task 之间的因果关系图。
 
+不过这里要注意一个现实判断：
+
+- `RunDrawer` 已经能展示 step callback 和 changed task。
+- `QueueTaskDrawer` 已能看 payload 和错误。
+- `CodexLogViewer` 已能把 repair/codex 日志结构化显示。
+
+也就是说，前端缺的已经不是“有没有地方展示”，而是后端还没有给出足够统一的 detail schema。
+
 ### 2.5 checkpoint 已经可用，但还没完全变成“统一恢复入口”
 
 前端已经支持：
@@ -195,6 +237,18 @@
 - `classify.batch_relevance` / `classify.clustered_event_merge.batch` 用 LLM batch 视图
 
 也就是前端组件已经准备出雏形，但后端还缺一个统一的“任务详情 schema”。
+
+## 2.7 当前前端最值得保留的部分
+
+后面继续重构时，下面这些前端能力应该保留并作为兼容目标，不要在后端收敛语义时把它们弄丢：
+
+1. `RunDrawer` 对注册式 pipeline step 的详情展示
+2. 队列任务的 `retry / skip / cancel / drain` 操作链路
+3. checkpoint 的筛选、发布、作为 classify/report 输入
+4. repair / codex 日志的专门展示器
+5. artifact 预览抽屉和 CLI 对照命令
+
+这些能力已经构成了“能操作、能排障、能恢复”的基本控制台，不应因为后端目录重构而退回成只能看列表。
 
 ## 3. 对后续后端重构的约束
 
@@ -257,6 +311,80 @@
 - 哪些任务还在跑
 - 哪些任务 blocked 后被跳过
 - 这个 step 最后为什么完成
+
+### 3.5 前后端联动时优先改读模型，不优先改页面结构
+
+下一阶段如果后端继续统一 classify / report / repair / web extraction，前端联动顺序建议固定为：
+
+1. 先补统一 API 字段
+2. 再适配 `src/types/domain.ts`
+3. 最后才改页面表现
+
+原因很简单：当前前端页面结构已经够用，真正不稳定的是后端对象语义。
+
+## 4. 下一阶段联动工作项
+
+按现在的后端状态，下一阶段前后端一起改，优先顺序建议如下。
+
+### 4.1 优先项：统一任务详情 schema
+
+目标：让前端可以真正按 `task.type` 动态选择日志和详情视图，而不是继续堆条件分支。
+
+建议后端补充或统一的字段：
+
+- `id`
+- `type`
+- `title`
+- `summary`
+- `state`
+- `attempts`
+- `max_attempts`
+- `blocked_reason`
+- `retry_state`
+- `step_id`
+- `pipeline_run_id`
+- `log_kind`
+- `detail_kind`
+- `artifacts`
+- `related_source_id`
+- `related_checkpoint_path`
+
+### 4.2 优先项：统一 report 的 pipeline 规划语义
+
+目标：让前端看到的 report，不再只是“额外动作”，而是 run graph 里的标准末端 step。
+
+最少要补清楚：
+
+- 默认 run 是否总是包含 report
+- 是否支持显式关闭 report
+- `disable_classification` 时 report 是否必然不注册
+- report step 的状态、checkpoint、artifact 是否统一回到 run detail
+
+### 4.3 第二优先级：减少前端对 classify 固定步骤名的依赖
+
+当前 `usePipelineProgress.ts` 仍然偏旧分类事件视角，这部分后面应逐步改成：
+
+- 基于后端返回的 step/task graph 动态渲染
+- 不再把 `clustered_event_extraction`、`clustered_event_merge` 当固定产品概念写死
+
+### 4.4 第二优先级：把 repair / web job 逐步变成统一任务系统的领域视图
+
+不是删掉这些对象，而是把它们的位置摆正：
+
+- 统一任务系统是主语义
+- `WebJob` / `RepairTask` 是扩展详情投影
+
+这样后面 classify 的异步子任务、爬虫任务、codex 修复任务才能在前端形成同一套观察方式。
+
+## 5. 实施原则
+
+后续继续重构时，前端联动按下面三条执行：
+
+1. 后端新增统一字段时，同步更新 `modnews_webUI/src/types/domain.ts`
+2. 后端替换旧语义时，优先保持 `/api/runs/:id`、`/api/queue`、`/api/checkpoints` 这些核心接口稳定
+3. 只有当统一读模型已经稳定后，再考虑进一步调整页面结构或视觉层级
+
+按这个方式推进，`modnews_webUI` 可以继续沿用，不需要因为这次架构收敛重新开一套前端。
 
 ## 4. 建议增加的统一后端读模型
 
