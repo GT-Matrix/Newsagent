@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable
 
 from modnews.core.config import load_config
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
+from modnews.repository.runs import RunRepository
 
 from .task_builder import (
     build_classify_extraction_task,
@@ -97,6 +99,20 @@ def classification_enabled(config_path: str | None) -> bool:
     return bool(load_config(config_path).classification.enabled)
 
 
+def report_enabled_for_run(project_root: str, run_id: str) -> bool:
+    if not project_root or not run_id:
+        return False
+    record = RunRepository(Path(project_root)).get(run_id)
+    payload = record.get("payload")
+    if not isinstance(payload, dict):
+        return True
+    if bool(payload.get("disable_report")):
+        return False
+    if bool(payload.get("disable_classification")):
+        return False
+    return True
+
+
 def build_combine_ingest_followup(
     queue: EventQueue,
     _event: dict[str, object],
@@ -172,6 +188,8 @@ def build_report_followup(
     config_path = event_config_path(task)
     if not classification_enabled(config_path):
         return None
+    if not report_enabled_for_run(project_root, run_id):
+        return None
     return build_report_generate_task(
         run_id=run_id,
         project_root=project_root,
@@ -186,4 +204,3 @@ FOLLOWUP_BUILDERS: dict[str, FollowupBuilder] = {
     "classify_merge_after_extraction": build_classify_merge_followup,
     "report_after_classify_merge": build_report_followup,
 }
-

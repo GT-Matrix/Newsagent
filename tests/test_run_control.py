@@ -34,6 +34,16 @@ class RunControlTest(unittest.TestCase):
             self.assertEqual(result["run"]["pipeline_steps"][0]["step_id"], "pipeline_ingest")
             self.assertTrue(all(not step["step_id"].startswith("pipeline/") for step in result["run"]["steps"]))
 
+    def test_run_start_can_explicitly_disable_report_followup(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            result = client.run_start({"background": True, "disable_report": True})
+
+            self.assertTrue(result["ok"])
+            self.assertTrue(result["run"]["payload"]["disable_report"])
+            self.assertEqual(result["run"]["pipeline_steps"][-1]["step_id"], "pipeline_report")
+
     def test_pipeline_callbacks_register_followup_tasks_incrementally(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
@@ -89,6 +99,27 @@ class RunControlTest(unittest.TestCase):
 
             report = client.container.event_queue.get("report-run-1-generate")
             self.assertEqual(report.depends_on, ["classify-run-1-clustered-event-merge"])
+
+    def test_pipeline_callbacks_skip_report_followup_when_run_disables_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            RunRepository(project_root).create("run-1", {"disable_report": True})
+
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="merge-1",
+                    type="classify.clustered_event_merge",
+                    pipeline_run_id="run-1",
+                    step_id="classify/clustered_event_merge",
+                    state="succeeded",
+                    payload={"project_root": tmp, "run_id": "run-1"},
+                )
+            )
+
+            client.container.pipeline_manager.on_task_completed({"task": client.container.event_queue.get("merge-1").to_dict(), "result": {}})
+
+            self.assertFalse(any(task.type == "report.generate" for task in client.container.event_queue.list()))
 
     def test_pipeline_followup_builders_are_registered_by_identifier(self) -> None:
         self.assertEqual(

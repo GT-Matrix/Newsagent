@@ -22,6 +22,7 @@ class RunsLocalMixin:
             "only": payload.get("only"),
             "only_ingest_steps": payload.get("only_ingest_steps"),
             "disable_classification": payload.get("disable_classification"),
+            "disable_report": payload.get("disable_report"),
         }
         planned = self.container.pipeline_manager.start_run(request)
         initialize_run_state(

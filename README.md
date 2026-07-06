@@ -91,6 +91,12 @@ python -m modnews.cli.main --mode local run start --foreground --only rss --only
 python -m modnews.cli.main --mode local run start --foreground --disable-classify
 ```
 
+做 ingest + classify，但这轮先不自动生成 report：
+
+```bash
+python -m modnews.cli.main --mode local run start --foreground --disable-report
+```
+
 说明：
 
 - `--foreground` 适合本地直接跑完整流程

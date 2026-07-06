@@ -16,3 +16,11 @@ def load_runtime_plan(request: dict[str, Any]) -> tuple[str, str, object, Any]:
         disable_classification=bool(request.get("disable_classification")),
     )
     return run_id, project_root, config_path, config
+
+
+def report_enabled(request: dict[str, Any]) -> bool:
+    if bool(request.get("disable_report")):
+        return False
+    if bool(request.get("disable_classification")):
+        return False
+    return True
