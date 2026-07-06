@@ -8,9 +8,14 @@ from pathlib import Path
 from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
 from modnews.service.classify.io import resolve_input_path, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
+from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
+from modnews.service.classify.state import ClassifyState
+from modnews.service.classify.task_checkpoint import write_classify_task_checkpoint
 from modnews.service.classify.types import DiscardedRecord
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
+from modnews.core.config import load_config
+from modnews.core.task import TaskEvent
 
 
 class ClassifyCheckpointArtifactsTest(unittest.TestCase):
@@ -126,6 +131,45 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
 
             self.assertEqual(resolve_input_path(project_root, "run-x", checkpoint_dir, project_root / "fallback.json"), items_path.resolve())
             self.assertEqual(resolve_input_path(project_root, "run-x", checkpoint_path, project_root / "fallback.json"), items_path.resolve())
+
+    def test_task_checkpoint_prefers_explicit_step_meta_and_stats(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            config_path = project_root / "config.json"
+            config_path.write_text(json.dumps({}), encoding="utf-8")
+            config = load_config(str(config_path), project_root=project_root).classification
+            input_path = project_root / "input.json"
+            input_path.write_text(
+                json.dumps([{"platform": "x", "title": "t", "url": "https://example.com", "scrape_date": "2026-07-03"}], ensure_ascii=False),
+                encoding="utf-8",
+            )
+            item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
+            run_result = ClassifyRunResult(
+                state=ClassifyState(items=[item], prepared=[]),
+                last_step_result=ClassifyStepResult(
+                    state=ClassifyState(items=[item], prepared=[]),
+                    next_stage="completed",
+                    checkpoint_meta={"stage": "completed", "processed_candidates": 7, "total_candidates": 9},
+                    stats={"item_count": 1, "event_count": 0, "discarded_count": 0, "processed_candidates": 7, "total_candidates": 9},
+                ),
+            )
+
+            result = write_classify_task_checkpoint(
+                project_root,
+                "run-1",
+                TaskEvent(id="task-1", type="classify.clustered_event_merge", payload={}),
+                "classify/clustered_event_merge",
+                input_path,
+                run_result,
+                config,
+            )
+
+            checkpoint_payload = json.loads(Path(result["checkpoint_path"]).read_text(encoding="utf-8"))
+            progress_payload = json.loads(Path(checkpoint_payload["output_refs"]["classification_progress"]).read_text(encoding="utf-8"))
+            self.assertEqual(checkpoint_payload["stats"]["processed_candidates"], 7)
+            self.assertEqual(checkpoint_payload["stats"]["total_candidates"], 9)
+            self.assertEqual(progress_payload["meta"]["processed_candidates"], 7)
+            self.assertEqual(progress_payload["meta"]["total_candidates"], 9)
 
 
 if __name__ == "__main__":

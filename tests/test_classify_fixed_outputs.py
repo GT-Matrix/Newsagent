@@ -27,6 +27,7 @@ class ClassifyFixedOutputsTest(unittest.TestCase):
 
             write_outputs.assert_not_called()
             self.assertIsInstance(result, ClassifyStepResult)
+            self.assertEqual(result.stats["total_candidates"], 0)
 
     def test_steps_write_fixed_outputs_for_standalone_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -37,6 +38,7 @@ class ClassifyFixedOutputsTest(unittest.TestCase):
 
             write_outputs.assert_called_once()
             self.assertEqual(result.next_stage, "started")
+            self.assertEqual(result.checkpoint_meta["stage"], "started")
 
     def _runtime(self, project_root: Path, *, write_fixed_outputs: bool) -> ClassifyRuntime:
         config_path = project_root / "config.json"

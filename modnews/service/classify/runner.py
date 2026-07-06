@@ -36,13 +36,22 @@ class ClassifyStep(Protocol):
 class ClassifyStepResult:
     state: ClassifyState
     next_stage: str | None = None
+    checkpoint_meta: dict[str, object] | None = None
+    stats: dict[str, object] | None = None
+
+
+@dataclass(slots=True)
+class ClassifyRunResult:
+    state: ClassifyState
+    last_step_result: ClassifyStepResult | None = None
 
 
 class ClassifyStepRunner:
     def __init__(self, steps: list[ClassifyStep]) -> None:
         self.steps = steps
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyRunResult:
+        last_result: ClassifyStepResult | None = None
         for step in self.steps:
             if not step.should_run(state):
                 emit("step_skip", step=step.name, stage=state.stage)
@@ -53,4 +62,5 @@ class ClassifyStepRunner:
             if result.next_stage is not None:
                 state.stage = result.next_stage
             emit("step_done", step=step.name, stage=state.stage)
-        return state
+            last_result = result
+        return ClassifyRunResult(state=state, last_step_result=last_result)

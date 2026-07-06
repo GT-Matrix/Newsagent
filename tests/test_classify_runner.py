@@ -32,10 +32,13 @@ class _NoopStep:
 class ClassifyRunnerTest(unittest.TestCase):
     def test_runner_applies_explicit_next_stage_from_step_result(self) -> None:
         runner = ClassifyStepRunner([_TransitionStep(), _NoopStep()])
-        state = runner.run(ClassifyState(items=[], prepared=[]), runtime=None)  # type: ignore[arg-type]
+        result = runner.run(ClassifyState(items=[], prepared=[]), runtime=None)  # type: ignore[arg-type]
+        state = result.state
 
         self.assertEqual(state.stage, "after_transition")
         self.assertEqual(state.processed_candidates, 3)
+        self.assertIsNotNone(result.last_step_result)
+        self.assertEqual(result.last_step_result.next_stage, None)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,8 @@ def run_classification(
         ctx,
         config,
     )
-    state = _build_runner().run(state, runtime)
+    run_result = _build_runner().run(state, runtime)
+    state = run_result.state
 
     return state.items, state.event_records, StepResult(
         step="classify",

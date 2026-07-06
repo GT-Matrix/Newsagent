@@ -17,14 +17,14 @@ def execute_classify_task(
     auto_publish: bool = False,
 ) -> dict[str, object]:
     task_runtime = prepare_clustered_task_runtime(task)
-    state = ClassifyStepRunner(steps).run(task_runtime.state, task_runtime.runtime)
+    run_result = ClassifyStepRunner(steps).run(task_runtime.state, task_runtime.runtime)
     return write_classify_task_checkpoint(
         task_runtime.project_root,
         task_runtime.run_id,
         task,
         step_id,
         task_runtime.input_path,
-        state,
+        run_result,
         task_runtime.runtime.config,
         auto_publish=auto_publish,
     )
