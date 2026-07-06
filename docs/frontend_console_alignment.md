@@ -21,6 +21,7 @@
 
 4. `modnews_webUI` 现在已经同时消费了统一快照、统一 run 详情、统一 queue 接口，不再只是“后端旁边的一个演示台”。
 5. 当前真正的联动断点，不是页面数量不够，而是前端仍保留了一部分旧 classify 事件视角，同时 `src/types/domain.ts` 还没完整吃进后端最近补上的统一任务详情字段。
+6. 这次复查中最值得保留的前端实现，不是旧的 SSE 进度卡片，而是 `RunDrawer`、`QueueTaskDrawer`、`ReportsPage` 这些已经转向统一读模型的区域。
 
 结合 2026-07-06 的代码看，前端已经明确覆盖了这些后端能力：
 
@@ -35,6 +36,17 @@
 
 - 后端每次收敛统一语义时，顺手保证前端读模型不退化。
 - 当前端还写死旧分类步骤名或任务类型特判时，跟着后端重构一起收口。
+
+这次实际复查的前端关键文件包括：
+
+- `src/hooks/usePipelineProgress.ts`
+- `src/components/tasks/RunDrawer.tsx`
+- `src/components/tasks/QueueTaskDrawer.tsx`
+- `src/pages/RunsPage.tsx`
+- `src/pages/ReportsPage.tsx`
+- `src/api/client.ts`
+
+后面联动重构时，优先盯住这些文件，不要只看页面截图判断是否“已经适配”。
 
 ## 1. 当前前端已经具备的能力
 
@@ -139,6 +151,14 @@
 - 后端返回统一的 `run graph / step graph / task graph` 结构。
 - 前端根据结构动态渲染 step，而不是硬编码当前有哪些步骤。
 
+这不是抽象担忧，而是当前代码里已经能直接看到的问题：
+
+- `src/hooks/usePipelineProgress.ts` 固定声明了 `pipeline / start_checkpoint / clustered_event_extraction / clustered_event_merge / outputs`
+- `stepForTask()` 仍只认识 `clustered_event_extraction` 和 `clustered_event_merge`
+- `infoCardStep()` 仍通过事件名里是否包含 `merge / extraction / embedding` 来猜步骤归属
+
+所以这块后面应该视为“明确待替换实现”，而不是长期保留的前端主视图。
+
 ### 2.2 report 已经进了 run graph，但前端仍同时保留“单独触发 report”的操作心智
 
 这块和更早之前相比已经前进了一步。按当前后端代码和测试，默认 run 已经注册：
@@ -183,6 +203,12 @@
 - 后端 `/api/queue` 读模型已经补了 `title / summary / log_kind / detail_kind / retry_state / blocked_state / related_* / attempt_history / domain_view`。
 - 但 `modnews_webUI/src/types/domain.ts` 里的 `QueueTask` 仍只声明了较薄的一层字段。
 - 所以前端现在是“接口能力已经先到了，类型和渲染层还没完全跟上”。
+
+结合这次代码复查，再补充一个更具体的判断：
+
+- `RunDrawer.tsx` 已经明显偏向统一 `run / step / checkpoint / artifact` 读模型，这部分方向是对的。
+- `QueueTaskDrawer.tsx` 也已经展示了 `concurrency_key / attempts / step_id / pipeline_run_id` 这类统一任务字段。
+- 真正落后的不是抽屉层，而是上游 `src/types/domain.ts` 和 `usePipelineProgress.ts` 对旧事件视角的依赖。
 
 ### 2.4 blocked / retry / callback 还没有形成统一可观察模型
 
@@ -380,6 +406,11 @@
 - `disable_classification` 时 report 是否必然不注册
 - report step 的状态、checkpoint、artifact 是否统一回到 run detail
 
+按这次代码复查，后端默认 run graph 已经包含 `pipeline_report`，`RunDrawer.tsx` 也已经消费 `pipeline_steps`。因此这里的主要任务不再是“让前端知道 report 存在”，而是：
+
+- 让 Runs 页和 Reports 页共用同一套 report step / report task / report artifact 读模型
+- 让 `usePipelineProgress.ts` 不再把 report 排除在主流程进度之外
+
 ### 4.3 第二优先级：减少前端对 classify 固定步骤名的依赖
 
 当前 `usePipelineProgress.ts` 仍然偏旧分类事件视角，这部分后面应逐步改成：
@@ -487,6 +518,12 @@
 - 然后让 `QueueTaskDrawer` 优先展示统一字段，减少对 `WebJob` / `RepairTask` 专用抽屉的依赖。
 
 这一步完成后，前端就能开始摆脱 classify 特有事件名。
+
+这里补一个很具体的前端落地顺序，避免后面又回到“先改页面视觉”的路径：
+
+1. 先扩 `src/types/domain.ts`
+2. 再让 `QueueTaskDrawer.tsx` 和 `RunsPage.tsx` 吃进统一字段
+3. 最后替换 `usePipelineProgress.ts` 的硬编码 step 列表
 
 ### 第二阶段：把 report 正式并入统一 step graph
 
