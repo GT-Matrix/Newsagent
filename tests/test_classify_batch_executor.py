@@ -12,7 +12,12 @@ from modnews.service.classify.batch_executor import (
     describe_batch_items,
     run_batch_parallel,
 )
-from modnews.service.classify.batch_profile import RELEVANCE_BATCH, run_profiled_batch
+from modnews.service.classify.batch_profile import (
+    CLUSTERED_EVENT_EXTRACTION_BATCH,
+    CLUSTERED_EVENT_MERGE_BATCH,
+    RELEVANCE_BATCH,
+    run_profiled_batch,
+)
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -165,6 +170,56 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual(result, [{"items": [{"index": 0, "title": "hello", "platform": "x", "pubtime": None, "url_domain": "example.com"}]}])
         task = queue.list()[0]
         self.assertEqual(task.type, "classify.batch_relevance")
+
+    def test_event_queue_backend_supports_fixed_clustered_extraction_queue_task_type(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/clustered_event_extraction",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        queue.register_executor(
+            "classify.clustered_event_extraction.batch",
+            lambda task: {"batch_result": {"items": task.payload["item_payload"]}},
+        )
+
+        result = run_profiled_batch(
+            lambda value: {"events": []},
+            [[{"index": 0, "title": "hello", "platform": "x", "pubtime": None, "url_domain": "example.com"}]],
+            profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"items": [{"index": 0, "title": "hello", "platform": "x", "pubtime": None, "url_domain": "example.com"}]}])
+        task = queue.list()[0]
+        self.assertEqual(task.type, "classify.clustered_event_extraction.batch")
+
+    def test_event_queue_backend_supports_fixed_clustered_merge_queue_task_type(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/clustered_event_merge",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        queue.register_executor(
+            "classify.clustered_event_merge.batch",
+            lambda task: {"batch_result": {"events": task.payload["item_payload"]}},
+        )
+
+        result = run_profiled_batch(
+            lambda value: {"merge_groups": []},
+            [[{"event_id": "evt_1", "event_label": "hello"}]],
+            profile=CLUSTERED_EVENT_MERGE_BATCH,
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"events": [{"event_id": "evt_1", "event_label": "hello"}]}])
+        task = queue.list()[0]
+        self.assertEqual(task.type, "classify.clustered_event_merge.batch")
 
     def test_default_backend_context_routes_batches_to_event_queue(self) -> None:
         queue = EventQueue()

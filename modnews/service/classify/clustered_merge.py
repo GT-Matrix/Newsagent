@@ -8,7 +8,7 @@ from .clustered_embedding import cluster_events
 from .prompts import clustered_event_merge_system_prompt
 from .utils import clean_list, clean_string, event_payload, parse_datetime
 
-CLUSTERED_MERGE_STAGE = LlmBatchStage[list](
+CLUSTERED_MERGE_STAGE = LlmBatchStage[list[dict[str, object]]](
     profile=CLUSTERED_EVENT_MERGE_BATCH,
     llm_task="clustered_event_merge",
     request_event="clustered_merge_request",

@@ -27,12 +27,14 @@ CLUSTERED_EMBEDDING_BATCH = BatchTaskProfile(
 CLUSTERED_EVENT_EXTRACTION_BATCH = BatchTaskProfile(
     task_type="classify.clustered_event_extraction.batch",
     concurrency_key="classify.llm",
+    queue_task_type="classify.clustered_event_extraction.batch",
     labels={"stage": "clustered_event_extraction"},
 )
 
 CLUSTERED_EVENT_MERGE_BATCH = BatchTaskProfile(
     task_type="classify.clustered_event_merge.batch",
     concurrency_key="classify.llm",
+    queue_task_type="classify.clustered_event_merge.batch",
     labels={"stage": "clustered_event_merge"},
 )
 

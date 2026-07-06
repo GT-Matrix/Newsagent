@@ -18,7 +18,7 @@ from .utils import (
 )
 from modnews.core.models import EventRecord
 
-CLUSTERED_EXTRACTION_STAGE = LlmBatchStage[list[PreparedItem]](
+CLUSTERED_EXTRACTION_STAGE = LlmBatchStage[list[dict[str, object]]](
     profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
     llm_task="clustered_event_extraction",
     request_event="clustered_extraction_request",

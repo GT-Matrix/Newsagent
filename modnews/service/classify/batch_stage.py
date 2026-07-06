@@ -31,17 +31,31 @@ def run_llm_batch_stage(
     build_payload: Callable[[T], object],
     request_event_key: str,
 ) -> list[dict]:
+    queue_task_type = stage.profile.queue_task_type
+    batch_payload_builder = (lambda batch: batch) if queue_task_type else build_payload
+    items = (
+        [
+            {
+                "payload": build_payload(batch),
+                "batch_index": batch_index,
+                "batch_count": len(batches),
+            }
+            for batch_index, batch in enumerate(batches, start=1)
+        ]
+        if queue_task_type
+        else [(batch, batch_index, len(batches)) for batch_index, batch in enumerate(batches, start=1)]
+    )
     return run_profiled_batch(
         lambda args: _run_single_llm_batch(
             client=client,
             stage=stage,
-            batch=args[0],
-            batch_index=args[1],
-            batch_count=args[2],
-            build_payload=build_payload,
+            batch=args["payload"] if queue_task_type else args[0],
+            batch_index=args["batch_index"] if queue_task_type else args[1],
+            batch_count=args["batch_count"] if queue_task_type else args[2],
+            build_payload=batch_payload_builder,
             request_event_key=request_event_key,
         ),
-        [(batch, batch_index, len(batches)) for batch_index, batch in enumerate(batches, start=1)],
+        items,
         max_workers=max_workers,
         profile=stage.profile,
         batch_indexes=list(range(1, len(batches) + 1)),
