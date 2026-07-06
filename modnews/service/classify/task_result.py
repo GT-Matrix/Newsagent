@@ -20,14 +20,16 @@ class ClassifyTaskSnapshot:
     stats: dict[str, object]
 
 
-def build_classify_task_snapshot(
-    *,
-    step_id: str,
-    run_result: ClassifyRunResult,
-) -> ClassifyTaskSnapshot:
+def build_classify_checkpoint_meta(run_result: ClassifyRunResult) -> dict[str, object]:
     state = run_result.state
     final_step = run_result.last_step_result
     checkpoint_meta = final_step.checkpoint_meta if final_step and final_step.checkpoint_meta else {"stage": state.stage}
+    return dict(checkpoint_meta)
+
+
+def build_classify_run_stats(run_result: ClassifyRunResult) -> dict[str, object]:
+    state = run_result.state
+    final_step = run_result.last_step_result
     stats = final_step.stats if final_step and final_step.stats else {
         "item_count": len(state.items),
         "event_count": len(state.events),
@@ -36,10 +38,18 @@ def build_classify_task_snapshot(
         "total_candidates": state.total_candidates,
         "merged_event_count": state.merged_event_count,
     }
+    return dict(stats)
+
+
+def build_classify_task_snapshot(
+    *,
+    step_id: str,
+    run_result: ClassifyRunResult,
+) -> ClassifyTaskSnapshot:
     return ClassifyTaskSnapshot(
         step_id=step_id,
-        checkpoint_meta=dict(checkpoint_meta),
-        stats=dict(stats),
+        checkpoint_meta=build_classify_checkpoint_meta(run_result),
+        stats=build_classify_run_stats(run_result),
     )
 
 

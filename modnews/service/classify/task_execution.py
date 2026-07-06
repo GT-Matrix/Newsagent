@@ -5,9 +5,11 @@ from modnews.core.task import TaskEvent
 from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
 
+from .run_result import build_classify_step_result
 from .task_registry import get_registered_classify_task
 from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
 from .runner import ClassifyStepRunner
+from .steps import build_full_classify_steps
 from .task_checkpoint import write_classify_task_checkpoint
 from .task_runtime import prepare_clustered_task_runtime
 
@@ -57,19 +59,8 @@ def run_classification(
     run_result = ClassifyStepRunner(build_full_classify_steps()).run(state, runtime)
     state = run_result.state
 
-    return state.items, state.event_records, StepResult(
+    return state.items, state.event_records, build_classify_step_result(
+        config=config,
+        run_result=run_result,
         step="classify",
-        item_count=len(state.items),
-        output_path=str(config.output_path),
-        meta={
-            "events_output_path": str(config.events_output_path),
-            "discarded_output_path": str(config.discarded_output_path),
-            "event_count": len(state.events),
-            "discarded_count": len(state.discarded),
-            "merged_event_count": state.merged_event_count,
-            "llm_model": config.llm.model,
-            "embedding_model": config.embedding.model,
-            "batch_size": config.batch_size,
-            "batch_concurrency": config.batch_concurrency,
-        },
     )
