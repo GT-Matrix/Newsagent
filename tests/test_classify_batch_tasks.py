@@ -7,6 +7,7 @@ from unittest.mock import patch
 from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_stage import LlmBatchStage, run_llm_batch_stage, run_llm_batch_task, task_batch_progress
 from modnews.service.classify.batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
+from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASK_BY_TYPE
 from modnews.service.classify.batch_tasks import BATCH_TASK_EXECUTORS, run_clustered_event_extraction_batch_item
 from modnews.service.classify.llm_batch_registry import REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE
 from modnews.service.classify.task_registry import REGISTERED_CLASSIFY_TASK_BY_TYPE
@@ -111,8 +112,8 @@ class ClassifyBatchTaskTest(unittest.TestCase):
             },
         )
 
-        with patch("modnews.service.classify.batch_tasks._build_llm_client", return_value=_FakeClient()):
-            with patch("modnews.service.classify.batch_tasks.run_llm_batch_task") as helper:
+        with patch("modnews.service.classify.batch_task_registry._build_llm_client", return_value=_FakeClient()):
+            with patch("modnews.service.classify.batch_task_registry.run_llm_batch_task") as helper:
                 helper.return_value = {"items": [{"index": 0, "status": "candidate"}]}
                 result = run_clustered_event_extraction_batch_item(task)
 
@@ -130,6 +131,15 @@ class ClassifyBatchTaskTest(unittest.TestCase):
                 "classify.embedding",
             ],
         )
+
+    def test_batch_task_registry_unifies_executor_and_profile_metadata(self) -> None:
+        spec = REGISTERED_BATCH_TASK_BY_TYPE["classify.clustered_event_extraction.batch"]
+
+        self.assertEqual(spec.profile.task_type, spec.task_type)
+        self.assertEqual(spec.profile.queue_task_type, spec.task_type)
+        self.assertIs(spec.executor, run_clustered_event_extraction_batch_item)
+        self.assertIsNotNone(spec.llm_stage)
+        self.assertEqual(spec.llm_stage.task_type, spec.task_type)
 
     def test_llm_batch_stage_registry_is_keyed_by_queue_task_type(self) -> None:
         self.assertEqual(
