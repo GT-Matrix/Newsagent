@@ -5,9 +5,9 @@ import os
 from typing import Any
 
 from modnews.core.env import ensure_runtime_env
-from modnews.repository.outputs import OutputRepository
-from modnews.core.paths import runtime_paths
 from modnews.core.progress import BUS, sse
+from modnews.repository.outputs import OutputRepository
+from modnews.repository.runtime_config_facade import RuntimeConfigFacade
 from modnews.repository.source_config import source_config_repository
 
 
@@ -61,18 +61,7 @@ class RuntimeLocalMixin:
         return BUS.snapshot()["events"][-limit:]
 
     def config_show(self, include_paths: bool = False) -> dict[str, Any]:
-        payload = source_config_repository(self.project_root).load()
-        if include_paths:
-            paths = runtime_paths(self.project_root)
-            payload["paths"] = {
-                "runtime_dir": str(paths.runtime_dir),
-                "config_path": str(paths.config_path),
-                "output_dir": str(paths.output_dir),
-                "process_dir": str(paths.process_dir),
-                "cache_dir": str(paths.cache_dir),
-                "agent_work_dir": str(paths.agent_work_dir),
-            }
-        return payload
+        return self._runtime_config().show(include_paths=include_paths)
 
     def config_env_health(self) -> dict[str, Any]:
         env_file = ensure_runtime_env(self.project_root)
@@ -184,13 +173,13 @@ class RuntimeLocalMixin:
         }
 
     def config_update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).update_step(step_id, patch)
+        return self._runtime_config().update_step(step_id, patch)
 
     def config_update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).update_classification(patch)
+        return self._runtime_config().update_classification(patch)
 
     def config_restore_builtins(self) -> dict[str, Any]:
-        return source_config_repository(self.project_root).restore_builtin_sources()
+        return self._runtime_config().restore_builtins()
 
     def rss_update(self, items: list[dict[str, Any]]) -> dict[str, Any]:
         return source_config_repository(self.project_root).update_rss(items)
@@ -261,6 +250,9 @@ class RuntimeLocalMixin:
                 "content_type": content_type,
             },
         )
+
+    def _runtime_config(self) -> RuntimeConfigFacade:
+        return RuntimeConfigFacade(self.project_root)
 
     def sources_site_disable(self, source_id: str) -> dict[str, Any]:
         return source_config_repository(self.project_root).disable_site(source_id)

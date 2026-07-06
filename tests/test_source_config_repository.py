@@ -6,10 +6,24 @@ from pathlib import Path
 
 from modnews.repository.runtime_config_repository import RuntimeConfigRepository
 from modnews.cli.local_client import LocalClient
+from modnews.repository.runtime_config_facade import RuntimeConfigFacade
 from modnews.repository.source_config import SourceConfigRepository, SourceConfigStore, source_config_store
 
 
 class SourceConfigRepositoryTest(unittest.TestCase):
+    def test_runtime_config_facade_wraps_show_and_patch_operations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            facade = RuntimeConfigFacade(project_root)
+
+            shown = facade.show(include_paths=True)
+            updated_step = facade.update_step("rss", {"enabled": False})
+            updated_classification = facade.update_classification({"enabled": False})
+
+            self.assertIn("paths", shown)
+            self.assertFalse(updated_step["steps"]["rss"]["enabled"])
+            self.assertFalse(updated_classification["classification"]["enabled"])
+
     def test_sources_repository_extends_runtime_config_repository(self) -> None:
         self.assertTrue(issubclass(SourceConfigRepository, RuntimeConfigRepository))
 
