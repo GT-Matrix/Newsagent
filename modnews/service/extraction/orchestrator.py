@@ -1,18 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
-from modnews.core.models import NewsItem, StepResult
-from modnews.core.context import PipelineContext
-from modnews.repository.source_config import source_config_store
 from modnews.repository.web_jobs import WebJobStore
 from modnews.service.extraction.job_runtime import finish_failure
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.repair_policy import classify_exception
 from modnews.service.extraction.source_selection import enabled_sources as resolve_enabled_sources
-from modnews.service.extraction.source_selection import load_job_items
 from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
 from modnews.service.extraction.web_runner import run_extractor, write_json
 
@@ -23,40 +18,6 @@ class WebExtractionOrchestrator:
         self.store = WebJobStore(project_root)
         self.registry = registry_from_project(project_root)
         self.repair_manager = RepairManager(project_root, self.registry)
-
-    def run_pipeline_step(self, ctx: PipelineContext, options: dict[str, Any]) -> tuple[list[NewsItem], StepResult]:
-        config = source_config_store(self.project_root).load()
-        step_config = config["steps"].get("site_lists", {})
-        if not step_config.get("enabled", True):
-            return [], StepResult(step="site_lists", item_count=0, meta={"enabled": False})
-
-        requested_sites = options.get("sites") or step_config.get("sites") or []
-        limit = int(options.get("limit_per_site", step_config.get("limit_per_site", 10)))
-        sources = self.enabled_sources(config, requested_sites=requested_sites)
-        all_items: list[NewsItem] = []
-        errors: list[str] = []
-        job_ids: list[str] = []
-
-        for source in sources:
-            job = self.run_source(source, scrape_date=ctx.scrape_date, limit=limit)
-            job_ids.append(job.id)
-            if job.error:
-                errors.append(f"{source.id}: {job.error}")
-            all_items.extend(load_job_items(job.output_path, default_scrape_date=ctx.scrape_date, source_id=source.id))
-
-        output_path = ctx.work_dir / "site_lists_items.json"
-        raw_path = ctx.work_dir / "site_lists_raw.json"
-        write_json(output_path, [item.to_dict() for item in all_items])
-        write_json(raw_path, {"jobs": job_ids})
-        ctx.artifacts["site_lists"] = output_path
-        ctx.artifacts["site_lists_raw"] = raw_path
-        return all_items, StepResult(
-            step="site_lists",
-            item_count=len(all_items),
-            output_path=str(output_path),
-            errors=errors,
-            meta={"mode": "managed_extractors", "jobs": job_ids},
-        )
 
     def enabled_sources(self, config: dict[str, Any], requested_sites: list[str] | None = None) -> list[WebSource]:
         return resolve_enabled_sources(config, requested_sites=requested_sites)

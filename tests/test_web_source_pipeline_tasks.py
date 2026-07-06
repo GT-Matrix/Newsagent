@@ -9,6 +9,8 @@ from unittest.mock import patch
 from modnews.app.server import create_app
 from modnews.cli.commands.ingest import run_ingest
 from modnews.cli.local_client import LocalClient
+from modnews.core.config import load_config
+from modnews.core.context import PipelineContext
 from modnews.core.task import TaskBlocked, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.repository.source_config import SourceConfigRepository
@@ -16,6 +18,7 @@ from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
 from modnews.service.ingest.planner import plan_ingest_tasks
+from modnews.service.ingest.steps.site_lists import SiteListsStep
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.ingest.tasks import run_ingest_step_task
 
@@ -298,6 +301,25 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "site_lists must be planned as per-source web_source.run tasks"):
                 run_ingest_step_task(task)
+
+    def test_direct_site_lists_step_run_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            repo = SourceConfigRepository(project_root)
+            repo.upsert_site(
+                "site-1",
+                {
+                    "url": "https://example.com/1",
+                    "name": "Site 1",
+                    "extractor_id": "extractor-1",
+                    "enabled": True,
+                },
+            )
+
+            ctx = PipelineContext.create(load_config(project_root=project_root))
+
+            with self.assertRaisesRegex(ValueError, "site_lists is task-only"):
+                SiteListsStep().run(ctx)
 
     def test_blocked_web_source_task_auto_queues_repair_and_skips_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
