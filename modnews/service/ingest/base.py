@@ -8,6 +8,10 @@ from typing import Any
 from modnews.core.context import PipelineContext
 from modnews.core.models import NewsItem, StepResult
 from modnews.core.task import TaskEvent
+from modnews.service.ingest.task_registry import (
+    build_registered_ingest_step_task,
+    get_registered_ingest_task,
+)
 
 
 class IngestStep(ABC):
@@ -40,19 +44,12 @@ class IngestStep(ABC):
     ) -> list[TaskEvent]:
         task_options = options if isinstance(options, dict) else {}
         return [
-            TaskEvent(
-                id=f"ingest-{run_id}-{cls.step_name}",
-                type="ingest.run_step",
-                pipeline_run_id=run_id,
-                step_id=f"ingest/{cls.step_name}",
-                payload={
-                    "project_root": str(project_root),
-                    "run_id": run_id,
-                    "config": config_path,
-                    "step_id": cls.step_name,
-                    "options": task_options,
-                },
-                concurrency_key=f"ingest:{cls.step_name}",
-                max_concurrency=1,
+            build_registered_ingest_step_task(
+                get_registered_ingest_task("ingest.run_step"),
+                project_root=project_root,
+                run_id=run_id,
+                step_name=cls.step_name,
+                config_path=config_path,
+                options=task_options,
             )
         ]

@@ -9,6 +9,7 @@ from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
+from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASKS
 
 
 def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
@@ -48,3 +49,10 @@ def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
         "checkpoint_path": str(checkpoint_path),
         "artifact_path": str(artifact_path),
     }
+
+
+REGISTERED_INGEST_TASK_EXECUTORS: dict[str, object] = {
+    "ingest.run_step": run_ingest_step_task,
+}
+
+assert {spec.task_type for spec in REGISTERED_INGEST_TASKS} == set(REGISTERED_INGEST_TASK_EXECUTORS)

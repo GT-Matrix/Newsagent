@@ -11,6 +11,7 @@ from modnews.service.classify.planner import (
     build_clustered_event_extraction_task,
     build_clustered_event_merge_task,
 )
+from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASK_BY_TYPE
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.pipeline.steps import REGISTERED_PIPELINE_STEP_SPEC_BY_ID
 from modnews.service.pipeline.task_registry import REGISTERED_PIPELINE_TASK_BY_TYPE
@@ -37,6 +38,14 @@ class PipelineTaskGraphTest(unittest.TestCase):
         self.assertEqual(spec.step_id, "pipeline/combine_ingest")
         self.assertEqual(spec.task_id_suffix, "combine-ingest")
         self.assertEqual(spec.concurrency_key_prefix, "pipeline")
+        self.assertEqual(spec.max_concurrency, 1)
+
+    def test_ingest_run_step_task_definition_is_registered_from_single_source(self) -> None:
+        spec = REGISTERED_INGEST_TASK_BY_TYPE["ingest.run_step"]
+
+        self.assertEqual(spec.step_id_prefix, "ingest")
+        self.assertEqual(spec.task_id_prefix, "ingest")
+        self.assertEqual(spec.concurrency_key_prefix, "ingest")
         self.assertEqual(spec.max_concurrency, 1)
 
     def test_pipeline_registry_registers_split_steps(self) -> None:
