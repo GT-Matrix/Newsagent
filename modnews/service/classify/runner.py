@@ -28,8 +28,14 @@ class ClassifyStep(Protocol):
     def should_run(self, state: ClassifyState) -> bool:
         ...
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> "ClassifyStepResult":
         ...
+
+
+@dataclass(slots=True)
+class ClassifyStepResult:
+    state: ClassifyState
+    next_stage: str | None = None
 
 
 class ClassifyStepRunner:
@@ -38,13 +44,13 @@ class ClassifyStepRunner:
 
     def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
         for step in self.steps:
-            before_stage = state.stage
             if not step.should_run(state):
                 emit("step_skip", step=step.name, stage=state.stage)
                 continue
             emit("step_start", step=step.name, stage=state.stage, output_stage=step.output_stage)
-            state = step.run(state, runtime)
-            if step.output_stage != before_stage:
-                state.stage = step.output_stage
+            result = step.run(state, runtime)
+            state = result.state
+            if result.next_stage is not None:
+                state.stage = result.next_stage
             emit("step_done", step=step.name, stage=state.stage)
         return state

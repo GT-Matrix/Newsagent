@@ -6,7 +6,7 @@ from typing import Protocol
 from .checkpoint import build_checkpoint_meta, write_outputs
 from .clustered_extract import extract_events_from_title_clusters
 from .clustered_merge import merge_event_clusters
-from .runner import ClassifyRuntime
+from .runner import ClassifyRuntime, ClassifyStepResult
 from .state import ClassifyState
 
 
@@ -17,7 +17,7 @@ class ClassifyStepDefinition(Protocol):
     def should_run(self, state: ClassifyState) -> bool:
         ...
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyStepResult:
         ...
 
 
@@ -29,10 +29,10 @@ class StartCheckpointStep:
     def should_run(self, state: ClassifyState) -> bool:
         return state.stage == "started"
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyStepResult:
         if runtime.write_fixed_outputs:
             write_outputs(runtime.config, state.items, state.event_records, state.discarded, {"stage": "started"})
-        return state
+        return ClassifyStepResult(state=state, next_stage=self.output_stage)
 
 
 @dataclass(slots=True)
@@ -43,7 +43,7 @@ class ClusteredEventExtractionStep:
     def should_run(self, state: ClassifyState) -> bool:
         return state.stage == "started"
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyStepResult:
         state.events = extract_events_from_title_clusters(
             runtime.ctx,
             runtime.client,
@@ -65,7 +65,7 @@ class ClusteredEventExtractionStep:
                     stage=self.output_stage,
                 ),
             )
-        return state
+        return ClassifyStepResult(state=state, next_stage=self.output_stage)
 
 
 @dataclass(slots=True)
@@ -76,7 +76,7 @@ class ClusteredEventMergeStep:
     def should_run(self, state: ClassifyState) -> bool:
         return state.stage == "after_clustered_event_extraction"
 
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyState:
+    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyStepResult:
         state.merged_event_count = merge_event_clusters(
             runtime.client,
             runtime.retriever,
@@ -97,7 +97,7 @@ class ClusteredEventMergeStep:
                     merged_event_count=state.merged_event_count,
                 ),
             )
-        return state
+        return ClassifyStepResult(state=state, next_stage=self.output_stage)
 
 
 def build_full_classify_steps() -> list[ClassifyStepDefinition]:

@@ -12,7 +12,7 @@ from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 from modnews.service.classify.llm_client import LlmClient
 from modnews.service.classify.retriever import EventVectorRetriever
-from modnews.service.classify.runner import ClassifyRuntime
+from modnews.service.classify.runner import ClassifyRuntime, ClassifyStepResult
 from modnews.service.classify.state import ClassifyState
 from modnews.service.classify.steps import StartCheckpointStep
 
@@ -23,18 +23,20 @@ class ClassifyFixedOutputsTest(unittest.TestCase):
             runtime = self._runtime(Path(tmp), write_fixed_outputs=False)
 
             with patch("modnews.service.classify.steps.write_outputs") as write_outputs:
-                StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
+                result = StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
 
             write_outputs.assert_not_called()
+            self.assertIsInstance(result, ClassifyStepResult)
 
     def test_steps_write_fixed_outputs_for_standalone_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             runtime = self._runtime(Path(tmp), write_fixed_outputs=True)
 
             with patch("modnews.service.classify.steps.write_outputs") as write_outputs:
-                StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
+                result = StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
 
             write_outputs.assert_called_once()
+            self.assertEqual(result.next_stage, "started")
 
     def _runtime(self, project_root: Path, *, write_fixed_outputs: bool) -> ClassifyRuntime:
         config_path = project_root / "config.json"
