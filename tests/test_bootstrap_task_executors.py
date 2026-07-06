@@ -15,6 +15,7 @@ class BootstrapTaskExecutorTest(unittest.TestCase):
         self.assertIn("pipeline.combine_ingest", container.event_queue._executors)
         self.assertIn("classify.batch_item", container.event_queue._executors)
         self.assertIn("classify.embedding", container.event_queue._executors)
+        self.assertIn("classify.batch_relevance", container.event_queue._executors)
         self.assertIn("classify.clustered_event_extraction", container.event_queue._executors)
         self.assertIn("classify.clustered_event_merge", container.event_queue._executors)
 

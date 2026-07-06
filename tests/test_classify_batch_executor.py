@@ -144,6 +144,28 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual(task.payload["project_root"], "/tmp/project")
         self.assertEqual(task.payload["item_payload"], {"key": "x", "text": "hello"})
 
+    def test_event_queue_backend_supports_fixed_relevance_queue_task_type(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/relevance",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        queue.register_executor("classify.batch_relevance", lambda task: {"batch_result": {"items": task.payload["item_payload"]}})
+
+        result = run_profiled_batch(
+            lambda value: {"items": [{"index": 0, "status": "candidate"}]},
+            [[{"index": 0, "title": "hello", "platform": "x", "pubtime": None, "url_domain": "example.com"}]],
+            profile=RELEVANCE_BATCH,
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"items": [{"index": 0, "title": "hello", "platform": "x", "pubtime": None, "url_domain": "example.com"}]}])
+        task = queue.list()[0]
+        self.assertEqual(task.type, "classify.batch_relevance")
+
     def test_default_backend_context_routes_batches_to_event_queue(self) -> None:
         queue = EventQueue()
         backend = EventQueueBatchExecutionBackend(queue, run_id="run-1", step_id="classify/default")

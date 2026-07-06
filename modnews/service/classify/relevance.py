@@ -11,7 +11,7 @@ from .prompts import batch_relevance_system_prompt, suspect_review_system_prompt
 from .types import DiscardedRecord, PreparedItem
 from .utils import clean_event_type, clean_list, clean_string, discard, int_or_none
 
-RELEVANCE_STAGE = LlmBatchStage[list[PreparedItem]](
+RELEVANCE_STAGE = LlmBatchStage[list[dict[str, object]]](
     profile=RELEVANCE_BATCH,
     llm_task="batch_ai_relevance",
     request_event="batch_relevance_request",
@@ -28,7 +28,10 @@ def classify_relevance_batches(
     batch_concurrency: int,
     discarded: list[DiscardedRecord],
 ) -> None:
-    batches = [prepared[start : start + batch_size] for start in range(0, len(prepared), batch_size)]
+    batches = [
+        _batch_payload(prepared[start : start + batch_size])
+        for start in range(0, len(prepared), batch_size)
+    ]
     max_workers = max(1, batch_concurrency)
     emit("batch_relevance_start", batch_count=len(batches), batch_size=batch_size, concurrency=max_workers)
     responses = run_llm_batch_stage(
@@ -36,7 +39,7 @@ def classify_relevance_batches(
         stage=RELEVANCE_STAGE,
         batches=batches,
         max_workers=max_workers,
-        build_payload=_batch_payload,
+        build_payload=lambda batch: batch,
         request_event_key="items",
     )
     for batch_index in range(1, len(batches) + 1):

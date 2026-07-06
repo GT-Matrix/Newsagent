@@ -39,6 +39,7 @@ CLUSTERED_EVENT_MERGE_BATCH = BatchTaskProfile(
 RELEVANCE_BATCH = BatchTaskProfile(
     task_type="classify.batch_relevance",
     concurrency_key="classify.llm",
+    queue_task_type="classify.batch_relevance",
     labels={"stage": "relevance"},
 )
 
