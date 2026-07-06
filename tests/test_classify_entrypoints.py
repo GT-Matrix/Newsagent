@@ -8,9 +8,36 @@ from pathlib import Path
 from modnews.app.server import create_app
 from modnews.cli.commands.classify import run_classify
 from modnews.cli.local_client import LocalClient
+from modnews.service.classify.queue_runtime import submit_clustered_classify_run
 
 
 class ClassifyEntrypointTest(unittest.TestCase):
+    def test_submit_clustered_classify_run_uses_registered_clustered_task_flow(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            captured = []
+
+            def execute(task):
+                captured.append(task)
+                return {"ok": True}
+
+            client.container.event_queue.register_executor("classify.clustered_event_extraction", execute)
+            client.container.event_queue.register_executor("classify.clustered_event_merge", execute)
+
+            result = submit_clustered_classify_run(
+                project_root=client.project_root,
+                queue=client.container.event_queue,
+                queue_show=client.queue_show,
+                run_id="run-1",
+                input_path="input.json",
+                pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
+            )
+
+            self.assertEqual([task.type for task in captured], ["classify.clustered_event_extraction", "classify.clustered_event_merge"])
+            self.assertEqual(result["run_id"], "run-1")
+            self.assertEqual(result["tasks"][0]["type"], "classify.clustered_event_extraction")
+            self.assertEqual(result["tasks"][1]["type"], "classify.clustered_event_merge")
+
     def test_cli_classify_run_uses_clustered_stage_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))
