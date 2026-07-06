@@ -6,6 +6,7 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.task_registry import REGISTERED_PIPELINE_TASKS
 
 
 def combine_ingest_task(task: TaskEvent) -> dict[str, object]:
@@ -55,3 +56,10 @@ def combine_ingest_task(task: TaskEvent) -> dict[str, object]:
         "combined_ingest_path": str(artifact_path),
         "stats": checkpoint_payload["stats"],
     }
+
+
+REGISTERED_PIPELINE_TASK_EXECUTORS: dict[str, object] = {
+    "pipeline.combine_ingest": combine_ingest_task,
+}
+
+assert {spec.task_type for spec in REGISTERED_PIPELINE_TASKS} == set(REGISTERED_PIPELINE_TASK_EXECUTORS)

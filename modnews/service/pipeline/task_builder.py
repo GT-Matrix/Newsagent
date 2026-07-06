@@ -13,6 +13,10 @@ from modnews.service.report.task_registry import (
     build_registered_report_task,
     get_registered_report_task,
 )
+from modnews.service.pipeline.task_registry import (
+    build_registered_pipeline_task,
+    get_registered_pipeline_task,
+)
 
 
 def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, config: Any) -> list[TaskEvent]:
@@ -35,15 +39,11 @@ def build_combine_ingest_task_for_run(*, run_id: str, project_root: str, ingest_
     if not ingest_task_ids:
         return []
     return [
-        TaskEvent(
-            id=f"pipeline-{run_id}-combine-ingest",
-            type="pipeline.combine_ingest",
-            pipeline_run_id=run_id,
-            step_id="pipeline/combine_ingest",
-            payload={"project_root": project_root, "run_id": run_id},
+        build_registered_pipeline_task(
+            get_registered_pipeline_task("pipeline.combine_ingest"),
+            project_root=Path(project_root) if project_root else Path.cwd(),
+            run_id=run_id,
             depends_on=ingest_task_ids,
-            concurrency_key=f"pipeline:{run_id}",
-            max_concurrency=1,
         )
     ]
 

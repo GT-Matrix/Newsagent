@@ -15,7 +15,7 @@ from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.extraction.repair_tasks import run_codex_repair_task
 from modnews.service.extraction.repair_queue_runtime import handle_blocked_web_source_event
-from modnews.service.pipeline.tasks import combine_ingest_task
+from modnews.service.pipeline.tasks import REGISTERED_PIPELINE_TASK_EXECUTORS
 from modnews.service.report.tasks import run_report_generate_task
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
@@ -36,10 +36,11 @@ def register_task_executors(queue: EventQueue) -> None:
         queue.register_executor(spec.task_type, spec.executor)
     for task_type, executor in REGISTERED_CLASSIFY_TASK_EXECUTORS.items():
         queue.register_executor(task_type, _with_classify_batch_queue(queue, executor))
+    for task_type, executor in REGISTERED_PIPELINE_TASK_EXECUTORS.items():
+        queue.register_executor(task_type, executor)
     queue.register_executor("ingest.run_step", run_ingest_step_task)
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("extractor.repair.codex", run_codex_repair_task)
-    queue.register_executor("pipeline.combine_ingest", combine_ingest_task)
     queue.register_executor("report.generate", run_report_generate_task)
 
 
