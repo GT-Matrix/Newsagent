@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.task import TaskEvent
+from modnews.service.classify.planner import (
+    build_clustered_event_extraction_task,
+    build_clustered_event_merge_task,
+)
 from modnews.service.ingest.planner import plan_ingest_tasks
 from modnews.service.pipeline.step import PipelinePlanContext
 
@@ -92,20 +96,12 @@ def build_classify_extraction_task(
     config_path: object,
     depends_on: list[str],
 ) -> TaskEvent:
-    return TaskEvent(
-        id=f"classify-{run_id}-clustered-event-extraction",
-        type="classify.clustered_event_extraction",
-        pipeline_run_id=run_id,
-        step_id="classify/clustered_event_extraction",
-        payload={
-            "project_root": project_root,
-            "run_id": run_id,
-            "config": config_path,
-            "input_path": "__combined_ingest__",
-        },
+    return build_clustered_event_extraction_task(
+        project_root=Path(project_root) if project_root else Path.cwd(),
+        run_id=run_id,
+        input_path="__combined_ingest__",
+        config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
-        concurrency_key="classify",
-        max_concurrency=1,
     )
 
 
@@ -116,20 +112,12 @@ def build_classify_merge_task(
     config_path: object,
     depends_on: list[str],
 ) -> TaskEvent:
-    return TaskEvent(
-        id=f"classify-{run_id}-clustered-event-merge",
-        type="classify.clustered_event_merge",
-        pipeline_run_id=run_id,
-        step_id="classify/clustered_event_merge",
-        payload={
-            "project_root": project_root,
-            "run_id": run_id,
-            "config": config_path,
-            "input_path": "__combined_ingest__",
-        },
+    return build_clustered_event_merge_task(
+        project_root=Path(project_root) if project_root else Path.cwd(),
+        run_id=run_id,
+        input_path="__combined_ingest__",
+        config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
-        concurrency_key="classify",
-        max_concurrency=1,
     )
 
 
