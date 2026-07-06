@@ -6,6 +6,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from modnews.cli.local_client import LocalClient
+from modnews.core.task import TaskBlocked
+from modnews.service.extraction.repair_store import RepairTaskStore
+from modnews.service.extraction.repair_task_result import build_repair_task_result
 
 
 class RepairQueueTest(unittest.TestCase):
@@ -55,6 +58,43 @@ class RepairQueueTest(unittest.TestCase):
 
             self.assertEqual(task["id"], task_id)
             self.assertIn("body line 2", task["log_tail"])
+
+    def test_repair_store_builds_codex_log_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            created = client.repair_create({"source_id": "source-1", "reason": "test repair", "auto_start": False})
+            task_id = created["item"]["id"]
+            log_path = Path(created["item"]["log_path"])
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            log_path.write_text("header\nbody line 1\nbody line 2\n", encoding="utf-8")
+
+            task_store = RepairTaskStore(log_path.parent.parent.parent)
+            log_summary = task_store.codex_log_summary(task_id, max_chars=20)
+
+            self.assertEqual(log_summary["codex_log_path"], str(log_path))
+            self.assertIn("body line 2", log_summary["codex_log_tail"])
+            self.assertGreater(log_summary["codex_log_bytes"], 0)
+
+    def test_repair_task_result_helper_maps_blocked_and_failed_status(self) -> None:
+        with self.assertRaises(TaskBlocked):
+            build_repair_task_result(
+                {"id": "task-1", "status": "blocked", "error": "captcha required"},
+                {"codex_log_path": "/tmp/log.txt", "codex_log_tail": "", "codex_log_bytes": 0},
+            )
+
+        with self.assertRaises(RuntimeError):
+            build_repair_task_result(
+                {"id": "task-1", "status": "failed", "error": "broken extractor"},
+                {"codex_log_path": "/tmp/log.txt", "codex_log_tail": "", "codex_log_bytes": 0},
+            )
+
+        result = build_repair_task_result(
+            {"id": "task-1", "status": "succeeded", "source_id": "source-1"},
+            {"codex_log_path": "/tmp/log.txt", "codex_log_tail": "ok", "codex_log_bytes": 2},
+        )
+        self.assertEqual(result["repair_task"]["status"], "succeeded")
+        self.assertEqual(result["codex_log_tail"], "ok")
 
 
 if __name__ == "__main__":

@@ -99,6 +99,27 @@ class RepairTaskStore:
             return text[-max_chars:]
         return ""
 
+    def codex_log_summary(
+        self,
+        task: RepairTask | str,
+        *,
+        max_chars: int = 12000,
+    ) -> dict[str, Any]:
+        current = self.get_task(task) if isinstance(task, str) else task
+        log_path = current.log_path
+        if not log_path.exists():
+            return {
+                "codex_log_path": str(log_path) if str(log_path) else None,
+                "codex_log_tail": "",
+                "codex_log_bytes": 0,
+            }
+        text = log_path.read_text(encoding="utf-8", errors="replace")
+        return {
+            "codex_log_path": str(log_path),
+            "codex_log_tail": text[-max_chars:],
+            "codex_log_bytes": len(text.encode("utf-8", errors="replace")),
+        }
+
 
 def read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     if not path.exists():
