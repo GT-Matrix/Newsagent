@@ -14,7 +14,7 @@ from modnews.core.context import PipelineContext
 from modnews.core.task import TaskBlocked, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.repository.source_config import SourceConfigRepository
-from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
 from modnews.service.ingest.planner import plan_ingest_tasks
