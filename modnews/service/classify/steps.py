@@ -53,20 +53,25 @@ class ClusteredEventMergeStep(DeclaredClassifyStep):
         self.spec = get_registered_classify_step_spec("clustered_event_merge")
 
 
+@dataclass(frozen=True, slots=True)
+class RegisteredClassifyFlow:
+    name: str
+    step_names: tuple[str, ...]
+
+    def build_steps(self) -> list[ClassifyStep]:
+        return build_registered_classify_steps(*self.step_names)
+
+
 def build_full_classify_steps() -> list[ClassifyStep]:
-    return build_registered_classify_steps(
-        "start_checkpoint",
-        "clustered_event_extraction",
-        "clustered_event_merge",
-    )
+    return get_registered_classify_flow("full").build_steps()
 
 
 def build_extraction_task_steps() -> list[ClassifyStep]:
-    return build_registered_classify_steps("start_checkpoint", "clustered_event_extraction")
+    return get_registered_classify_flow("clustered_event_extraction_task").build_steps()
 
 
 def build_merge_task_steps() -> list[ClassifyStep]:
-    return build_registered_classify_steps("clustered_event_merge")
+    return get_registered_classify_flow("clustered_event_merge_task").build_steps()
 
 
 def build_registered_classify_steps(*step_names: str) -> list[ClassifyStep]:
@@ -154,5 +159,37 @@ REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME: dict[str, ClassifyStepSpec] = {
 }
 
 
+REGISTERED_CLASSIFY_FLOWS: tuple[RegisteredClassifyFlow, ...] = (
+    RegisteredClassifyFlow(
+        name="full",
+        step_names=(
+            "start_checkpoint",
+            "clustered_event_extraction",
+            "clustered_event_merge",
+        ),
+    ),
+    RegisteredClassifyFlow(
+        name="clustered_event_extraction_task",
+        step_names=(
+            "start_checkpoint",
+            "clustered_event_extraction",
+        ),
+    ),
+    RegisteredClassifyFlow(
+        name="clustered_event_merge_task",
+        step_names=("clustered_event_merge",),
+    ),
+)
+
+REGISTERED_CLASSIFY_FLOW_BY_NAME: dict[str, RegisteredClassifyFlow] = {
+    flow.name: flow
+    for flow in REGISTERED_CLASSIFY_FLOWS
+}
+
+
 def get_registered_classify_step_spec(step_name: str) -> ClassifyStepSpec:
     return REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME[step_name]
+
+
+def get_registered_classify_flow(flow_name: str) -> RegisteredClassifyFlow:
+    return REGISTERED_CLASSIFY_FLOW_BY_NAME[flow_name]

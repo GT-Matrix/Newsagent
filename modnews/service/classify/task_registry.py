@@ -6,7 +6,7 @@ from pathlib import Path
 
 from modnews.core.task import TaskEvent
 
-from .steps import build_registered_classify_steps
+from .steps import get_registered_classify_flow
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,14 +15,14 @@ class RegisteredClassifyTask:
     step_id: str
     task_id_suffix: str
     auto_publish: bool
-    step_names: tuple[str, ...]
+    flow_name: str
     concurrency_key: str = "classify"
     max_concurrency: int = 1
     default_input_path: str | None = None
     default_write_fixed_outputs: bool = False
 
     def build_steps(self):
-        return build_registered_classify_steps(*self.step_names)
+        return get_registered_classify_flow(self.flow_name).build_steps()
 
 
 REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
@@ -31,7 +31,7 @@ REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
         step_id="classify/clustered_event_extraction",
         task_id_suffix="clustered-event-extraction",
         auto_publish=False,
-        step_names=("start_checkpoint", "clustered_event_extraction"),
+        flow_name="clustered_event_extraction_task",
         default_input_path="__combined_ingest__",
     ),
     RegisteredClassifyTask(
@@ -39,7 +39,7 @@ REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
         step_id="classify/clustered_event_merge",
         task_id_suffix="clustered-event-merge",
         auto_publish=True,
-        step_names=("clustered_event_merge",),
+        flow_name="clustered_event_merge_task",
         default_input_path="__combined_ingest__",
     ),
 )

@@ -13,6 +13,8 @@ from modnews.service.classify.run_result import build_classify_step_result
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
 from modnews.service.classify.state import ClassifyState
 from modnews.service.classify.task_execution import run_classification
+from modnews.service.classify.task_registry import get_registered_classify_task
+from modnews.service.classify.steps import get_registered_classify_flow
 
 
 class ClassifyTaskExecutionTest(unittest.TestCase):
@@ -66,6 +68,23 @@ class ClassifyTaskExecutionTest(unittest.TestCase):
             self.assertEqual(events, [])
             self.assertEqual(step_result.meta["merged_event_count"], 7)
             self.assertEqual(step_result.output_path, str(pipeline_config.classification.output_path))
+
+    def test_manual_and_taskized_classify_paths_share_registered_flows(self) -> None:
+        extraction_task = get_registered_classify_task("classify.clustered_event_extraction")
+        merge_task = get_registered_classify_task("classify.clustered_event_merge")
+
+        self.assertEqual(
+            [step.name for step in get_registered_classify_flow("full").build_steps()],
+            ["start_checkpoint", "clustered_event_extraction", "clustered_event_merge"],
+        )
+        self.assertEqual(
+            [step.name for step in extraction_task.build_steps()],
+            [step.name for step in get_registered_classify_flow("clustered_event_extraction_task").build_steps()],
+        )
+        self.assertEqual(
+            [step.name for step in merge_task.build_steps()],
+            [step.name for step in get_registered_classify_flow("clustered_event_merge_task").build_steps()],
+        )
 
     def test_run_classification_short_circuits_when_disabled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

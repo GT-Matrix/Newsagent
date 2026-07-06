@@ -9,7 +9,7 @@ from .run_result import build_classify_step_result
 from .task_registry import REGISTERED_CLASSIFY_TASKS, get_registered_classify_task
 from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
 from .runner import ClassifyStepRunner
-from .steps import build_full_classify_steps
+from .steps import get_registered_classify_flow
 from .task_checkpoint import write_classify_task_checkpoint
 from .task_runtime import prepare_clustered_task_runtime
 
@@ -61,7 +61,7 @@ def run_classification(
         ctx,
         config,
     )
-    run_result = ClassifyStepRunner(build_full_classify_steps()).run(state, runtime)
+    run_result = ClassifyStepRunner(get_registered_classify_flow("full").build_steps()).run(state, runtime)
     state = run_result.state
 
     return state.items, state.event_records, build_classify_step_result(

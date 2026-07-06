@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from modnews.service.classify.steps import (
+    REGISTERED_CLASSIFY_FLOW_BY_NAME,
     REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME,
     build_extraction_task_steps,
     build_full_classify_steps,
@@ -15,6 +16,10 @@ class ClassifyStepsTest(unittest.TestCase):
         self.assertEqual(
             sorted(REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME),
             ["clustered_event_extraction", "clustered_event_merge", "start_checkpoint"],
+        )
+        self.assertEqual(
+            sorted(REGISTERED_CLASSIFY_FLOW_BY_NAME),
+            ["clustered_event_extraction_task", "clustered_event_merge_task", "full"],
         )
         self.assertEqual([step.name for step in build_full_classify_steps()], ["start_checkpoint", "clustered_event_extraction", "clustered_event_merge"])
         self.assertEqual([step.name for step in build_extraction_task_steps()], ["start_checkpoint", "clustered_event_extraction"])
