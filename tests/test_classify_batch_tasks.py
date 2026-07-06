@@ -158,6 +158,12 @@ class ClassifyBatchTaskTest(unittest.TestCase):
                 "classify.clustered_event_merge",
             ],
         )
+        extraction = REGISTERED_CLASSIFY_TASK_BY_TYPE["classify.clustered_event_extraction"]
+        merge = REGISTERED_CLASSIFY_TASK_BY_TYPE["classify.clustered_event_merge"]
+        self.assertEqual(extraction.step_names, ("start_checkpoint", "clustered_event_extraction"))
+        self.assertEqual(merge.step_names, ("clustered_event_merge",))
+        self.assertEqual([step.name for step in extraction.build_steps()], list(extraction.step_names))
+        self.assertEqual([step.name for step in merge.build_steps()], list(merge.step_names))
 
 
 if __name__ == "__main__":

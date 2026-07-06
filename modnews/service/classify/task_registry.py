@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 from modnews.core.task import TaskEvent
 
-from .runner import ClassifyStep
-from .steps import build_extraction_task_steps, build_merge_task_steps
+from .steps import build_registered_classify_steps
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,7 +14,10 @@ class RegisteredClassifyTask:
     step_id: str
     task_id_suffix: str
     auto_publish: bool
-    build_steps: Callable[[], list[ClassifyStep]]
+    step_names: tuple[str, ...]
+
+    def build_steps(self):
+        return build_registered_classify_steps(*self.step_names)
 
 
 REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
@@ -25,14 +26,14 @@ REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
         step_id="classify/clustered_event_extraction",
         task_id_suffix="clustered-event-extraction",
         auto_publish=False,
-        build_steps=build_extraction_task_steps,
+        step_names=("start_checkpoint", "clustered_event_extraction"),
     ),
     RegisteredClassifyTask(
         task_type="classify.clustered_event_merge",
         step_id="classify/clustered_event_merge",
         task_id_suffix="clustered-event-merge",
         auto_publish=True,
-        build_steps=build_merge_task_steps,
+        step_names=("clustered_event_merge",),
     ),
 )
 
