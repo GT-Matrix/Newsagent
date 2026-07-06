@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from modnews.service.report import generate_report
+from modnews.cli.api_client import ApiClient
 from modnews.service.report.config import DEFAULT_INPUT, DEFAULT_OUTPUT_DIR
 
 
@@ -20,12 +20,12 @@ def register(subparsers: argparse._SubParsersAction) -> None:
 
 
 def generate_report_command(_ctx: Any, _client: Any, args: argparse.Namespace) -> dict[str, Any]:
-    events = generate_report(args.input, args.output_dir, report_date=args.date, config_path=args.config)
-    selected = [event for event in events if event.should_include_report]
-    with_sources = [event for event in events if event.source_items]
-    return {
-        "event_count": len(events),
-        "events_with_sources": len(with_sources),
-        "selected_count": len(selected),
+    payload = {
+        "input": str(args.input),
         "output_dir": str(args.output_dir),
+        "date": args.date,
+        "config": str(args.config) if args.config else None,
     }
+    if isinstance(_client, ApiClient):
+        return _client.post("/api/report/generate", payload)
+    return _client.report_generate(payload)
