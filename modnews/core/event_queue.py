@@ -30,6 +30,7 @@ from .task import SUCCESS_STATES, TERMINAL_STATES, TaskBlocked, TaskEvent, task_
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
 TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
+TaskStateWriter = Callable[[dict[str, Any]], None]
 
 
 @dataclass(slots=True)
@@ -38,8 +39,9 @@ class EventQueue:
     _results: dict[str, dict[str, Any]] = field(default_factory=dict)
     _executors: dict[str, TaskExecutor] = field(default_factory=dict)
     _loggers: list[TaskLogger] = field(default_factory=list)
+    _state_writer: TaskStateWriter | None = None
     _router: EventRouter | None = None
-    _lock: threading.Lock = field(default_factory=threading.Lock)
+    _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def bind_router(self, router: EventRouter) -> None:
         self._router = router
@@ -53,11 +55,48 @@ class EventQueue:
     def bind_logger(self, logger: TaskLogger) -> None:
         self._loggers.append(logger)
 
+    def bind_state_writer(self, writer: TaskStateWriter) -> None:
+        self._state_writer = writer
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "tasks": [task.to_dict() for task in self._tasks.values()],
+                "results": {task_id: dict(result) for task_id, result in self._results.items()},
+            }
+
+    def load_snapshot(self, payload: dict[str, Any]) -> None:
+        tasks: dict[str, TaskEvent] = {}
+        results: dict[str, dict[str, Any]] = {}
+        for raw in payload.get("tasks", []):
+            if not isinstance(raw, dict) or not raw.get("id") or not raw.get("type"):
+                continue
+            task = TaskEvent.from_dict(raw)
+            if task.state == "running":
+                task.state = "queued"
+                task.status_reason = "restored from interrupted running state"
+                task.started_at = None
+                task.finished_at = None
+                restored = dict(payload.get("results", {}).get(task.id, {})) if isinstance(payload.get("results"), dict) else {}
+                restored["restored_from"] = "running"
+                results[task.id] = restored
+            else:
+                if isinstance(payload.get("results"), dict):
+                    result = payload["results"].get(task.id)
+                    if isinstance(result, dict):
+                        results[task.id] = dict(result)
+            tasks[task.id] = task
+        with self._lock:
+            self._tasks = tasks
+            self._results = results
+        self._persist()
+
     def register(self, task: TaskEvent) -> TaskEvent:
         with self._lock:
             if task.created_at is None:
                 task.created_at = now()
             self._tasks[task.id] = task
+        self._persist()
         self._log(task, "task.registered")
         return task
 
@@ -92,12 +131,15 @@ class EventQueue:
             current_waiting_reason = waiting_reason(task, snapshot_tasks(self._tasks))
             if not blocked_before_run and current_waiting_reason:
                 mark_task_waiting(task, self._results, current_waiting_reason)
+                self._persist()
                 self._log(task, "task.waiting", reason=current_waiting_reason)
                 return task
             if not blocked_before_run:
                 mark_task_running(task)
+                self._persist()
                 self._log(task, "task.started")
         if blocked_before_run:
+            self._persist()
             self._dispatch("task.blocked", task)
             self.drain_ready()
             return task
@@ -105,6 +147,7 @@ class EventQueue:
         if not executor:
             with self._lock:
                 mark_task_failed(task, self._results, f"no executor registered for {task.type}")
+                self._persist()
                 self._log(task, "task.failed", error=self._results[task.id]["error"])
             self._dispatch("task.failed", task)
             self.drain_ready()
@@ -114,12 +157,14 @@ class EventQueue:
                 result = executor(task) or {}
             with self._lock:
                 mark_task_succeeded(task, self._results, result)
+                self._persist()
                 self._log(task, "task.completed", result_keys=sorted(self._results[task.id].keys()))
             self._dispatch("task.completed", task)
             self.drain_ready()
         except TaskBlocked as exc:
             with self._lock:
                 mark_task_blocked(task, self._results, exc.reason, details=exc.details)
+                self._persist()
                 self._log(task, "task.blocked", reason=exc.reason)
             self._dispatch("task.blocked", task)
             self.drain_ready()
@@ -127,10 +172,12 @@ class EventQueue:
             with self._lock:
                 if task.attempt < max(1, task.max_attempts):
                     mark_task_retry_scheduled(task, self._results, str(exc))
+                    self._persist()
                     self._log(task, "task.retry_scheduled", error=str(exc))
                     event_type = "task.retry_scheduled"
                 else:
                     mark_task_failed(task, self._results, str(exc))
+                    self._persist()
                     self._log(task, "task.failed", error=str(exc))
                     event_type = "task.failed"
             self._dispatch(event_type, task)
@@ -156,6 +203,7 @@ class EventQueue:
         with self._lock:
             task = self._tasks[task_id]
             task.payload.update(patch)
+            self._persist()
             return task
 
     def cancel(self, task_id: str, *, reason: str = "cancelled") -> TaskEvent:
@@ -165,8 +213,10 @@ class EventQueue:
                 return task
             if task.state == "running":
                 self._results[task.id] = {"error": "cannot cancel running task", "cancel_reason": reason}
+                self._persist()
                 return task
             mark_task_cancelled(task, self._results, reason)
+            self._persist()
             self._log(task, "task.cancelled", reason=reason)
             return task
 
@@ -176,6 +226,7 @@ class EventQueue:
             if task.state not in {"failed", "cancelled", "blocked"}:
                 return task
             reset_task_for_retry(task, self._results)
+            self._persist()
             self._log(task, "task.retry_requested")
             return task
 
@@ -186,10 +237,12 @@ class EventQueue:
                 return task
             if task.state == "running":
                 self._results[task.id] = {"error": "cannot skip running task", "skip_reason": reason}
+                self._persist()
                 return task
             mark_task_skipped(task, self._results, reason)
-            self._log(task, "task.skipped", reason=reason)
             released = unblock_released_tasks(self._tasks, self._results, dependency_task_id=task_id)
+            self._persist()
+            self._log(task, "task.skipped", reason=reason)
             for dependent in released:
                 self._log(dependent, "task.unblocked", dependency=task_id)
         self._dispatch("task.skipped", task)
@@ -241,6 +294,7 @@ class EventQueue:
         blocked_tasks: list[TaskEvent]
         with self._lock:
             blocked_tasks, waiting_tasks = blocked_tasks_to_mark(self._tasks, self._results)
+            self._persist()
             for task, reason in waiting_tasks:
                 self._log(task, "task.waiting", reason=reason)
             for task in blocked_tasks:
@@ -254,3 +308,12 @@ class EventQueue:
                 logger(task, event_type, payload)
             except Exception:
                 pass
+
+    def _persist(self) -> None:
+        writer = self._state_writer
+        if writer is None:
+            return
+        try:
+            writer(self.snapshot())
+        except Exception:
+            pass

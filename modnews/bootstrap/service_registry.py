@@ -11,6 +11,7 @@ from modnews.core.progress import BUS
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
+from modnews.repository.queue_state import QueueStateRepository
 from modnews.repository.runtime_config_repository import RuntimeConfigRepository
 from modnews.repository.runs import RunRepository
 from modnews.repository.task_logs import TaskLogRepository
@@ -50,6 +51,9 @@ def configure_services(project_root: Path | None = None) -> ServiceContainer:
     root = project_root.resolve() if project_root else Path.cwd().resolve()
     ensure_runtime_env(root)
     container = ServiceContainer(project_root=root)
+    queue_state = QueueStateRepository(root)
+    container.event_queue.bind_state_writer(queue_state.save)
+    container.event_queue.load_snapshot(queue_state.load())
     container.pipeline_manager.bind(container.event_queue, container.event_router)
     container.event_queue.bind_router(container.event_router)
     task_logs = TaskLogRepository(root)

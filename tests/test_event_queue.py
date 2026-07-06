@@ -1,13 +1,49 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskBlocked, TaskEvent
+from modnews.cli.local_client import LocalClient
 
 
 class EventQueueTest(unittest.TestCase):
+    def test_snapshot_restore_requeues_running_task(self) -> None:
+        queue = EventQueue()
+        queue.register(TaskEvent(id="task-1", type="diagnostic.echo", state="running", started_at="2026-01-01T00:00:00+08:00"))
+        payload = queue.snapshot()
+
+        restored = EventQueue()
+        restored.load_snapshot(payload)
+
+        task = restored.get("task-1")
+        self.assertEqual(task.state, "queued")
+        self.assertEqual(task.status_reason, "restored from interrupted running state")
+        self.assertEqual(restored.result("task-1")["restored_from"], "running")
+
+    def test_local_client_restores_persisted_queue_and_resume_can_continue(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.runs().create("run-1", {})
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    payload={"project_root": tmp},
+                )
+            )
+
+            restarted = LocalClient(project_root)
+            result = restarted.run_resume("run-1")
+
+            self.assertEqual(result["tasks"][0]["state"], "succeeded")
+            self.assertEqual(restarted.container.event_queue.result("task-1")["payload"]["project_root"], tmp)
+
     def test_unfinished_dependency_is_waiting_not_blocked(self) -> None:
         queue = EventQueue()
         queue.register(TaskEvent(id="first", type="diagnostic.never", state="running"))
