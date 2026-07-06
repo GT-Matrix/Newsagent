@@ -9,7 +9,6 @@ from modnews.service.classify.planner import (
     build_clustered_event_merge_task,
 )
 from modnews.service.ingest.planner import plan_ingest_tasks
-from modnews.service.pipeline.step import PipelinePlanContext
 
 
 def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, config: Any) -> list[TaskEvent]:
@@ -28,22 +27,6 @@ def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, c
         )
     return ingest_tasks
 
-
-def build_combine_ingest_task(*, context: PipelinePlanContext) -> list[TaskEvent]:
-    run_id = context.run_id
-    project_root = str(context.request.get("project_root") or "")
-    ingest_task_ids = [
-        task.id
-        for task in context.tasks
-        if task.step_id and task.step_id.startswith("ingest/")
-    ]
-    return build_combine_ingest_task_for_run(
-        run_id=run_id,
-        project_root=project_root,
-        ingest_task_ids=ingest_task_ids,
-    )
-
-
 def build_combine_ingest_task_for_run(*, run_id: str, project_root: str, ingest_task_ids: list[str]) -> list[TaskEvent]:
     if not ingest_task_ids:
         return []
@@ -59,35 +42,6 @@ def build_combine_ingest_task_for_run(*, run_id: str, project_root: str, ingest_
             max_concurrency=1,
         )
     ]
-
-
-def build_classify_tasks(
-    *,
-    context: PipelinePlanContext,
-    run_id: str,
-    project_root: str,
-    config_path: object,
-    config: Any,
-) -> list[TaskEvent]:
-    if not config.classification.enabled:
-        return []
-    combine_task = next((task for task in context.tasks if task.type == "pipeline.combine_ingest"), None)
-    if combine_task is None:
-        return []
-    extraction_task = build_classify_extraction_task(
-        run_id=run_id,
-        project_root=project_root,
-        config_path=config_path,
-        depends_on=[combine_task.id],
-    )
-    merge_task = build_classify_merge_task(
-        run_id=run_id,
-        project_root=project_root,
-        config_path=config_path,
-        depends_on=[extraction_task.id],
-    )
-    return [extraction_task, merge_task]
-
 
 def build_classify_extraction_task(
     *,
@@ -119,30 +73,6 @@ def build_classify_merge_task(
         config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
     )
-
-
-def build_report_tasks(
-    *,
-    context: PipelinePlanContext,
-    run_id: str,
-    project_root: str,
-    config_path: object,
-    config: Any,
-) -> list[TaskEvent]:
-    if not config.classification.enabled:
-        return []
-    merge_task = next((task for task in context.tasks if task.type == "classify.clustered_event_merge"), None)
-    if merge_task is None:
-        return []
-    return [
-        build_report_generate_task(
-            run_id=run_id,
-            project_root=project_root,
-            config_path=config_path,
-            depends_on=[merge_task.id],
-        )
-    ]
-
 
 def build_report_generate_task(
     *,
