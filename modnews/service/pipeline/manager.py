@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
+from modnews.service.pipeline.manager_support import (
+    dispatch_followup_tasks,
+    handle_pipeline_task_event,
+    persist_callback_events,
+    start_pipeline_run,
+)
 from modnews.service.pipeline.registry import PipelineRegistry
-from modnews.service.pipeline.run_state import append_step_callback_events, update_run_state
-from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep
+from modnews.service.pipeline.step import PipelineStep
 
 
 @dataclass(slots=True)
@@ -30,51 +34,33 @@ class PipelineManager:
         self.step_registry.register(step)
 
     def start_run(self, request: dict[str, Any], *, submit: bool = False) -> dict[str, Any]:
-        run_id = str(request.get("run_id") or "local")
-        tasks = self.step_registry.plan_run(PipelinePlanContext(run_id=run_id, request=request))
-        if self.event_queue:
-            for task in tasks:
-                if submit:
-                    self.event_queue.submit(task)
-                else:
-                    self.event_queue.register(task)
-        return {"run_id": run_id, "registered_tasks": [task.to_dict() for task in tasks]}
+        return start_pipeline_run(self.step_registry, self.event_queue, request, submit=submit)
 
     def on_task_completed(self, event: dict[str, Any]) -> None:
-        if self.event_queue:
-            update_run_state(self.event_queue, event)
-            callback_events = self.step_registry.notify("on_task_completed", event, self.event_queue)
-            self._store_step_callback_events(event, callback_events)
-        self._dispatch_next(event, failed=False)
+        callback_events = handle_pipeline_task_event(
+            self.step_registry,
+            self.event_queue,
+            event,
+            event_type="task.completed",
+        )
+        persist_callback_events(event, callback_events)
+        dispatch_followup_tasks(self.step_registry, self.event_queue, event, failed=False)
 
     def on_task_failed(self, event: dict[str, Any]) -> None:
-        if self.event_queue:
-            update_run_state(self.event_queue, event, failed=True)
-            callback_events = self.step_registry.notify("on_task_failed", event, self.event_queue)
-            self._store_step_callback_events(event, callback_events)
-        self._dispatch_next(event, failed=True)
+        callback_events = handle_pipeline_task_event(
+            self.step_registry,
+            self.event_queue,
+            event,
+            event_type="task.failed",
+        )
+        persist_callback_events(event, callback_events)
+        dispatch_followup_tasks(self.step_registry, self.event_queue, event, failed=True)
 
     def on_task_blocked(self, event: dict[str, Any]) -> None:
-        if self.event_queue:
-            update_run_state(self.event_queue, event, blocked=True)
-            callback_events = self.step_registry.notify("on_task_blocked", event, self.event_queue)
-            self._store_step_callback_events(event, callback_events)
-
-    def _dispatch_next(self, event: dict[str, Any], *, failed: bool) -> None:
-        if failed:
-            return
-        if not self.event_queue:
-            return
-        for task in self.step_registry.plan_followup(event):
-            self.event_queue.submit(task)
-
-    def _store_step_callback_events(self, event: dict[str, Any], callback_events: list[dict[str, Any]]) -> None:
-        task = event.get("task")
-        if not isinstance(task, dict):
-            return
-        payload = task.get("payload") if isinstance(task.get("payload"), dict) else {}
-        project_root = payload.get("project_root")
-        run_id = task.get("pipeline_run_id")
-        if not project_root or not run_id:
-            return
-        append_step_callback_events(Path(str(project_root)), str(run_id), callback_events)
+        callback_events = handle_pipeline_task_event(
+            self.step_registry,
+            self.event_queue,
+            event,
+            event_type="task.blocked",
+        )
+        persist_callback_events(event, callback_events)
