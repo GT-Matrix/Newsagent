@@ -9,9 +9,11 @@ from unittest.mock import patch
 from modnews.app.server import create_app
 from modnews.cli.commands.ingest import run_ingest
 from modnews.cli.local_client import LocalClient
-from modnews.core.task import TaskEvent
+from modnews.core.task import TaskBlocked, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.repository.source_config import SourceConfigRepository
+from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
 from modnews.service.extraction.tasks import run_web_source_task
 
@@ -186,6 +188,55 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in response.get_json()["tasks"]], ["web_source.run", "web_source.run"])
+
+    def test_blocked_web_source_task_auto_queues_repair_and_skips_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            repair_manager = RepairManager(project_root, registry_from_project(project_root))
+            repair_item = repair_manager.create_task("site-1", reason="auto repair", auto_start=False)
+
+            def blocked(_task: TaskEvent) -> dict[str, object]:
+                raise TaskBlocked(
+                    "repair required",
+                    details={
+                        "repair_task_id": repair_item.id,
+                        "job": {"id": "job-1", "source_id": "site-1"},
+                    },
+                )
+
+            client.container.event_queue.register_executor("web_source.run", blocked)
+            client.container.event_queue.register_executor(
+                "extractor.repair.codex",
+                lambda task: {"repair_task": {"id": task.payload["repair_task_id"], "status": "succeeded"}},
+            )
+            client.container.event_queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="web-source-task-1",
+                    type="web_source.run",
+                    pipeline_run_id="run-1",
+                    step_id="ingest/site_lists/site-1",
+                    payload={"project_root": str(project_root), "source_id": "site-1"},
+                )
+            )
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="combine",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    depends_on=["web-source-task-1"],
+                )
+            )
+
+            client.container.event_queue.drain_ready()
+
+            self.assertEqual(client.container.event_queue.get("web-source-task-1").state, "skipped")
+            self.assertEqual(client.container.event_queue.get("combine").state, "succeeded")
+            repair_tasks = [task for task in client.container.event_queue.list() if task.type == "extractor.repair.codex"]
+            self.assertEqual(len(repair_tasks), 1)
+            self.assertEqual(repair_tasks[0].payload["repair_task_id"], repair_item.id)
+            self.assertEqual(repair_tasks[0].state, "succeeded")
 
 
 if __name__ == "__main__":

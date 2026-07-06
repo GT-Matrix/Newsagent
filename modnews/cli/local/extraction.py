@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
-from modnews.core.task import TaskEvent
 from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_queue import build_repair_task_event
 from modnews.service.extraction.registry import registry_from_project
 from modnews.repository.web_jobs import WebJobStore
 
@@ -104,18 +103,10 @@ class ExtractionLocalMixin:
         return {"ok": True}
 
     def _submit_repair_task(self, repair_task_id: str, source_id: str) -> dict[str, Any]:
-        task_id = f"repair-{repair_task_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-        task = TaskEvent(
-            id=task_id,
-            type="extractor.repair.codex",
-            step_id="extractor/repair",
-            payload={
-                "project_root": str(self.project_root),
-                "repair_task_id": repair_task_id,
-                "source_id": source_id,
-            },
-            concurrency_key=f"extractor.repair:{source_id}",
-            max_concurrency=1,
+        task = build_repair_task_event(
+            project_root=self.project_root,
+            repair_task_id=repair_task_id,
+            source_id=source_id,
         )
         self.container.event_queue.submit(task)
-        return self.queue_show(task_id)
+        return self.queue_show(task.id)

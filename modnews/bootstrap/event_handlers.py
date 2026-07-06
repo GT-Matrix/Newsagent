@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime
 
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
@@ -22,6 +23,7 @@ from modnews.service.classify.batch_executor import (
 from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.extraction.repair_tasks import run_codex_repair_task
+from modnews.service.extraction.repair_queue import build_repair_task_event
 from modnews.service.pipeline.tasks import combine_ingest_task
 from modnews.service.report.tasks import run_report_generate_task
 from modnews.repository.checkpoints import CheckpointRepository
@@ -34,6 +36,7 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
     registry.register("task.completed", pipeline_manager.on_task_completed)
     registry.register("task.failed", pipeline_manager.on_task_failed)
     registry.register("task.blocked", pipeline_manager.on_task_blocked)
+    registry.register("task.blocked", _auto_queue_blocked_web_source_repair(pipeline_manager.event_queue))
 
 
 def register_task_executors(queue: EventQueue) -> None:
@@ -85,3 +88,47 @@ def _auto_publish_checkpoint(event: dict[str, object]) -> dict[str, object] | No
     checkpoint = CheckpointRepository(Path(str(project_root))).read(str(checkpoint_path))
     publish_result = OutputRepository(Path(str(project_root))).publish_from_checkpoint(checkpoint)
     return {"publish": publish_result}
+
+
+def _auto_queue_blocked_web_source_repair(queue: EventQueue | None):
+    def callback(event: dict[str, object]) -> dict[str, object] | None:
+        if queue is None:
+            return None
+        task = event.get("task")
+        result = event.get("result")
+        if not isinstance(task, dict) or not isinstance(result, dict):
+            return None
+        if task.get("type") != "web_source.run":
+            return None
+        task_id = str(task.get("id") or "")
+        source_id = str(
+            result.get("job", {}).get("source_id")
+            if isinstance(result.get("job"), dict)
+            else task.get("payload", {}).get("source_id") if isinstance(task.get("payload"), dict) else ""
+        )
+        repair_task_id = result.get("repair_task_id")
+        if repair_task_id and source_id and not _has_repair_queue_task(queue, str(repair_task_id)):
+            payload = task.get("payload", {}) if isinstance(task.get("payload"), dict) else {}
+            project_root = Path(str(payload.get("project_root") or Path.cwd())).resolve()
+            repair_task = build_repair_task_event(
+                project_root=project_root,
+                repair_task_id=str(repair_task_id),
+                source_id=source_id,
+                run_id=str(task.get("pipeline_run_id") or "") or None,
+                task_id=f"repair-{repair_task_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}",
+            )
+            queue.submit(repair_task)
+        if task_id and queue.get(task_id).state == "blocked":
+            queue.skip(task_id, reason=str(result.get("blocked_reason") or "blocked web source safely skipped"))
+        return None
+
+    return callback
+
+
+def _has_repair_queue_task(queue: EventQueue, repair_task_id: str) -> bool:
+    return any(
+        task.type == "extractor.repair.codex"
+        and task.payload.get("repair_task_id") == repair_task_id
+        and task.state not in {"cancelled", "failed"}
+        for task in queue.list()
+    )
