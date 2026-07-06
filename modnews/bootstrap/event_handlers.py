@@ -16,7 +16,7 @@ from modnews.service.extraction.tasks import REGISTERED_EXTRACTION_TASK_EXECUTOR
 from modnews.service.extraction.repair_tasks import REGISTERED_REPAIR_TASK_EXECUTORS
 from modnews.service.extraction.repair_queue_runtime import handle_blocked_web_source_event
 from modnews.service.pipeline.tasks import REGISTERED_PIPELINE_TASK_EXECUTORS
-from modnews.service.report.tasks import run_report_generate_task
+from modnews.service.report.tasks import REGISTERED_REPORT_TASK_EXECUTORS
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.service.pipeline.manager import PipelineManager
@@ -44,7 +44,8 @@ def register_task_executors(queue: EventQueue) -> None:
         queue.register_executor(task_type, executor)
     for task_type, executor in REGISTERED_PIPELINE_TASK_EXECUTORS.items():
         queue.register_executor(task_type, executor)
-    queue.register_executor("report.generate", run_report_generate_task)
+    for task_type, executor in REGISTERED_REPORT_TASK_EXECUTORS.items():
+        queue.register_executor(task_type, executor)
 
 
 def _echo(task: TaskEvent) -> dict[str, object]:

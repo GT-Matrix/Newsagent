@@ -9,6 +9,7 @@ from modnews.service.extraction.tasks import REGISTERED_EXTRACTION_TASK_EXECUTOR
 from modnews.service.extraction.repair_tasks import REGISTERED_REPAIR_TASK_EXECUTORS
 from modnews.service.ingest.tasks import REGISTERED_INGEST_TASK_EXECUTORS
 from modnews.service.pipeline.tasks import REGISTERED_PIPELINE_TASK_EXECUTORS
+from modnews.service.report.tasks import REGISTERED_REPORT_TASK_EXECUTORS
 
 
 class BootstrapTaskExecutorTest(unittest.TestCase):
@@ -27,6 +28,7 @@ class BootstrapTaskExecutorTest(unittest.TestCase):
         self.assertTrue(set(REGISTERED_REPAIR_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
         self.assertTrue(set(REGISTERED_INGEST_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
         self.assertTrue(set(REGISTERED_PIPELINE_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_REPORT_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
 
 
 if __name__ == "__main__":
