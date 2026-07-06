@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from modnews.bootstrap.service_registry import configure_services
+from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASKS
 from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
 
 
@@ -16,9 +17,7 @@ class BootstrapTaskExecutorTest(unittest.TestCase):
         self.assertNotIn("classify.batch_item", container.event_queue._executors)
         self.assertNotIn("classify.batch_relevance", container.event_queue._executors)
         self.assertIn("pipeline.combine_ingest", container.event_queue._executors)
-        self.assertIn("classify.embedding", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_extraction.batch", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_merge.batch", container.event_queue._executors)
+        self.assertTrue({spec.task_type for spec in REGISTERED_BATCH_TASKS}.issubset(set(container.event_queue._executors)))
         self.assertTrue(set(REGISTERED_CLASSIFY_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
 
 

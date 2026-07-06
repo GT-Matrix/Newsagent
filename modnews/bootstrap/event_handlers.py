@@ -6,9 +6,7 @@ from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
 from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
-from modnews.service.classify.batch_tasks import (
-    BATCH_TASK_EXECUTORS,
-)
+from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASKS
 from modnews.service.classify.batch_executor import (
     EventQueueBatchExecutionBackend,
     default_batch_backend,
@@ -34,8 +32,8 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
 
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
-    for task_type, executor in BATCH_TASK_EXECUTORS.items():
-        queue.register_executor(task_type, executor)
+    for spec in REGISTERED_BATCH_TASKS:
+        queue.register_executor(spec.task_type, spec.executor)
     for task_type, executor in REGISTERED_CLASSIFY_TASK_EXECUTORS.items():
         queue.register_executor(task_type, _with_classify_batch_queue(queue, executor))
     queue.register_executor("ingest.run_step", run_ingest_step_task)
