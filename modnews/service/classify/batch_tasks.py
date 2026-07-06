@@ -9,10 +9,9 @@ from modnews.core.context import PipelineContext
 from modnews.core.task import TaskEvent
 
 from .batch_stage import run_llm_batch_task
-from .clustered_extract import CLUSTERED_EXTRACTION_STAGE
-from .clustered_merge import CLUSTERED_MERGE_STAGE
 from .batch_stage import LlmBatchStage
 from .llm_client import LlmClient
+from .llm_batch_registry import REGISTERED_LLM_BATCH_STAGES, get_registered_llm_batch_stage
 from .retriever import EventVectorRetriever
 
 T = TypeVar("T")
@@ -41,18 +40,19 @@ def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
 
 
 def run_clustered_event_extraction_batch_item(task: TaskEvent) -> dict[str, object]:
-    return _run_llm_batch_stage_task(
-        task,
-        stage=CLUSTERED_EXTRACTION_STAGE,
-        payload_loader=lambda payload: payload if isinstance(payload, list) else [],
-    )
+    return run_registered_llm_batch_item(task)
 
 
 def run_clustered_event_merge_batch_item(task: TaskEvent) -> dict[str, object]:
+    return run_registered_llm_batch_item(task)
+
+
+def run_registered_llm_batch_item(task: TaskEvent) -> dict[str, object]:
+    spec = get_registered_llm_batch_stage(task.type)
     return _run_llm_batch_stage_task(
         task,
-        stage=CLUSTERED_MERGE_STAGE,
-        payload_loader=lambda payload: payload if isinstance(payload, list) else [],
+        stage=spec.stage,
+        payload_loader=spec.payload_loader,
     )
 
 
@@ -84,13 +84,12 @@ BATCH_TASK_EXECUTOR_SPECS: tuple[BatchTaskExecutorSpec, ...] = (
         task_type="classify.embedding",
         executor=run_embedding_batch_item,
     ),
-    BatchTaskExecutorSpec(
-        task_type="classify.clustered_event_extraction.batch",
-        executor=run_clustered_event_extraction_batch_item,
-    ),
-    BatchTaskExecutorSpec(
-        task_type="classify.clustered_event_merge.batch",
-        executor=run_clustered_event_merge_batch_item,
+    *(
+        BatchTaskExecutorSpec(
+            task_type=spec.task_type,
+            executor=run_registered_llm_batch_item,
+        )
+        for spec in REGISTERED_LLM_BATCH_STAGES
     ),
 )
 

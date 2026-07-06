@@ -8,6 +8,7 @@ from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_stage import LlmBatchStage, run_llm_batch_stage, run_llm_batch_task, task_batch_progress
 from modnews.service.classify.batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
 from modnews.service.classify.batch_tasks import BATCH_TASK_EXECUTORS, run_clustered_event_extraction_batch_item
+from modnews.service.classify.llm_batch_registry import REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE
 
 
 class _FakeClient:
@@ -126,6 +127,15 @@ class ClassifyBatchTaskTest(unittest.TestCase):
                 "classify.clustered_event_extraction.batch",
                 "classify.clustered_event_merge.batch",
                 "classify.embedding",
+            ],
+        )
+
+    def test_llm_batch_stage_registry_is_keyed_by_queue_task_type(self) -> None:
+        self.assertEqual(
+            sorted(REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE),
+            [
+                "classify.clustered_event_extraction.batch",
+                "classify.clustered_event_merge.batch",
             ],
         )
 
