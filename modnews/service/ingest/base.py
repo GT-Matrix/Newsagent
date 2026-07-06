@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import argparse
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,15 @@ class IngestStep(ABC):
 
     def __init__(self, **options):
         self.options = options
+
+    @classmethod
+    def options_from_api_payload(cls, payload: dict[str, Any]) -> dict[str, Any]:
+        value = payload.get("options")
+        return dict(value) if isinstance(value, dict) else {}
+
+    @classmethod
+    def options_from_cli_args(cls, args: argparse.Namespace) -> dict[str, Any]:
+        return {}
 
     @abstractmethod
     def run(self, ctx: PipelineContext) -> tuple[list[NewsItem], StepResult]:

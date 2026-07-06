@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,32 @@ USER_AGENT = (
 
 class SiteListsStep(IngestStep):
     step_name = "site_lists"
+
+    @classmethod
+    def options_from_api_payload(cls, payload: dict[str, Any]) -> dict[str, Any]:
+        options = super().options_from_api_payload(payload)
+        sites = payload.get("sites")
+        if isinstance(sites, list):
+            options["sites"] = [str(item) for item in sites if item]
+        if payload.get("limit_per_site") is not None:
+            options["limit_per_site"] = payload.get("limit_per_site")
+        if payload.get("max_concurrency") is not None:
+            options["max_concurrency"] = payload.get("max_concurrency")
+        return options
+
+    @classmethod
+    def options_from_cli_args(cls, args: argparse.Namespace) -> dict[str, Any]:
+        options: dict[str, Any] = {}
+        sites = getattr(args, "sites", None)
+        if sites:
+            options["sites"] = sites
+        limit_per_site = getattr(args, "limit_per_site", None)
+        if limit_per_site is not None:
+            options["limit_per_site"] = limit_per_site
+        max_concurrency = getattr(args, "max_concurrency", None)
+        if max_concurrency is not None:
+            options["max_concurrency"] = max_concurrency
+        return options
 
     @classmethod
     def plan_tasks(

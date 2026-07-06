@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request
 
 from modnews.app.context import local_client
+from modnews.service.ingest.registry import default_ingest_registry
 from modnews.service.ingest.entrypoints import run_ingest_step_tasks
 
 bp = Blueprint("ingest", __name__)
@@ -14,19 +15,13 @@ bp = Blueprint("ingest", __name__)
 def run_ingest_step():
     payload = request.get_json(silent=True) or {}
     step_id = str(payload.get("step_id") or "")
-    if step_id not in {"rss", "newsnow", "site_lists"}:
+    registry = default_ingest_registry()
+    if step_id not in registry.list():
         return jsonify({"ok": False, "error": "invalid step_id"}), 400
+    step_cls = registry.get(step_id)
     client = local_client()
     run_id = payload.get("run_id") or f"ingest-{step_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    options = payload.get("options") if isinstance(payload.get("options"), dict) else {}
-    if step_id == "site_lists":
-        sites = payload.get("sites")
-        if isinstance(sites, list):
-            options["sites"] = [str(item) for item in sites if item]
-        if payload.get("limit_per_site") is not None:
-            options["limit_per_site"] = payload.get("limit_per_site")
-        if payload.get("max_concurrency") is not None:
-            options["max_concurrency"] = payload.get("max_concurrency")
+    options = step_cls.options_from_api_payload(payload)
     return jsonify(
         run_ingest_step_tasks(
             project_root=client.project_root,
