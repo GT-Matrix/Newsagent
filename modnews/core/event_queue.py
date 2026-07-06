@@ -283,6 +283,23 @@ class EventQueue:
         details = waiting_details(task, tasks)
         return dict(details) if isinstance(details, dict) else None
 
+    def waiting_groups(self) -> dict[str, list[str]]:
+        groups: dict[str, list[str]] = {
+            "retry_window": [],
+            "dependency": [],
+            "concurrency": [],
+        }
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.waiting_details(task)
+            if not details:
+                continue
+            kind = str(details.get("kind") or "")
+            if kind in groups:
+                groups[kind].append(task.id)
+        return groups
+
     def blocked_reason(self, task: TaskEvent) -> str | None:
         if task.state == "blocked":
             result = self.result(task.id)
@@ -307,6 +324,36 @@ class EventQueue:
             tasks = snapshot_tasks(self._tasks)
         dependency_details = dependency_blocked_details(task, tasks)
         return dict(dependency_details) if isinstance(dependency_details, dict) else None
+
+    def blocked_groups(self) -> dict[str, list[str]]:
+        groups: dict[str, list[str]] = {
+            "dependency": [],
+            "business": [],
+        }
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.blocked_details(task)
+            if not details:
+                continue
+            kind = str(details.get("kind") or "business")
+            if kind not in groups:
+                kind = "business"
+            groups[kind].append(task.id)
+        return groups
+
+    def next_retry_at(self) -> str | None:
+        candidates: list[str] = []
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.waiting_details(task)
+            if not details or details.get("kind") != "retry_window":
+                continue
+            candidate = details.get("next_attempt_at")
+            if isinstance(candidate, str) and candidate:
+                candidates.append(candidate)
+        return min(candidates) if candidates else None
 
     def ready(self) -> list[TaskEvent]:
         with self._lock:

@@ -196,6 +196,36 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(task.next_attempt_at, next_attempt_at)
         self.assertEqual(restored.waiting_reason(task), f"waiting until retry window {next_attempt_at}")
 
+    def test_waiting_and_blocked_groups_are_structured_in_runtime(self) -> None:
+        queue = EventQueue()
+        next_attempt_at = (datetime.now().astimezone() + timedelta(minutes=1)).isoformat(timespec="seconds")
+        queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="running"))
+        queue.register(TaskEvent(id="wait-dep", type="diagnostic.echo", depends_on=["dep-1"]))
+        queue.register(TaskEvent(id="run-slot", type="diagnostic.echo", state="running", concurrency_key="classify", max_concurrency=1))
+        queue.register(TaskEvent(id="wait-slot", type="diagnostic.echo", concurrency_key="classify", max_concurrency=1))
+        queue.register(TaskEvent(id="wait-retry", type="diagnostic.echo", state="waiting", next_attempt_at=next_attempt_at))
+        queue.register(TaskEvent(id="dep-failed", type="diagnostic.echo", state="failed"))
+        queue.register(TaskEvent(id="blocked-dep", type="diagnostic.echo", state="blocked", depends_on=["dep-failed"]))
+        queue.register(TaskEvent(id="blocked-business", type="diagnostic.echo", state="blocked"))
+        queue._results["blocked-business"] = {"blocked_reason": "captcha required", "blocked_details": {"kind": "business"}}  # type: ignore[attr-defined]
+
+        self.assertEqual(
+            queue.waiting_groups(),
+            {
+                "retry_window": ["wait-retry"],
+                "dependency": ["wait-dep"],
+                "concurrency": ["wait-slot"],
+            },
+        )
+        self.assertEqual(
+            queue.blocked_groups(),
+            {
+                "dependency": ["blocked-dep"],
+                "business": ["blocked-business"],
+            },
+        )
+        self.assertEqual(queue.next_retry_at(), next_attempt_at)
+
     def test_skipped_dependency_allows_dependent_task_to_run(self) -> None:
         queue = EventQueue()
         queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})

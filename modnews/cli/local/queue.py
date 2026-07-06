@@ -9,43 +9,17 @@ from modnews.service.pipeline.read_model import build_task_detail, build_task_li
 class QueueLocalMixin:
     def queue_status(self) -> dict[str, Any]:
         snapshot = self.container.queue_state().load()
-        waiting_retry_ids: list[str] = []
-        waiting_dependency_ids: list[str] = []
-        waiting_concurrency_ids: list[str] = []
-        blocked_dependency_ids: list[str] = []
-        blocked_business_ids: list[str] = []
-        next_retry_at: str | None = None
-        for task in self.container.event_queue.list():
-            details = self.container.event_queue.waiting_details(task)
-            if not details:
-                blocked = self.container.event_queue.blocked_details(task)
-                if not blocked:
-                    continue
-                blocked_kind = blocked.get("kind")
-                if blocked_kind == "dependency":
-                    blocked_dependency_ids.append(task.id)
-                else:
-                    blocked_business_ids.append(task.id)
-                continue
-            kind = details.get("kind")
-            if kind == "retry_window":
-                waiting_retry_ids.append(task.id)
-                candidate = details.get("next_attempt_at")
-                if isinstance(candidate, str) and (next_retry_at is None or candidate < next_retry_at):
-                    next_retry_at = candidate
-            elif kind == "dependency":
-                waiting_dependency_ids.append(task.id)
-            elif kind == "concurrency":
-                waiting_concurrency_ids.append(task.id)
+        waiting_groups = self.container.event_queue.waiting_groups()
+        blocked_groups = self.container.event_queue.blocked_groups()
         return {
             "counts": self.container.event_queue.status(),
             "ready": [task.id for task in self.container.event_queue.ready()],
-            "waiting_retry_ids": waiting_retry_ids,
-            "waiting_dependency_ids": waiting_dependency_ids,
-            "waiting_concurrency_ids": waiting_concurrency_ids,
-            "blocked_dependency_ids": blocked_dependency_ids,
-            "blocked_business_ids": blocked_business_ids,
-            "next_retry_at": next_retry_at,
+            "waiting_retry_ids": waiting_groups.get("retry_window", []),
+            "waiting_dependency_ids": waiting_groups.get("dependency", []),
+            "waiting_concurrency_ids": waiting_groups.get("concurrency", []),
+            "blocked_dependency_ids": blocked_groups.get("dependency", []),
+            "blocked_business_ids": blocked_groups.get("business", []),
+            "next_retry_at": self.container.event_queue.next_retry_at(),
             "completion_callbacks": self.container.completion_callbacks.list(),
             "snapshot": {
                 "version": int(snapshot.get("version") or 1),
