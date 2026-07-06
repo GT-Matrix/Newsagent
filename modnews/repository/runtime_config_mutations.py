@@ -25,7 +25,6 @@ def apply_classification_patch(data: dict[str, Any], patch: dict[str, Any]) -> d
         "event_candidate_count",
         "merge_candidate_count",
         "time_window_hours",
-        "suspect_mode",
     ):
         if key in patch:
             target[key] = patch[key]

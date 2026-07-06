@@ -37,6 +37,7 @@ def normalize_config(data: dict[str, Any], *, now: str, rss_row) -> dict[str, An
         config["classification"] = classification
     classification.pop("llm", None)
     classification.pop("embedding", None)
+    classification.pop("suspect_mode", None)
     deep_defaults(classification, default_classification())
 
     sources = config.setdefault("sources", {})

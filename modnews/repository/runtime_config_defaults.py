@@ -31,7 +31,6 @@ def default_classification() -> dict[str, Any]:
         "event_candidate_count": 5,
         "merge_candidate_count": 5,
         "time_window_hours": 72,
-        "suspect_mode": "discard",
     }
 
 

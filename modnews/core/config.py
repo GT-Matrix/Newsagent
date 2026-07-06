@@ -62,7 +62,6 @@ class ClassificationConfig:
     event_candidate_count: int = 5
     merge_candidate_count: int = 5
     time_window_hours: int = 72
-    suspect_mode: str = "discard"
     checkpoint_path: Path | None = None
     llm: LlmConfig = field(default_factory=lambda: LlmConfig(model="qwen-plus"))
     embedding: EmbeddingConfig = field(default_factory=lambda: EmbeddingConfig(model="text-embedding-v4"))
@@ -167,10 +166,6 @@ def build_config(raw: dict[str, Any] | None = None, base_dir: str | Path | None 
             event_candidate_count=classification_raw.get("event_candidate_count", 5),
             merge_candidate_count=classification_raw.get("merge_candidate_count", 5),
             time_window_hours=classification_raw.get("time_window_hours", 72),
-            suspect_mode=classification_raw.get(
-                "suspect_mode",
-                os.environ.get("CLASSIFICATION_SUSPECT_MODE", "discard"),
-            ),
             llm=LlmConfig(
                 model=os.environ.get("LLM_MODEL", "qwen-plus"),
                 base_url=os.environ.get("LLM_BASE_URL"),

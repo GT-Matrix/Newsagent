@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from modnews.core.config import build_config
+from modnews.repository.runtime_config_store import runtime_config_store
 
 
 class RuntimeEnvLoadingTest(unittest.TestCase):
@@ -37,6 +38,20 @@ class RuntimeEnvLoadingTest(unittest.TestCase):
             self.assertEqual(config.classification.llm.api_key, "test-llm-key")
             self.assertEqual(config.classification.embedding.base_url, "https://example-embedding.test/v1")
             self.assertEqual(config.classification.embedding.api_key, "test-embedding-key")
+
+    def test_build_config_and_runtime_store_drop_legacy_suspect_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            store = runtime_config_store(project_root)
+            payload = store.load()
+            payload.setdefault("classification", {})["suspect_mode"] = "article"
+            store.save(payload)
+
+            normalized = store.load()
+            config = build_config(base_dir=project_root)
+
+            self.assertNotIn("suspect_mode", normalized["classification"])
+            self.assertFalse(hasattr(config.classification, "suspect_mode"))
 
 
 if __name__ == "__main__":
