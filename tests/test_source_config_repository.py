@@ -24,6 +24,28 @@ class SourceConfigRepositoryTest(unittest.TestCase):
             self.assertFalse(updated_step["steps"]["rss"]["enabled"])
             self.assertFalse(updated_classification["classification"]["enabled"])
 
+    def test_runtime_config_facade_handles_diagnostics_and_nested_value_updates(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            repo = SourceConfigRepository(project_root)
+            repo.upsert_site(
+                "site-1",
+                {
+                    "url": "https://example.com",
+                    "name": "Site",
+                    "extractor_id": "extractor-1",
+                    "enabled": True,
+                },
+            )
+            facade = RuntimeConfigFacade(project_root)
+
+            diagnostics = facade.source_diagnostics()
+            updated = facade.set_value("steps.site_lists.limit_per_site", 7)
+
+            self.assertEqual(diagnostics["summary"]["total"], 1)
+            self.assertEqual(diagnostics["items"][0]["id"], "site-1")
+            self.assertEqual(updated["steps"]["site_lists"]["limit_per_site"], 7)
+
     def test_sources_repository_extends_runtime_config_repository(self) -> None:
         self.assertTrue(issubclass(SourceConfigRepository, RuntimeConfigRepository))
 
