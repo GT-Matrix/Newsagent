@@ -9,9 +9,15 @@ from modnews.service.pipeline.read_model import build_task_detail, build_task_li
 class QueueLocalMixin:
     def queue_status(self) -> dict[str, Any]:
         snapshot = self.container.queue_state().load()
+        waiting_retry_ids = [
+            task.id
+            for task in self.container.event_queue.list()
+            if task.next_attempt_at and self.container.event_queue.waiting_reason(task) == f"waiting until retry window {task.next_attempt_at}"
+        ]
         return {
             "counts": self.container.event_queue.status(),
             "ready": [task.id for task in self.container.event_queue.ready()],
+            "waiting_retry_ids": waiting_retry_ids,
             "completion_callbacks": self.container.completion_callbacks.list(),
             "snapshot": {
                 "version": int(snapshot.get("version") or 1),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +23,24 @@ class QueueControlTest(unittest.TestCase):
             self.assertEqual(result["snapshot"]["version"], 1)
             self.assertEqual(result["snapshot"]["task_count"], 1)
             self.assertIsNotNone(result["snapshot"]["saved_at"])
+
+    def test_queue_status_includes_waiting_retry_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            next_attempt_at = (datetime.now().astimezone() + timedelta(minutes=1)).isoformat(timespec="seconds")
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    state="waiting",
+                    next_attempt_at=next_attempt_at,
+                    status_reason=f"waiting until retry window {next_attempt_at}",
+                )
+            )
+
+            result = client.queue_status()
+
+            self.assertEqual(result["waiting_retry_ids"], ["task-1"])
 
     def test_queue_cancel_marks_task_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

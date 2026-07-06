@@ -79,13 +79,20 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
     payload = task.to_dict()
     waiting_reason = queue.waiting_reason(task)
     blocked_reason = queue.blocked_reason(task)
+    result = queue.result(task.id)
     if waiting_reason:
         payload["waiting_reason"] = waiting_reason
     if blocked_reason:
         payload["blocked_reason"] = blocked_reason
+    if result.get("retry_scheduled") is not None:
+        payload["retry_scheduled"] = bool(result.get("retry_scheduled"))
+    if result.get("retry_delay_seconds") is not None:
+        payload["retry_delay_seconds"] = result.get("retry_delay_seconds")
+    if result.get("next_attempt_at") is not None:
+        payload["scheduled_next_attempt_at"] = result.get("next_attempt_at")
     payload["ready"] = waiting_reason is None and task.state in {"queued", "waiting"}
     if include_result:
-        payload["result"] = queue.result(task.id)
+        payload["result"] = result
     return payload
 
 

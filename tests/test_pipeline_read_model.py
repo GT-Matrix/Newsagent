@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import tempfile
 import unittest
 from pathlib import Path
@@ -118,6 +119,37 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["state"], "queued")
             self.assertEqual(task["restored_from"], "running")
             self.assertEqual(task["error"], "previous failure")
+
+    def test_queue_list_exposes_retry_window_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            next_attempt_at = (datetime.now().astimezone() + timedelta(minutes=2)).isoformat(timespec="seconds")
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    step_id="pipeline/report",
+                    state="waiting",
+                    retry_backoff_seconds=120,
+                    next_attempt_at=next_attempt_at,
+                    status_reason=f"waiting until retry window {next_attempt_at}",
+                )
+            )
+            client.container.event_queue._results["task-1"] = {  # type: ignore[attr-defined]
+                "retry_scheduled": True,
+                "retry_delay_seconds": 120,
+                "next_attempt_at": next_attempt_at,
+            }
+
+            result = client.queue_list()
+            task = next(item for item in result if item["id"] == "task-1")
+
+            self.assertEqual(task["waiting_reason"], f"waiting until retry window {next_attempt_at}")
+            self.assertTrue(task["retry_scheduled"])
+            self.assertEqual(task["retry_delay_seconds"], 120)
+            self.assertEqual(task["scheduled_next_attempt_at"], next_attempt_at)
 
     def test_run_status_returns_step_graph_and_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
