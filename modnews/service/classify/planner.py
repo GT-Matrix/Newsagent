@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
@@ -8,11 +7,8 @@ from .task_registry import (
     REGISTERED_CLASSIFY_TASKS,
     build_registered_classify_task,
     get_registered_classify_task,
+    resolve_clustered_classify_run_id,
 )
-
-
-def resolve_clustered_classify_run_id(run_id: str | None) -> str:
-    return run_id or f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
 
 
 def build_clustered_event_extraction_task(

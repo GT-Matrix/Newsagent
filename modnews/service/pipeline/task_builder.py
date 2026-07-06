@@ -57,7 +57,7 @@ def build_classify_extraction_task(
     return build_clustered_event_extraction_task(
         project_root=Path(project_root) if project_root else Path.cwd(),
         run_id=run_id,
-        input_path="__combined_ingest__",
+        input_path=None,
         config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
     )
@@ -73,7 +73,7 @@ def build_classify_merge_task(
     return build_clustered_event_merge_task(
         project_root=Path(project_root) if project_root else Path.cwd(),
         run_id=run_id,
-        input_path="__combined_ingest__",
+        input_path=None,
         config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
     )

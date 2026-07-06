@@ -7,6 +7,10 @@ from pathlib import Path
 from modnews.bootstrap import configure_services
 from modnews.repository.runs import RunRepository
 from modnews.service.classify.io import resolve_input_path
+from modnews.service.classify.planner import (
+    build_clustered_event_extraction_task,
+    build_clustered_event_merge_task,
+)
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.pipeline.task_builder import build_report_generate_task
 from modnews.service.report.planner import plan_report_tasks
@@ -134,6 +138,29 @@ class PipelineTaskGraphTest(unittest.TestCase):
             self.assertEqual(manual_task.payload["config"], followup_task.payload["config"])
             self.assertEqual(manual_task.concurrency_key, followup_task.concurrency_key)
             self.assertEqual(manual_task.max_concurrency, followup_task.max_concurrency)
+
+    def test_classify_task_definition_defaults_are_shared_by_pipeline_builder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+
+            extraction = build_clustered_event_extraction_task(
+                project_root=project_root,
+                run_id="run-1",
+                input_path=None,
+                config="runtime/config.json",
+            )
+            merge = build_clustered_event_merge_task(
+                project_root=project_root,
+                run_id="run-1",
+                input_path=None,
+                config="runtime/config.json",
+                depends_on=[extraction.id],
+            )
+
+            self.assertEqual(extraction.payload["input_path"], "__combined_ingest__")
+            self.assertEqual(merge.payload["input_path"], "__combined_ingest__")
+            self.assertEqual(extraction.concurrency_key, "classify")
+            self.assertEqual(merge.max_concurrency, 1)
 
 
 if __name__ == "__main__":

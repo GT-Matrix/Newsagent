@@ -162,6 +162,10 @@ class ClassifyBatchTaskTest(unittest.TestCase):
         merge = REGISTERED_CLASSIFY_TASK_BY_TYPE["classify.clustered_event_merge"]
         self.assertEqual(extraction.step_names, ("start_checkpoint", "clustered_event_extraction"))
         self.assertEqual(merge.step_names, ("clustered_event_merge",))
+        self.assertEqual(extraction.default_input_path, "__combined_ingest__")
+        self.assertEqual(merge.default_input_path, "__combined_ingest__")
+        self.assertEqual(extraction.concurrency_key, "classify")
+        self.assertEqual(merge.max_concurrency, 1)
         self.assertEqual([step.name for step in extraction.build_steps()], list(extraction.step_names))
         self.assertEqual([step.name for step in merge.build_steps()], list(merge.step_names))
 
