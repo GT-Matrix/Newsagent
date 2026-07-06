@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import threading
+from contextlib import contextmanager
+from contextvars import ContextVar
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterator
 
 from .events import EventRouter
 from .event_queue_support import (
@@ -33,6 +35,21 @@ from .task import SUCCESS_STATES, TERMINAL_STATES, TaskBlocked, TaskEvent, task_
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
 TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
 TaskStateWriter = Callable[[dict[str, Any]], None]
+
+_CURRENT_QUEUE: ContextVar["EventQueue | None"] = ContextVar("modnews_current_queue", default=None)
+
+
+@contextmanager
+def queue_context(queue: "EventQueue") -> Iterator[None]:
+    token = _CURRENT_QUEUE.set(queue)
+    try:
+        yield
+    finally:
+        _CURRENT_QUEUE.reset(token)
+
+
+def current_queue() -> "EventQueue | None":
+    return _CURRENT_QUEUE.get()
 
 
 @dataclass(slots=True)
@@ -166,8 +183,9 @@ class EventQueue:
             self.drain_ready()
             return task
         try:
-            with task_context(task):
-                result = executor(task) or {}
+            with queue_context(self):
+                with task_context(task):
+                    result = executor(task) or {}
             with self._lock:
                 mark_task_succeeded(task, self._results, result)
                 self._persist()
