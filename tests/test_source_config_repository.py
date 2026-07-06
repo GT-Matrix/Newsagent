@@ -4,11 +4,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from modnews.repository.runtime_config_repository import RuntimeConfigRepository
 from modnews.cli.local_client import LocalClient
 from modnews.repository.source_config import SourceConfigRepository
 
 
 class SourceConfigRepositoryTest(unittest.TestCase):
+    def test_sources_repository_extends_runtime_config_repository(self) -> None:
+        self.assertTrue(issubclass(SourceConfigRepository, RuntimeConfigRepository))
+
     def test_sources_facade_lists_and_updates_rss(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = SourceConfigRepository(Path(tmp))
