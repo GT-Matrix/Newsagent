@@ -11,6 +11,7 @@ from modnews.service.classify.io import resolve_input_path, resolve_resume_check
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
 from modnews.service.classify.state_codec import decode_resume_state
 from modnews.service.classify.state import ClassifyState
+from modnews.service.classify.task_registry import get_registered_classify_task
 from modnews.service.classify.task_checkpoint import write_classify_task_checkpoint
 from modnews.service.classify.task_result import build_classify_task_snapshot
 from modnews.service.classify.types import DiscardedRecord
@@ -160,7 +161,7 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
                 project_root,
                 "run-1",
                 TaskEvent(id="task-1", type="classify.clustered_event_merge", payload={}),
-                "classify/clustered_event_merge",
+                get_registered_classify_task("classify.clustered_event_merge"),
                 input_path,
                 run_result,
                 config,
@@ -168,6 +169,7 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
 
             checkpoint_payload = json.loads(Path(result["checkpoint_path"]).read_text(encoding="utf-8"))
             progress_payload = json.loads(Path(checkpoint_payload["output_refs"]["classification_progress"]).read_text(encoding="utf-8"))
+            self.assertEqual(result["auto_publish_checkpoint"], result["checkpoint_path"])
             self.assertEqual(checkpoint_payload["stats"]["processed_candidates"], 7)
             self.assertEqual(checkpoint_payload["stats"]["total_candidates"], 9)
             self.assertEqual(progress_payload["meta"]["processed_candidates"], 7)

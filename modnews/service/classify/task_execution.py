@@ -24,11 +24,10 @@ def execute_classify_task(
         task_runtime.project_root,
         task_runtime.run_id,
         task,
-        spec.step_id,
+        spec,
         task_runtime.input_path,
         run_result,
         task_runtime.runtime.config,
-        auto_publish=spec.auto_publish,
     )
 
 
