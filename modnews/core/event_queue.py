@@ -272,6 +272,10 @@ class EventQueue:
         with self._lock:
             return [task for task in self._tasks.values() if task.parent_task_id == task_id]
 
+    def group_members(self, task_group_id: str) -> list[TaskEvent]:
+        with self._lock:
+            return [task for task in self._tasks.values() if task.task_group_id == task_group_id]
+
     def status(self) -> dict[str, int]:
         with self._lock:
             return status_counts(self._tasks)
