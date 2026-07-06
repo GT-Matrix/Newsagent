@@ -5,12 +5,8 @@ from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
-from modnews.service.pipeline.manager_support import (
-    dispatch_followup_tasks,
-    handle_pipeline_task_event,
-    persist_callback_events,
-    start_pipeline_run,
-)
+from modnews.service.pipeline.event_runtime import PipelineEventRuntime
+from modnews.service.pipeline.manager_support import start_pipeline_run
 from modnews.service.pipeline.registry import PipelineRegistry
 from modnews.service.pipeline.step import PipelineStep, PipelineStepDescriptor
 
@@ -36,34 +32,17 @@ class PipelineManager:
     def register_step(self, step: PipelineStep) -> None:
         self.step_registry.register(step)
 
+    def _event_runtime(self) -> PipelineEventRuntime:
+        return PipelineEventRuntime(self.step_registry, self.event_queue)
+
     def start_run(self, request: dict[str, Any], *, submit: bool = False) -> dict[str, Any]:
         return start_pipeline_run(self.step_registry, self.event_queue, request, submit=submit)
 
     def on_task_completed(self, event: dict[str, Any]) -> None:
-        callback_events = handle_pipeline_task_event(
-            self.step_registry,
-            self.event_queue,
-            event,
-            event_type="task.completed",
-        )
-        persist_callback_events(event, callback_events)
-        dispatch_followup_tasks(self.step_registry, self.event_queue, event, failed=False)
+        self._event_runtime().handle(event, event_type="task.completed")
 
     def on_task_failed(self, event: dict[str, Any]) -> None:
-        callback_events = handle_pipeline_task_event(
-            self.step_registry,
-            self.event_queue,
-            event,
-            event_type="task.failed",
-        )
-        persist_callback_events(event, callback_events)
-        dispatch_followup_tasks(self.step_registry, self.event_queue, event, failed=True)
+        self._event_runtime().handle(event, event_type="task.failed")
 
     def on_task_blocked(self, event: dict[str, Any]) -> None:
-        callback_events = handle_pipeline_task_event(
-            self.step_registry,
-            self.event_queue,
-            event,
-            event_type="task.blocked",
-        )
-        persist_callback_events(event, callback_events)
+        self._event_runtime().handle(event, event_type="task.blocked")
