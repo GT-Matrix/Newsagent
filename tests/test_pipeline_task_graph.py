@@ -11,6 +11,7 @@ from modnews.service.classify.planner import (
     build_clustered_event_extraction_task,
     build_clustered_event_merge_task,
 )
+from modnews.service.extraction.task_registry import REGISTERED_EXTRACTION_TASK_BY_TYPE
 from modnews.service.ingest.registry import REGISTERED_INGEST_STEP_SPEC_BY_ID
 from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASK_BY_TYPE
 from modnews.service.pipeline.checkpoint import CheckpointManager
@@ -56,6 +57,18 @@ class PipelineTaskGraphTest(unittest.TestCase):
         )
         self.assertEqual(REGISTERED_INGEST_STEP_SPEC_BY_ID["rss"].factory.__name__, "RssStep")
         self.assertEqual(REGISTERED_INGEST_STEP_SPEC_BY_ID["site_lists"].factory.__name__, "SiteListsStep")
+
+    def test_extraction_task_definitions_are_registered_from_single_source(self) -> None:
+        web_source = REGISTERED_EXTRACTION_TASK_BY_TYPE["web_source.run"]
+        repair = REGISTERED_EXTRACTION_TASK_BY_TYPE["extractor.repair.codex"]
+
+        self.assertEqual(web_source.step_id_prefix, "ingest/site_lists")
+        self.assertEqual(web_source.task_id_prefix, "web-source")
+        self.assertEqual(web_source.concurrency_key_prefix, "web_source")
+        self.assertEqual(web_source.max_attempts, 1)
+        self.assertEqual(repair.step_id_prefix, "extractor/repair")
+        self.assertEqual(repair.task_id_prefix, "repair")
+        self.assertEqual(repair.concurrency_key_prefix, "extractor.repair")
 
     def test_pipeline_registry_registers_split_steps(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

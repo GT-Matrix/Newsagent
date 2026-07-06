@@ -7,6 +7,7 @@ from modnews.core.task import TaskEvent
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.repair_task_result import build_repair_task_result
+from modnews.service.extraction.task_registry import REGISTERED_EXTRACTION_TASKS
 
 
 def run_codex_repair_task(task: TaskEvent) -> dict[str, object]:
@@ -24,3 +25,10 @@ def run_codex_repair_task(task: TaskEvent) -> dict[str, object]:
         **log_summary,
     )
     return build_repair_task_result(repair_task, log_summary)
+
+
+REGISTERED_REPAIR_TASK_EXECUTORS: dict[str, object] = {
+    "extractor.repair.codex": run_codex_repair_task,
+}
+
+assert {spec.task_type for spec in REGISTERED_EXTRACTION_TASKS if spec.task_type == "extractor.repair.codex"} <= set(REGISTERED_REPAIR_TASK_EXECUTORS)

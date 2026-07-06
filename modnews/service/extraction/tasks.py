@@ -8,6 +8,7 @@ from modnews.core.task import TaskBlocked, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.repository.source_config import source_config_store
 from modnews.service.extraction.orchestrator import WebExtractionOrchestrator
+from modnews.service.extraction.task_registry import REGISTERED_EXTRACTION_TASKS
 from modnews.service.extraction.web_contract import WebSource
 from modnews.service.pipeline.checkpoint import CheckpointManager
 
@@ -66,3 +67,10 @@ def run_web_source_task(task: TaskEvent) -> dict[str, object]:
         "artifact_path": str(artifact_path),
         "item_count": len(rows),
     }
+
+
+REGISTERED_EXTRACTION_TASK_EXECUTORS: dict[str, object] = {
+    "web_source.run": run_web_source_task,
+}
+
+assert {spec.task_type for spec in REGISTERED_EXTRACTION_TASKS if spec.task_type == "web_source.run"} <= set(REGISTERED_EXTRACTION_TASK_EXECUTORS)

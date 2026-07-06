@@ -10,6 +10,10 @@ from modnews.core.context import PipelineContext
 from modnews.core.models import NewsItem, StepResult
 from modnews.repository.source_config import source_config_store
 from modnews.service.extraction.orchestrator import WebExtractionOrchestrator
+from modnews.service.extraction.task_registry import (
+    build_registered_web_source_task,
+    get_registered_extraction_task,
+)
 
 from modnews.service.ingest.base import IngestStep
 
@@ -70,27 +74,21 @@ class SiteListsStep(IngestStep):
         tasks: list[TaskEvent] = []
         if not isinstance(raw_sources, dict):
             return tasks
+        spec = get_registered_extraction_task("web_source.run")
         for source_id, raw in raw_sources.items():
             if requested and source_id not in requested:
                 continue
             if not isinstance(raw, dict) or not bool(raw.get("enabled", True)):
                 continue
             tasks.append(
-                TaskEvent(
-                    id=f"web-source-{run_id}-{source_id}",
-                    type="web_source.run",
-                    pipeline_run_id=run_id,
-                    step_id=f"ingest/{cls.step_name}/{source_id}",
-                    payload={
-                        "project_root": str(project_root),
-                        "run_id": run_id,
-                        "config": config_path,
-                        "source_id": source_id,
-                        "limit": limit,
-                    },
-                    concurrency_key="web_source",
-                    max_concurrency=max(1, max_concurrency),
-                    max_attempts=1,
+                build_registered_web_source_task(
+                    spec,
+                    project_root=project_root,
+                    run_id=run_id,
+                    source_id=source_id,
+                    config_path=config_path,
+                    limit=limit,
+                    max_concurrency=max_concurrency,
                 )
             )
         return tasks

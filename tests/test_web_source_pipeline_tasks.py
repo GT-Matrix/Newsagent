@@ -52,9 +52,12 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             )
 
             self.assertEqual([task.type for task in tasks], ["web_source.run"])
+            self.assertEqual(tasks[0].id, "web-source-run-1-site-2")
             self.assertEqual(tasks[0].payload["source_id"], "site-2")
             self.assertEqual(tasks[0].payload["limit"], 7)
             self.assertEqual(tasks[0].step_id, "ingest/site_lists/site-2")
+            self.assertEqual(tasks[0].concurrency_key, "web_source")
+            self.assertEqual(tasks[0].max_attempts, 1)
 
     def test_run_start_expands_site_lists_into_web_source_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
