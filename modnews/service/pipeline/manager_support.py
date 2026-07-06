@@ -40,13 +40,22 @@ def handle_pipeline_task_event(
         return []
     if event_type == "task.completed":
         update_run_state(event_queue, event)
-        return registry.notify("on_task_completed", event, event_queue)
+        callback_events = registry.notify("on_task_completed", event, event_queue)
+        if callback_events:
+            update_run_state(event_queue, event)
+        return callback_events
     if event_type == "task.failed":
         update_run_state(event_queue, event, failed=True)
-        return registry.notify("on_task_failed", event, event_queue)
+        callback_events = registry.notify("on_task_failed", event, event_queue)
+        if callback_events:
+            update_run_state(event_queue, event, failed=True)
+        return callback_events
     if event_type == "task.blocked":
         update_run_state(event_queue, event, blocked=True)
-        return registry.notify("on_task_blocked", event, event_queue)
+        callback_events = registry.notify("on_task_blocked", event, event_queue)
+        if callback_events:
+            update_run_state(event_queue, event, blocked=True)
+        return callback_events
     return []
 
 

@@ -48,7 +48,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             task_types = [task["type"] for task in result["tasks"]]
             self.assertEqual(task_types.count("web_source.run"), 2)
             self.assertNotIn("ingest.run_step", task_types)
-            self.assertEqual(result["tasks"][-1]["type"], "pipeline.combine_ingest")
+            self.assertNotIn("pipeline.combine_ingest", task_types)
 
     def test_web_source_task_writes_ingest_checkpoint_for_pipeline_combine(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -148,7 +148,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in result["tasks"]], ["web_source.run", "web_source.run"])
-            self.assertEqual(result["run"]["steps"][0]["step_id"], "ingest/site_lists/site-1")
+            self.assertIn("ingest/site_lists/site-1", {step["step_id"] for step in result["run"]["steps"]})
 
     def test_cli_ingest_site_lists_supports_per_source_filter(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -200,7 +200,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertEqual([task.payload["source_id"] for task in captured], ["site-2"])
             self.assertEqual(result["tasks"][0]["payload"]["limit"], 7)
-            self.assertEqual(result["run"]["steps"][0]["step_id"], "ingest/site_lists/site-2")
+            self.assertIn("ingest/site_lists/site-2", {step["step_id"] for step in result["run"]["steps"]})
 
     def test_api_ingest_site_lists_uses_web_source_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

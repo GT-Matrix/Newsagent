@@ -23,26 +23,69 @@ class RunControlTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertIn("tasks", result)
             self.assertNotIn("task", result)
-            self.assertIn("pipeline-", result["tasks"][-1]["id"])
             task_types = [task["type"] for task in result["tasks"]]
-            self.assertEqual(task_types[-1], "pipeline.combine_ingest")
             self.assertIn("ingest.run_step", task_types)
+            self.assertNotIn("pipeline.combine_ingest", task_types)
             self.assertNotIn("classify.clustered_event_extraction", task_types)
             self.assertNotIn("report.generate", task_types)
             self.assertTrue(result["run"]["steps"])
-            self.assertEqual(result["run"]["steps"][-1]["step_id"], "pipeline/combine_ingest")
+            self.assertTrue(all(not step["step_id"].startswith("pipeline/") for step in result["run"]["steps"]))
 
-    def test_run_start_registers_classify_and_report_tasks(self) -> None:
+    def test_pipeline_callbacks_register_followup_tasks_incrementally(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            client = LocalClient(Path(tmp))
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            RunRepository(project_root).create("run-1", {})
 
-            result = client.run_start({"background": True})
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="ingest-rss",
+                    type="ingest.run_step",
+                    pipeline_run_id="run-1",
+                    step_id="ingest/rss",
+                    state="succeeded",
+                    payload={"project_root": tmp, "run_id": "run-1"},
+                )
+            )
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="ingest-newsnow",
+                    type="ingest.run_step",
+                    pipeline_run_id="run-1",
+                    step_id="ingest/newsnow",
+                    state="succeeded",
+                    payload={"project_root": tmp, "run_id": "run-1"},
+                )
+            )
 
-            task_types = [task["type"] for task in result["tasks"]]
-            self.assertIn("classify.clustered_event_extraction", task_types)
-            self.assertIn("classify.clustered_event_merge", task_types)
-            self.assertIn("report.generate", task_types)
-            self.assertLess(task_types.index("classify.clustered_event_merge"), task_types.index("report.generate"))
+            client.container.pipeline_manager.on_task_completed(
+                {"task": client.container.event_queue.get("ingest-rss").to_dict(), "result": {}}
+            )
+            client.container.pipeline_manager.on_task_completed(
+                {"task": client.container.event_queue.get("ingest-rss").to_dict(), "result": {}}
+            )
+
+            combine = client.container.event_queue.get("pipeline-run-1-combine-ingest")
+            self.assertEqual(combine.depends_on, ["ingest-newsnow", "ingest-rss"])
+            self.assertEqual(len([task for task in client.container.event_queue.list() if task.type == "pipeline.combine_ingest"]), 1)
+
+            combine.state = "succeeded"
+            client.container.pipeline_manager.on_task_completed({"task": combine.to_dict(), "result": {}})
+
+            extraction = client.container.event_queue.get("classify-run-1-clustered-event-extraction")
+            self.assertEqual(extraction.depends_on, ["pipeline-run-1-combine-ingest"])
+
+            extraction.state = "succeeded"
+            client.container.pipeline_manager.on_task_completed({"task": extraction.to_dict(), "result": {}})
+
+            merge = client.container.event_queue.get("classify-run-1-clustered-event-merge")
+            self.assertEqual(merge.depends_on, ["classify-run-1-clustered-event-extraction"])
+
+            merge.state = "succeeded"
+            client.container.pipeline_manager.on_task_completed({"task": merge.to_dict(), "result": {}})
+
+            report = client.container.event_queue.get("report-run-1-generate")
+            self.assertEqual(report.depends_on, ["classify-run-1-clustered-event-merge"])
 
     def test_run_cancel_marks_queued_tasks_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
