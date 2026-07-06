@@ -28,6 +28,8 @@ class TaskEvent:
     max_concurrency: int | None = None
     depends_on: list[str] = field(default_factory=list)
     checkpoint_policy: str = "default"
+    priority: int = 100
+    recovery_policy: str = "requeue_running"
     max_attempts: int = 1
     attempt: int = 0
     state: str = "queued"
@@ -51,6 +53,8 @@ class TaskEvent:
             max_concurrency=int(raw["max_concurrency"]) if raw.get("max_concurrency") is not None else None,
             depends_on=[str(item) for item in raw.get("depends_on") or []],
             checkpoint_policy=str(raw.get("checkpoint_policy") or "default"),
+            priority=int(raw.get("priority") or 100),
+            recovery_policy=str(raw.get("recovery_policy") or "requeue_running"),
             max_attempts=int(raw.get("max_attempts") or 1),
             attempt=int(raw.get("attempt") or 0),
             state=str(raw.get("state") or "queued"),

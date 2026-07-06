@@ -23,6 +23,34 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(task.state, "queued")
         self.assertEqual(task.status_reason, "restored from interrupted running state")
         self.assertEqual(restored.result("task-1")["restored_from"], "running")
+        self.assertEqual(payload["version"], 1)
+        self.assertIsNotNone(payload["saved_at"])
+
+    def test_snapshot_restore_can_fail_running_task_by_policy(self) -> None:
+        queue = EventQueue()
+        queue.register(
+            TaskEvent(
+                id="task-1",
+                type="diagnostic.echo",
+                state="running",
+                recovery_policy="fail_running",
+                started_at="2026-01-01T00:00:00+08:00",
+            )
+        )
+
+        restored = EventQueue()
+        restored.load_snapshot(queue.snapshot())
+
+        task = restored.get("task-1")
+        self.assertEqual(task.state, "failed")
+        self.assertEqual(restored.result("task-1")["restored_from"], "running")
+
+    def test_ready_prefers_lower_priority_value(self) -> None:
+        queue = EventQueue()
+        queue.register(TaskEvent(id="slow", type="diagnostic.echo", priority=100))
+        queue.register(TaskEvent(id="fast", type="diagnostic.echo", priority=10))
+
+        self.assertEqual(queue._next_ready().id, "fast")  # type: ignore[union-attr]
 
     def test_local_client_restores_persisted_queue_and_resume_can_continue(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

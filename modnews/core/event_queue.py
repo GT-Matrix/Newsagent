@@ -61,6 +61,8 @@ class EventQueue:
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
             return {
+                "version": 1,
+                "saved_at": now(),
                 "tasks": [task.to_dict() for task in self._tasks.values()],
                 "results": {task_id: dict(result) for task_id, result in self._results.items()},
             }
@@ -72,13 +74,21 @@ class EventQueue:
             if not isinstance(raw, dict) or not raw.get("id") or not raw.get("type"):
                 continue
             task = TaskEvent.from_dict(raw)
-            if task.state == "running":
+            if task.state == "running" and task.recovery_policy == "requeue_running":
                 task.state = "queued"
                 task.status_reason = "restored from interrupted running state"
                 task.started_at = None
                 task.finished_at = None
                 restored = dict(payload.get("results", {}).get(task.id, {})) if isinstance(payload.get("results"), dict) else {}
                 restored["restored_from"] = "running"
+                results[task.id] = restored
+            elif task.state == "running" and task.recovery_policy == "fail_running":
+                task.state = "failed"
+                task.status_reason = "restored interrupted running task as failed"
+                task.finished_at = now()
+                restored = dict(payload.get("results", {}).get(task.id, {})) if isinstance(payload.get("results"), dict) else {}
+                restored["restored_from"] = "running"
+                restored["error"] = "restored interrupted running task as failed"
                 results[task.id] = restored
             else:
                 if isinstance(payload.get("results"), dict):
@@ -288,7 +298,11 @@ class EventQueue:
     def _next_ready(self) -> TaskEvent | None:
         with self._lock:
             tasks = snapshot_tasks(self._tasks)
-        return next_ready_task(tasks)
+        ready = [task for task in tasks.values() if is_ready(task, tasks)]
+        if not ready:
+            return None
+        ready.sort(key=lambda task: (task.priority, task.created_at or "", task.id))
+        return ready[0]
 
     def _mark_blocked(self) -> None:
         blocked_tasks: list[TaskEvent]
