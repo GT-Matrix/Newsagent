@@ -6,11 +6,8 @@ from modnews.core.models import EventRecord, NewsItem, StepResult
 
 from .run_result import build_classify_step_result
 from .runner import ClassifyStepRunner
-from .runtime_build import (
-    build_classify_runtime_for_context,
-    build_classify_state_from_resolved_input,
-    resolve_classify_state_input,
-)
+from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_resolved_input, resolve_classify_state_input
+from .runtime_facade import ClassifyRuntimeFacade
 from .step_observer import EmittingClassifyStepObserver
 from .steps import get_registered_classify_flow
 from .task_result import publish_fixed_classify_outputs
@@ -24,15 +21,16 @@ def run_classification(
     if not config.enabled:
         return items, [], StepResult(step="classify", item_count=len(items), meta={"enabled": False})
 
-    resolved_state_input = resolve_classify_state_input(
+    facade = ClassifyRuntimeFacade()
+    resolved_state_input = facade.resolve_state_input(
         ctx.config.project_root,
         "manual",
         items=items,
         configured_resume_checkpoint_path=config.checkpoint_path,
         prefer_run_checkpoint=False,
     )
-    state = build_classify_state_from_resolved_input(resolved_state_input)
-    runtime = build_classify_runtime_for_context(ctx, config)
+    state = facade.build_state_from_resolved_input(resolved_state_input)
+    runtime = facade.build_runtime_for_context(ctx, config)
     run_result = ClassifyStepRunner(
         get_registered_classify_flow("full").build_steps(),
         observer=EmittingClassifyStepObserver(),
