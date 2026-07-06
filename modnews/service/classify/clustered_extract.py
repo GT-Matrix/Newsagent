@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import json
-
 from modnews.core.progress import emit
 
-from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH, run_profiled_batch
+from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
+from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .clustered_embedding import cluster_prepared_items
 from .events import assign_item_to_event
 from .prompts import clustered_event_extraction_system_prompt
@@ -18,6 +17,15 @@ from .utils import (
     normalize_confidence,
 )
 from modnews.core.models import EventRecord
+
+CLUSTERED_EXTRACTION_STAGE = LlmBatchStage[list[PreparedItem]](
+    profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
+    llm_task="clustered_event_extraction",
+    request_event="clustered_extraction_request",
+    done_event="clustered_extraction_batch_done",
+    system_prompt=clustered_event_extraction_system_prompt(),
+    payload_key="items",
+)
 
 
 def extract_events_from_title_clusters(
@@ -36,13 +44,13 @@ def extract_events_from_title_clusters(
         batch_size=config.batch_size,
         concurrency=max(1, config.batch_concurrency),
     )
-    responses = _run_parallel(
-        lambda args: _extract_batch(*args),
-        [
-            (client, batch, batch_index, len(batches))
-            for batch_index, batch in enumerate(batches, start=1)
-        ],
+    responses = run_llm_batch_stage(
+        client=client,
+        stage=CLUSTERED_EXTRACTION_STAGE,
+        batches=batches,
         max_workers=config.batch_concurrency,
+        build_payload=_batch_payload,
+        request_event_key="items",
     )
 
     events: list[EventState] = []
@@ -125,24 +133,8 @@ def extract_events_from_title_clusters(
     return events
 
 
-def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
-    return run_profiled_batch(
-        fn,
-        args_list,
-        max_workers=max_workers,
-        profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
-        batch_indexes=list(range(1, len(args_list) + 1)),
-        batch_count=len(args_list),
-    )
-
-
-def _extract_batch(
-    client,
-    batch: list[PreparedItem],
-    batch_index: int,
-    batch_count: int,
-) -> dict:
-    payload = [
+def _batch_payload(batch: list[PreparedItem]) -> list[dict[str, object]]:
+    return [
         {
             "index": entry.index,
             "title": entry.item.title,
@@ -152,17 +144,6 @@ def _extract_batch(
         }
         for entry in batch
     ]
-    emit("clustered_extraction_request", batch_index=batch_index, batch_count=batch_count, items=payload)
-    response = client.complete_json(
-        task="clustered_event_extraction",
-        messages=[
-            {"role": "system", "content": clustered_event_extraction_system_prompt()},
-            {"role": "user", "content": json.dumps({"items": payload}, ensure_ascii=False)},
-        ],
-    )
-    emit("clustered_extraction_batch_done", batch_index=batch_index, batch_count=batch_count)
-    return response
-
 
 def clean_int_list(value) -> list[int]:
     if not isinstance(value, list):

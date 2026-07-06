@@ -1,12 +1,21 @@
 from __future__ import annotations
 
-import json
-
 from modnews.core.progress import emit
 
-from .batch_profile import CLUSTERED_EVENT_MERGE_BATCH, run_profiled_batch
+from .batch_profile import CLUSTERED_EVENT_MERGE_BATCH
+from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .clustered_embedding import cluster_events
+from .prompts import clustered_event_merge_system_prompt
 from .utils import clean_list, clean_string, event_payload, parse_datetime
+
+CLUSTERED_MERGE_STAGE = LlmBatchStage[list](
+    profile=CLUSTERED_EVENT_MERGE_BATCH,
+    llm_task="clustered_event_merge",
+    request_event="clustered_merge_request",
+    done_event="clustered_merge_batch_done",
+    system_prompt=clustered_event_merge_system_prompt(),
+    payload_key="events",
+)
 
 
 def merge_event_clusters(
@@ -23,13 +32,13 @@ def merge_event_clusters(
         batch_size=config.batch_size,
         concurrency=max(1, config.batch_concurrency),
     )
-    responses = _run_parallel(
-        lambda args: _merge_batch(*args),
-        [
-            (client, batch, batch_index, len(batches))
-            for batch_index, batch in enumerate(batches, start=1)
-        ],
+    responses = run_llm_batch_stage(
+        client=client,
+        stage=CLUSTERED_MERGE_STAGE,
+        batches=batches,
         max_workers=config.batch_concurrency,
+        build_payload=_batch_payload,
+        request_event_key="events",
     )
 
     by_id = {state.record.event_id: state for state in events}
@@ -66,36 +75,8 @@ def merge_event_clusters(
     return merged_count
 
 
-def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
-    return run_profiled_batch(
-        fn,
-        args_list,
-        max_workers=max_workers,
-        profile=CLUSTERED_EVENT_MERGE_BATCH,
-        batch_indexes=list(range(1, len(args_list) + 1)),
-        batch_count=len(args_list),
-    )
-
-
-def _merge_batch(
-    client,
-    batch,
-    batch_index: int,
-    batch_count: int,
-) -> dict:
-    payload = [event_payload(state.record) for state in batch]
-    emit("clustered_merge_request", batch_index=batch_index, batch_count=batch_count, events=payload)
-    from .prompts import clustered_event_merge_system_prompt
-
-    response = client.complete_json(
-        task="clustered_event_merge",
-        messages=[
-            {"role": "system", "content": clustered_event_merge_system_prompt()},
-            {"role": "user", "content": json.dumps({"events": payload}, ensure_ascii=False)},
-        ],
-    )
-    emit("clustered_merge_batch_done", batch_index=batch_index, batch_count=batch_count)
-    return response
+def _batch_payload(batch) -> list[dict[str, object]]:
+    return [event_payload(state.record) for state in batch]
 
 
 def merge_event_records(target, source) -> None:

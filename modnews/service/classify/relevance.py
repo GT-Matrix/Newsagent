@@ -1,16 +1,24 @@
 from __future__ import annotations
 
-import json
-
 from modnews.core.context import PipelineContext
 from modnews.core.progress import emit
 
 from .article import fetch_article_excerpt
-from .batch_profile import RELEVANCE_BATCH, run_profiled_batch
+from .batch_profile import RELEVANCE_BATCH
+from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .llm_client import LlmClient
 from .prompts import batch_relevance_system_prompt, suspect_review_system_prompt
 from .types import DiscardedRecord, PreparedItem
 from .utils import clean_event_type, clean_list, clean_string, discard, int_or_none
+
+RELEVANCE_STAGE = LlmBatchStage[list[PreparedItem]](
+    profile=RELEVANCE_BATCH,
+    llm_task="batch_ai_relevance",
+    request_event="batch_relevance_request",
+    done_event="batch_relevance_batch_done",
+    system_prompt=batch_relevance_system_prompt(),
+    payload_key="items",
+)
 
 
 def classify_relevance_batches(
@@ -23,13 +31,13 @@ def classify_relevance_batches(
     batches = [prepared[start : start + batch_size] for start in range(0, len(prepared), batch_size)]
     max_workers = max(1, batch_concurrency)
     emit("batch_relevance_start", batch_count=len(batches), batch_size=batch_size, concurrency=max_workers)
-    responses = run_profiled_batch(
-        lambda args: _classify_relevance_batch(client, *args),
-        [(batch, batch_index, len(batches)) for batch_index, batch in enumerate(batches, start=1)],
+    responses = run_llm_batch_stage(
+        client=client,
+        stage=RELEVANCE_STAGE,
+        batches=batches,
         max_workers=max_workers,
-        profile=RELEVANCE_BATCH,
-        batch_indexes=list(range(1, len(batches) + 1)),
-        batch_count=len(batches),
+        build_payload=_batch_payload,
+        request_event_key="items",
     )
     for batch_index in range(1, len(batches) + 1):
         emit("batch_relevance_done", batch_index=batch_index, batch_count=len(batches))
@@ -115,14 +123,8 @@ def handle_suspected_items(
             item.is_ai_relevant = False
             discarded.append(discard(entry.index, item, "suspect_article_review", item.classification_reason or "discarded"))
 
-
-def _classify_relevance_batch(
-    client: LlmClient,
-    batch: list[PreparedItem],
-    batch_index: int,
-    batch_count: int,
-) -> dict:
-    payload = [
+def _batch_payload(batch: list[PreparedItem]) -> list[dict[str, object]]:
+    return [
         {
             "index": entry.index,
             "title": entry.item.title,
@@ -132,16 +134,3 @@ def _classify_relevance_batch(
         }
         for entry in batch
     ]
-    emit(
-        "batch_relevance_request",
-        batch_index=batch_index,
-        batch_count=batch_count,
-        items=payload,
-    )
-    return client.complete_json(
-        task="batch_ai_relevance",
-        messages=[
-            {"role": "system", "content": batch_relevance_system_prompt()},
-            {"role": "user", "content": json.dumps({"items": payload}, ensure_ascii=False)},
-        ],
-    )
