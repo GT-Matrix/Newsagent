@@ -6,6 +6,7 @@ from typing import Any
 from modnews.repository.runs import RunRepository
 from modnews.core.progress import BUS, emit
 from modnews.service.pipeline.read_model import build_run_detail
+from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
 
 
 class RunsLocalMixin:
@@ -22,6 +23,11 @@ class RunsLocalMixin:
             "disable_classification": payload.get("disable_classification"),
         }
         planned = self.container.pipeline_manager.start_run(request)
+        initialize_run_state(
+            self.project_root,
+            run_id,
+            [self.container.event_queue.get(task["id"]) for task in planned["registered_tasks"]],
+        )
         runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
         if payload.get("background", True):
             return {"ok": True, "run": runs.get(run_id), "tasks": planned["registered_tasks"]}
@@ -56,7 +62,7 @@ class RunsLocalMixin:
         state = "running" if remaining else record.get("state", "queued")
         if state in {"queued", "cancelled"}:
             state = "queued"
-        runs.update(run_id, state=state)
+        sync_run_state(self.project_root, self.container.event_queue, run_id, override_state=state)
         return {"ok": True, "run": runs.get(run_id), "before": before, "tasks": after}
 
     def run_cancel(self, run_id: str, reason: str = "cancelled by user") -> dict[str, Any]:
@@ -72,7 +78,13 @@ class RunsLocalMixin:
                 cancelled.append(cancelled_task.to_dict())
             else:
                 skipped.append(task.to_dict())
-        runs.update(run_id, state="cancelled", cancel_reason=reason)
+        sync_run_state(
+            self.project_root,
+            self.container.event_queue,
+            run_id,
+            override_state="cancelled",
+            extra_updates={"cancel_reason": reason},
+        )
         return {"ok": True, "run": runs.get(run_id), "cancelled_tasks": cancelled, "skipped_tasks": skipped}
 
     def _run_tasks(self, run_id: str) -> list[dict[str, Any]]:

@@ -50,6 +50,7 @@ class PipelineReadModelTest(unittest.TestCase):
             result = client.run_status("run-1")
 
             self.assertEqual(result["run"]["run_id"], "run-1")
+            self.assertTrue(result["run"]["steps"])
             self.assertEqual({step["step_id"] for step in result["steps"]}, {"ingest/rss", "pipeline/combine_ingest"})
             combine_step = next(step for step in result["steps"] if step["step_id"] == "pipeline/combine_ingest")
             self.assertEqual(combine_step["depends_on"], ["ingest/rss"])
@@ -57,6 +58,7 @@ class PipelineReadModelTest(unittest.TestCase):
             ingest_step = next(step for step in result["steps"] if step["step_id"] == "ingest/rss")
             self.assertEqual(ingest_step["status"], "succeeded")
             self.assertEqual(ingest_step["stats"]["item_count"], 1)
+            self.assertEqual(result["run"]["steps"][0]["step_id"], "ingest/rss")
             self.assertEqual(result["checkpoints"][0]["output_artifacts"][0]["name"], "items")
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
 

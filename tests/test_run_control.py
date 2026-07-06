@@ -28,6 +28,8 @@ class RunControlTest(unittest.TestCase):
             self.assertIn("ingest.run_step", task_types)
             self.assertNotIn("classify.clustered_event_extraction", task_types)
             self.assertNotIn("report.generate", task_types)
+            self.assertTrue(result["run"]["steps"])
+            self.assertEqual(result["run"]["steps"][-1]["step_id"], "pipeline/combine_ingest")
 
     def test_run_start_registers_classify_and_report_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -54,6 +56,7 @@ class RunControlTest(unittest.TestCase):
             self.assertEqual(result["run"]["state"], "cancelled")
             self.assertEqual(result["cancelled_tasks"][0]["state"], "cancelled")
             self.assertEqual(client.container.event_queue.result("task-1")["cancel_reason"], "test cancel")
+            self.assertEqual(result["run"]["steps"][0]["status"], "partial")
 
     def test_run_resume_drains_queued_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

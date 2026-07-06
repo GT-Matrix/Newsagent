@@ -20,7 +20,7 @@ def build_run_detail(project_root: Path, queue: EventQueue, run_id: str) -> dict
         for checkpoint in checkpoints_repo.list(run_id)
         if str(checkpoint.get("run_id") or run_id) == run_id
     )
-    steps = _build_step_views(tasks, checkpoints)
+    steps = _merge_steps(_build_step_views(tasks, checkpoints), _normalize_steps(run.get("steps")))
     artifacts = _collect_artifacts(run, checkpoints)
     return {
         "run": run,
@@ -149,6 +149,52 @@ def _normalize_checkpoints(checkpoints: Any) -> list[dict[str, Any]]:
         row["output_artifacts"] = _artifact_refs(row.get("output_refs"), role="output")
         rows.append(row)
     return sorted(rows, key=lambda row: str(row.get("finished_at") or row.get("started_at") or row.get("path") or ""))
+
+
+def _normalize_steps(steps: Any) -> list[dict[str, Any]]:
+    if not isinstance(steps, list):
+        return []
+    rows = []
+    for step in steps:
+        if not isinstance(step, dict) or not step.get("step_id"):
+            continue
+        row = dict(step)
+        latest_checkpoint = row.get("latest_checkpoint")
+        if isinstance(latest_checkpoint, dict):
+            row["latest_checkpoint"] = _normalize_checkpoints([latest_checkpoint])[0]
+        row["artifacts"] = [
+            artifact
+            for artifact in row.get("artifacts", [])
+            if isinstance(artifact, dict) and artifact.get("path")
+        ]
+        rows.append(row)
+    return sorted(rows, key=lambda row: str(row.get("step_id") or ""))
+
+
+def _merge_steps(current: list[dict[str, Any]], persisted: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not persisted:
+        return current
+    merged = {str(step.get("step_id")): dict(step) for step in persisted if step.get("step_id")}
+    for step in current:
+        step_id = str(step.get("step_id") or "")
+        if not step_id:
+            continue
+        base = merged.get(step_id, {})
+        merged[step_id] = {
+            **base,
+            **step,
+            "task_ids": step.get("task_ids") or base.get("task_ids", []),
+            "queued_task_ids": step.get("queued_task_ids") or base.get("queued_task_ids", []),
+            "completed_task_ids": step.get("completed_task_ids") or base.get("completed_task_ids", []),
+            "blocked_task_ids": step.get("blocked_task_ids") or base.get("blocked_task_ids", []),
+            "skipped_task_ids": step.get("skipped_task_ids") or base.get("skipped_task_ids", []),
+            "failed_task_ids": step.get("failed_task_ids") or base.get("failed_task_ids", []),
+            "artifacts": step.get("artifacts") or base.get("artifacts", []),
+            "stats": step.get("stats") or base.get("stats", {}),
+            "latest_checkpoint": step.get("latest_checkpoint") or base.get("latest_checkpoint"),
+            "depends_on": step.get("depends_on") or base.get("depends_on", []),
+        }
+    return sorted(merged.values(), key=lambda row: str(row.get("step_id") or ""))
 
 
 def _collect_artifacts(source: dict[str, Any], checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
