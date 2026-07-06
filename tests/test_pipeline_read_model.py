@@ -127,6 +127,9 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(task["priority"], 20)
             self.assertEqual(task["recovery_policy"], "fail_running")
+            self.assertEqual(task["domain_view"]["checkpoint_path"], str(checkpoint))
+            self.assertEqual(task["domain_view"]["input_refs"], {})
+            self.assertEqual(task["domain_view"]["output_refs"], {})
 
     def test_queue_list_exposes_restored_task_error_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -483,6 +486,82 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertIn("task.registered", history_types)
             self.assertIn("task.started", history_types)
             self.assertIn("task.completed", history_types)
+
+    def test_queue_show_exposes_classify_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="classify-1",
+                type="classify.clustered_event_merge",
+                pipeline_run_id="run-1",
+                step_id="classify/clustered_event_merge",
+                payload={"project_root": tmp, "run_id": "run-1"},
+            )
+            client.container.event_queue.register(task)
+            artifact = client.container.checkpoints().write_artifact(
+                "run-1",
+                "classify/clustered_event_merge",
+                "classify-1",
+                "classification_progress.json",
+                {"items": [], "events": [], "discarded": [], "meta": {"stage": "done"}},
+            )
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "classify/clustered_event_merge",
+                "classify-1",
+                {
+                    "status": "succeeded",
+                    "input_refs": {"items": str(project_root / "output" / "combined_news.json")},
+                    "output_refs": {"classification_progress": str(artifact)},
+                    "stats": {"event_count": 3, "merged_event_count": 2},
+                },
+            )
+            client.container.runs().create("run-1", {})
+            client.container.runs().append_checkpoint("run-1", checkpoint)
+
+            result = client.queue_show("classify-1")
+
+            self.assertEqual(result["domain_view"]["kind"], "classify")
+            self.assertEqual(result["domain_view"]["stage"], "clustered_event_merge")
+            self.assertEqual(result["domain_view"]["checkpoint_path"], str(checkpoint))
+            self.assertEqual(result["domain_view"]["input_refs"]["items"], str(project_root / "output" / "combined_news.json"))
+            self.assertEqual(result["domain_view"]["output_refs"]["classification_progress"], str(artifact))
+            self.assertEqual(result["domain_view"]["resume_hint"]["kind"], "report")
+            self.assertEqual(result["domain_view"]["stats"]["event_count"], 3)
+
+    def test_queue_show_exposes_pipeline_combine_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="combine-1",
+                type="pipeline.combine_ingest",
+                pipeline_run_id="run-1",
+                step_id="pipeline/combine_ingest",
+                payload={"project_root": tmp, "run_id": "run-1"},
+            )
+            client.container.event_queue.register(task)
+            artifact = client.container.checkpoints().write_artifact("run-1", "pipeline/combine_ingest", "combine-1", "items.json", [{"title": "A"}])
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "pipeline/combine_ingest",
+                "combine-1",
+                {
+                    "status": "succeeded",
+                    "input_refs": {"ingest/rss": str(project_root / "runtime" / "rss-items.json")},
+                    "output_refs": {"items": str(artifact)},
+                },
+            )
+            client.container.runs().create("run-1", {})
+            client.container.runs().append_checkpoint("run-1", checkpoint)
+
+            result = client.queue_show("combine-1")
+
+            self.assertEqual(result["domain_view"]["kind"], "pipeline_combine_ingest")
+            self.assertEqual(result["domain_view"]["checkpoint_path"], str(checkpoint))
+            self.assertEqual(result["domain_view"]["output_refs"]["items"], str(artifact))
+            self.assertEqual(result["domain_view"]["resume_hint"]["kind"], "classify")
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

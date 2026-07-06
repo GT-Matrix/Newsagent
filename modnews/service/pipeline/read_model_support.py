@@ -714,11 +714,15 @@ def task_logs(project_root: Path, task_id: str) -> list[dict[str, Any]]:
 
 def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list[dict[str, Any]]) -> dict[str, Any]:
     if task.type == "web_source.run":
+        latest_checkpoint = checkpoints[-1] if checkpoints else {}
         return {
             "kind": "web_source",
             "source_id": task.payload.get("source_id"),
             "job": result.get("job"),
             "repair_task_id": result.get("repair_task_id"),
+            "checkpoint_path": related_checkpoint_path(result, checkpoints),
+            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
         }
     if task.type == "extractor.repair.codex":
         repair_task = result.get("repair_task") if isinstance(result.get("repair_task"), dict) else {}
@@ -730,34 +734,57 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "codex_log_path": result.get("codex_log_path"),
         }
     if task.type.startswith("classify."):
+        latest_checkpoint = checkpoints[-1] if checkpoints else {}
+        resume_hint = latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None
+        checkpoint_meta = {}
+        if isinstance(latest_checkpoint, dict):
+            stats = latest_checkpoint.get("stats")
+            if isinstance(stats, dict):
+                checkpoint_meta = stats
         return {
             "kind": "classify",
             "step_id": task.step_id,
             "run_id": task.pipeline_run_id,
-            "checkpoint_path": checkpoints[-1].get("path") if checkpoints else result.get("checkpoint_path"),
+            "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
+            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "resume_hint": resume_hint,
+            "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
+            "stats": checkpoint_meta,
             "batch_result": result.get("batch_result"),
         }
     if task.type == "report.generate":
+        latest_checkpoint = checkpoints[-1] if checkpoints else {}
         return {
             "kind": "report",
             "run_id": task.pipeline_run_id,
-            "checkpoint_path": result.get("checkpoint_path"),
+            "checkpoint_path": related_checkpoint_path(result, checkpoints),
+            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
             "report_output_dir": result.get("report_output_dir"),
             "stats": result.get("stats"),
         }
     if task.type == "pipeline.combine_ingest":
+        latest_checkpoint = checkpoints[-1] if checkpoints else {}
         return {
             "kind": "pipeline_combine_ingest",
             "run_id": task.pipeline_run_id,
             "combined_ingest_path": result.get("combined_ingest_path"),
-            "checkpoint_path": result.get("checkpoint_path"),
+            "checkpoint_path": related_checkpoint_path(result, checkpoints),
+            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
         }
     if task.type.startswith("ingest.") or task.type == "web_source.run":
+        latest_checkpoint = checkpoints[-1] if checkpoints else {}
         return {
             "kind": "ingest",
             "step_id": task.step_id,
             "run_id": task.pipeline_run_id,
-            "checkpoint_path": result.get("checkpoint_path"),
+            "checkpoint_path": related_checkpoint_path(result, checkpoints),
+            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
         }
     return {
         "kind": "task",
