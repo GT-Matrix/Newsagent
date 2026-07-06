@@ -51,3 +51,8 @@ def apply_repair_final_result(task: RepairTask, result: dict[str, Any]) -> Repai
         task.error = str(result.get("summary") or f"codex returned status {final_status}")
     task.updated_at = now()
     return task
+
+
+def mark_repair_task_promoted(task: RepairTask) -> RepairTask:
+    task.updated_at = now()
+    return task

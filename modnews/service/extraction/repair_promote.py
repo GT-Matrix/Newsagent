@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modnews.service.extraction.metadata import replace_metadata_comment
 from modnews.service.extraction.registry import ExtractorRegistry
-from modnews.service.extraction.repair_store import RepairTask, read_json, write_json
-from modnews.service.extraction.repair_support import infer_name_from_task, infer_url_from_task, now
+from modnews.service.extraction.repair_promote_ops import (
+    apply_promoted_metadata,
+    sync_source_config_for_record,
+    write_promoted_manifest,
+)
+from modnews.service.extraction.repair_state_ops import mark_repair_task_promoted
+from modnews.service.extraction.repair_store import RepairTask, read_json
 from modnews.service.extraction.repair_workspace import publish_repair_workspace
 
 
@@ -28,51 +32,15 @@ def promote_repair_task(project_root: Path, registry: ExtractorRegistry, task: R
 
     try:
         record = registry.get(task.source_id)
-        record.metadata.version = result.get("version") or record.metadata.version
-        record.metadata.status = "enabled"
-        record.metadata.updated_at = now()
-        if not record.metadata.target_url:
-            inferred_url = infer_target_url(extractor_path) or infer_url_from_task(task.work_dir / "TASK.md")
-            record.metadata.target_url = inferred_url
-        if record.metadata.name == task.source_id:
-            record.metadata.name = infer_name_from_task(task.work_dir / "TASK.md") or record.metadata.name
-        replace_metadata_comment(record.extractor_path, record.metadata)
-        manifest = read_json(manifest_path, {})
-        manifest.update(
-            {
-                "id": task.source_id,
-                "status": "enabled",
-                "updated_at": record.metadata.updated_at,
-                "promoted_from_task": task.id,
-            }
+        record = apply_promoted_metadata(
+            record,
+            result=result,
+            extractor_path=extractor_path,
+            task_md_path=task.work_dir / "TASK.md",
         )
-        write_json(record.manifest_path, manifest)
-
-        from modnews.repository.source_config import source_config_store
-
-        source_config_store(project_root).update_site_list_item(
-            task.source_id,
-            {
-                "enabled": True,
-                "name": record.metadata.name or task.source_id,
-                "url": record.metadata.target_url,
-                "content_type": record.metadata.kind or "news",
-                "extractor_id": task.source_id,
-                "tags": record.metadata.tags,
-            },
-        )
+        write_promoted_manifest(record, source_manifest_path=manifest_path, task_id=task.id)
+        sync_source_config_for_record(project_root, record)
     except Exception:
         pass
 
-    task.updated_at = now()
-    return task
-
-
-def infer_target_url(path: Path) -> str | None:
-    text = path.read_text(encoding="utf-8", errors="replace")
-    for line in text.splitlines():
-        if line.startswith("DEFAULT_URL"):
-            parts = line.split("=", 1)
-            if len(parts) == 2:
-                return parts[1].strip().strip("\"'")
-    return None
+    return mark_repair_task_promoted(task)
