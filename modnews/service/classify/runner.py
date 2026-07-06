@@ -5,7 +5,6 @@ from typing import Protocol
 
 from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
-from modnews.core.progress import emit
 
 from .llm_client import LlmClient
 from .retriever import EventVectorRetriever
@@ -32,6 +31,17 @@ class ClassifyStep(Protocol):
         ...
 
 
+class ClassifyStepObserver(Protocol):
+    def on_skip(self, *, step_name: str, state: ClassifyState) -> None:
+        ...
+
+    def on_start(self, *, step_name: str, output_stage: str, state: ClassifyState) -> None:
+        ...
+
+    def on_done(self, *, step_name: str, state: ClassifyState) -> None:
+        ...
+
+
 @dataclass(slots=True)
 class ClassifyStepResult:
     state: ClassifyState
@@ -47,20 +57,24 @@ class ClassifyRunResult:
 
 
 class ClassifyStepRunner:
-    def __init__(self, steps: list[ClassifyStep]) -> None:
+    def __init__(self, steps: list[ClassifyStep], observer: ClassifyStepObserver | None = None) -> None:
         self.steps = steps
+        self.observer = observer
 
     def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyRunResult:
         last_result: ClassifyStepResult | None = None
         for step in self.steps:
             if not step.should_run(state):
-                emit("step_skip", step=step.name, stage=state.stage)
+                if self.observer is not None:
+                    self.observer.on_skip(step_name=step.name, state=state)
                 continue
-            emit("step_start", step=step.name, stage=state.stage, output_stage=step.output_stage)
+            if self.observer is not None:
+                self.observer.on_start(step_name=step.name, output_stage=step.output_stage, state=state)
             result = step.run(state, runtime)
             state = result.state
             if result.next_stage is not None:
                 state.stage = result.next_stage
-            emit("step_done", step=step.name, stage=state.stage)
+            if self.observer is not None:
+                self.observer.on_done(step_name=step.name, state=state)
             last_result = result
         return ClassifyRunResult(state=state, last_step_result=last_result)

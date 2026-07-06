@@ -4,6 +4,7 @@ from modnews.core.task import TaskEvent
 
 from .task_registry import REGISTERED_CLASSIFY_TASKS, get_registered_classify_task
 from .runner import ClassifyStepRunner
+from .step_observer import EmittingClassifyStepObserver
 from .task_checkpoint import write_classify_task_checkpoint
 from .task_runtime import prepare_clustered_task_runtime
 
@@ -13,7 +14,10 @@ def execute_classify_task(
 ) -> dict[str, object]:
     spec = get_registered_classify_task(task.type)
     task_runtime = prepare_clustered_task_runtime(task)
-    run_result = ClassifyStepRunner(spec.build_steps()).run(task_runtime.state, task_runtime.runtime)
+    run_result = ClassifyStepRunner(
+        spec.build_steps(),
+        observer=EmittingClassifyStepObserver(),
+    ).run(task_runtime.state, task_runtime.runtime)
     return write_classify_task_checkpoint(
         task_runtime.project_root,
         task_runtime.run_id,

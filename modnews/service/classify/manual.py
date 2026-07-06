@@ -11,6 +11,7 @@ from .runtime_build import (
     build_classify_state_from_resolved_input,
     resolve_classify_state_input,
 )
+from .step_observer import EmittingClassifyStepObserver
 from .steps import get_registered_classify_flow
 
 
@@ -31,7 +32,10 @@ def run_classification(
     )
     state = build_classify_state_from_resolved_input(resolved_state_input)
     runtime = build_classify_runtime_for_context(ctx, config)
-    run_result = ClassifyStepRunner(get_registered_classify_flow("full").build_steps()).run(state, runtime)
+    run_result = ClassifyStepRunner(
+        get_registered_classify_flow("full").build_steps(),
+        observer=EmittingClassifyStepObserver(),
+    ).run(state, runtime)
     state = run_result.state
 
     return state.items, state.event_records, build_classify_step_result(
