@@ -17,6 +17,11 @@
 2. 当前不需要重做一套前端信息架构，后续重构可以继续沿用这个前端仓库同步推进。
 3. 接下来前后端联动的重点，不是补更多零散页面，而是把后端统一 step/task/checkpoint 语义继续收敛，让前端减少硬编码。
 
+补一条这次重新查看代码后的判断：
+
+4. `modnews_webUI` 现在已经同时消费了统一快照、统一 run 详情、统一 queue 接口，不再只是“后端旁边的一个演示台”。
+5. 当前真正的联动断点，不是页面数量不够，而是前端仍保留了一部分旧 classify 事件视角，同时 `src/types/domain.ts` 还没完整吃进后端最近补上的统一任务详情字段。
+
 结合 2026-07-06 的代码看，前端已经明确覆盖了这些后端能力：
 
 - `RunsPage` 可启动 run、恢复 run、取消 run、查看 queue、发布 checkpoint、触发 classify、触发 report。
@@ -24,6 +29,7 @@
 - `QueueTaskDrawer`、`TaskDrawer`、`CodexLogViewer` 已经把“按任务类型展示不同细节”的方向做出来了。
 - `ReportsPage` 已支持基于 checkpoint 或产物继续生成 report。
 - `useRuntimeSnapshot` 已经把 source / extractor / web job / repair / run / queue / checkpoint / outputs 聚合成统一运行态快照。
+- `usePipelineProgress` 仍在同时消费 `/api/state` 和 `/api/events`，但它内部的 step 列表还是固定写死的。
 
 所以，后续“带着前端一起改”应理解为：
 
@@ -66,6 +72,12 @@
 - 每个关键动作都配了 CLI 对照命令。
 
 这部分已经具备运维台的骨架。
+
+另外，这页已经明显开始转向统一读模型：
+
+- `RunDrawer` 直接消费 `/api/runs/:id` 的 `pipeline_steps / steps / checkpoints / artifacts`。
+- queue 操作面已经围绕 `/api/queue`、`/api/queue/:id` 的统一任务对象工作。
+- 每个关键动作都已经给了 CLI 对照命令，这意味着前后端语义已经不是只服务 WebUI。
 
 ### 1.3 Sources
 
@@ -127,39 +139,24 @@
 - 后端返回统一的 `run graph / step graph / task graph` 结构。
 - 前端根据结构动态渲染 step，而不是硬编码当前有哪些步骤。
 
-### 2.2 前端能操作 report，但 report 还不是统一 run graph 的标准尾步骤
+### 2.2 report 已经进了 run graph，但前端仍同时保留“单独触发 report”的操作心智
 
-现在 Reports 页和 Runs 页都能单独触发 `report generate`，这很好。
-
-但从架构上看，report 仍然更像“独立动作”，不是 pipeline 默认末端 step 的统一表现。
-
-虽然当前后端已经注册了：
+这块和更早之前相比已经前进了一步。按当前后端代码和测试，默认 run 已经注册：
 
 - `pipeline_ingest`
 - `pipeline_combine_ingest`
 - `pipeline_classify`
 - `pipeline_report`
 
-并且 `RunDrawer` 也已经能显示 `pipeline_report`，但 report 的运行语义还没完全收平，主要问题仍然是：
+并且支持 `disable_report`，`disable_classification` 时也不会继续注册 report followup。
 
-- `report.generate` 的 followup 构造还是写死在 `task_builder.py`。
-- 默认 run 输入里还没有明确的 report 开关语义。
-- report 目前更像“跟在 classify 后面的固定 followup”，还不是一等的可配置 step 规划结果。
+所以这里更准确的说法不是“report 还没进统一流程”，而是：
 
-因此前端现在看到的是：
+- report 已经是统一 run graph 的标准尾步骤之一。
+- 但前端仍同时保留 `ReportsPage`、Runs 页里的独立 report 触发入口，因此用户心智上依然像“既可以随 run 自动走，也可以单独再来一次”。
+- 后端下一步更需要统一的是 report 的任务详情 schema、checkpoint 恢复语义、以及它和分类产物之间的标准引用关系。
 
-- 先 run
-- 再 classify
-- 再 report
-
-而不是一个统一 run 内部自然完成：
-
-- `pipeline_ingest`
-- `pipeline_combine_ingest`
-- `pipeline_classify`
-- `pipeline_report`
-
-这会导致前端的 run 视图和 report 视图仍是分裂的。
+也就是说，report 的“是否在统一流程里”这个问题基本解决了，剩下的是“统一流程和单独操作面之间怎样共用同一套读模型”。
 
 ### 2.3 Agents 页仍然同时面对三套任务语义
 
@@ -180,6 +177,12 @@
 - 这些都先统一落到任务系统。
 - 前端再按 `task.type` 选择不同详情视图。
 - `WebJob`、`RepairTask` 更像是某些任务类型的领域投影视图，而不是平行于队列系统的另一套主语义。
+
+补充一个这次代码确认后的现实状态：
+
+- 后端 `/api/queue` 读模型已经补了 `title / summary / log_kind / detail_kind / retry_state / blocked_state / related_* / attempt_history / domain_view`。
+- 但 `modnews_webUI/src/types/domain.ts` 里的 `QueueTask` 仍只声明了较薄的一层字段。
+- 所以前端现在是“接口能力已经先到了，类型和渲染层还没完全跟上”。
 
 ### 2.4 blocked / retry / callback 还没有形成统一可观察模型
 
@@ -237,6 +240,12 @@
 - `classify.batch_relevance` / `classify.clustered_event_merge.batch` 用 LLM batch 视图
 
 也就是前端组件已经准备出雏形，但后端还缺一个统一的“任务详情 schema”。
+
+这句现在也要修正得更准确一些：
+
+- 后端并不是完全没有统一任务详情 schema，而是 schema 已经开始成形。
+- 当前缺口主要在于前端还没有全面消费 `log_kind / detail_kind / domain_view / attempt_history` 这些字段。
+- 换句话说，下一阶段前后端联动的重点应从“后端先定义字段”切到“前端开始真正按字段分派详情视图”。
 
 ## 2.7 当前前端最值得保留的部分
 
@@ -330,7 +339,7 @@
 
 目标：让前端可以真正按 `task.type` 动态选择日志和详情视图，而不是继续堆条件分支。
 
-建议后端补充或统一的字段：
+当前后端已经基本具备、但前端还未全面接入的字段包括：
 
 - `id`
 - `type`
@@ -348,6 +357,17 @@
 - `artifacts`
 - `related_source_id`
 - `related_checkpoint_path`
+- `related_run_id`
+- `related_step_id`
+- `related_artifacts`
+- `attempt_history`
+- `domain_view`
+
+所以下一轮联动的重点，不是后端再凭空设计一版字段，而是：
+
+1. 以后端现有 queue read model 为准收敛前端类型定义。
+2. 让 `QueueTaskDrawer` 成为统一入口，再按 `detail_kind` 分派网页抓取、Codex 修复、分类批任务、report 任务的详情区块。
+3. 保留 `WebJob`、`RepairTask` 页面，但把它们更多当作任务系统的领域投影视图。
 
 ### 4.2 优先项：统一 report 的 pipeline 规划语义
 
@@ -461,6 +481,11 @@
 - 不再让前端从事件流推断主状态。
 - Runs 页改为以 run 详情和队列详情为主，SSE 只做增量刷新。
 
+这一步里有一个很具体的前端动作，应当优先落地：
+
+- 把 `src/types/domain.ts` 中的 `QueueTask`、`PipelineTaskDetail` 扩成和后端 queue read model 对齐。
+- 然后让 `QueueTaskDrawer` 优先展示统一字段，减少对 `WebJob` / `RepairTask` 专用抽屉的依赖。
+
 这一步完成后，前端就能开始摆脱 classify 特有事件名。
 
 ### 第二阶段：把 report 正式并入统一 step graph
@@ -502,6 +527,11 @@
 - task graph
 - blocked/retry/callback 语义
 - task type 详情 schema
+
+但按这次重新核对代码后的结果，这里也要收紧一下表述：
+
+- `step graph` 和 `task type` 详情 schema 已经有了第一版，至少 `/api/runs/:id` 和 `/api/queue` 不再是空壳。
+- 真正还没完成的是前端从“旧事件推断视角”迁到“统一读模型视角”的最后一段路。
 
 所以后续策略应当是：
 
