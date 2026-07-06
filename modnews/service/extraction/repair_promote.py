@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import shutil
-from datetime import datetime
 from pathlib import Path
 
 from modnews.service.extraction.metadata import replace_metadata_comment
 from modnews.service.extraction.registry import ExtractorRegistry
 from modnews.service.extraction.repair_store import RepairTask, read_json, write_json
 from modnews.service.extraction.repair_support import infer_name_from_task, infer_url_from_task, now
+from modnews.service.extraction.repair_workspace import publish_repair_workspace
 
 
 def promote_repair_task(project_root: Path, registry: ExtractorRegistry, task: RepairTask) -> RepairTask:
@@ -21,13 +20,11 @@ def promote_repair_task(project_root: Path, registry: ExtractorRegistry, task: R
     if not extractor_path.exists():
         raise RuntimeError("task has no current/extractor.py")
 
-    target_dir = registry.root / task.source_id / "current"
-    if target_dir.exists():
-        version_dir = registry.root / task.source_id / "versions" / datetime.now().strftime("%Y%m%d%H%M%S")
-        version_dir.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(target_dir, version_dir)
-        shutil.rmtree(target_dir)
-    shutil.copytree(current_dir, target_dir)
+    publish_repair_workspace(
+        registry=registry,
+        source_id=task.source_id,
+        current_dir=current_dir,
+    )
 
     try:
         record = registry.get(task.source_id)
