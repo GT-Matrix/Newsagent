@@ -8,7 +8,7 @@ import requests
 
 from modnews.core.config import LlmConfig
 from modnews.core.progress import compact_messages, describe_llm_request, emit, new_request_id, simulate_stream
-from .llm_cache import LlmCacheStore
+from modnews.repository.llm_cache import LlmCacheRepository
 from .llm_response import parse_json_content
 from .llm_transport import LlmTransport
 
@@ -21,7 +21,7 @@ class LlmClient:
     def complete_json(self, *, task: str, messages: list[dict[str, str]]) -> dict[str, Any]:
         request_id = new_request_id(task)
         descriptor = describe_llm_request(task, messages)
-        cache = LlmCacheStore(self.config)
+        cache = LlmCacheRepository(self.config)
         cached = cache.read(task, messages)
         if cached is not None:
             response_text = json.dumps(cached, ensure_ascii=False, sort_keys=True)
