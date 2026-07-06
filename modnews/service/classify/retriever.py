@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
 
@@ -13,6 +12,7 @@ from modnews.core.config import EmbeddingConfig
 from modnews.core.models import EventRecord, NewsItem
 from modnews.core.progress import emit, new_request_id, simulate_cached_latency
 from modnews.repository.vector_cache import VectorCacheRepository
+from .retriever_ops import cosine_similarity, event_text, news_text, parse_datetime, rank_event_candidates
 
 
 @dataclass(slots=True)
@@ -37,16 +37,14 @@ class EventVectorRetriever:
     ) -> list[EventRecord]:
         if not events:
             return []
-        query_vector = self._embed_text(_news_text(item))
-        scored: list[tuple[float, EventRecord]] = []
-        for event in events:
-            if _outside_time_window(item_pubtime, _parse_datetime(event.latest_pubtime), time_window_hours):
-                continue
-            event_vector = self._embed_text(_event_text(event))
-            similarity = cosine_similarity(query_vector, event_vector)
-            scored.append((similarity, event))
-        scored.sort(key=lambda row: row[0], reverse=True)
-        return [event for _, event in scored[:limit]]
+        return rank_event_candidates(
+            query_vector=self._embed_text(news_text(item)),
+            query_pubtime=item_pubtime,
+            events=events,
+            limit=limit,
+            time_window_hours=time_window_hours,
+            vector_for_event=lambda event: self._embed_text(event_text(event)),
+        )
 
     def search_for_event(
         self,
@@ -58,19 +56,15 @@ class EventVectorRetriever:
     ) -> list[EventRecord]:
         if not events:
             return []
-        query_vector = self._embed_text(_event_text(seed))
-        seed_pubtime = _parse_datetime(seed.latest_pubtime)
-        scored: list[tuple[float, EventRecord]] = []
-        for event in events:
-            if event.event_id == seed.event_id:
-                continue
-            if _outside_time_window(seed_pubtime, _parse_datetime(event.latest_pubtime), time_window_hours):
-                continue
-            event_vector = self._embed_text(_event_text(event))
-            similarity = cosine_similarity(query_vector, event_vector)
-            scored.append((similarity, event))
-        scored.sort(key=lambda row: row[0], reverse=True)
-        return [event for _, event in scored[:limit]]
+        return rank_event_candidates(
+            query_vector=self._embed_text(event_text(seed)),
+            query_pubtime=parse_datetime(seed.latest_pubtime),
+            events=events,
+            limit=limit,
+            time_window_hours=time_window_hours,
+            vector_for_event=lambda event: self._embed_text(event_text(event)),
+            exclude_event_id=seed.event_id,
+        )
 
     def _embed_text(self, text: str) -> list[float]:
         memory_key = self._cache_key(text)
@@ -153,56 +147,3 @@ class EventVectorRetriever:
         if self._cache_repo is None:
             self._cache_repo = VectorCacheRepository(self.config.cache_path)
         return self._cache_repo
-
-
-def cosine_similarity(left: list[float], right: list[float]) -> float:
-    if not left or not right or len(left) != len(right):
-        return 0.0
-    dot = sum(a * b for a, b in zip(left, right))
-    left_norm = math.sqrt(sum(a * a for a in left))
-    right_norm = math.sqrt(sum(b * b for b in right))
-    if left_norm == 0 or right_norm == 0:
-        return 0.0
-    return dot / (left_norm * right_norm)
-
-
-def _news_text(item: NewsItem) -> str:
-    return "\n".join(
-        part
-        for part in [
-            item.canonical_summary,
-            item.title,
-            " ".join(item.entities),
-            item.event_type,
-        ]
-        if part
-    )
-
-
-def _event_text(event: EventRecord) -> str:
-    return "\n".join(
-        part
-        for part in [
-            event.event_label,
-            event.event_summary,
-            " ".join(event.key_entities),
-            event.event_type,
-            "\n".join(event.representative_titles),
-        ]
-        if part
-    )
-
-
-def _parse_datetime(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
-
-def _outside_time_window(left: datetime | None, right: datetime | None, hours: int) -> bool:
-    if left is None or right is None:
-        return False
-    return abs(left - right) > timedelta(hours=hours)
