@@ -14,6 +14,8 @@ from modnews.core.context import PipelineContext
 def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     step_id = str(task.payload["step_id"])
+    if step_id == "site_lists":
+        raise ValueError("site_lists must be planned as per-source web_source.run tasks, not ingest.run_step")
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
     config = load_config(task.payload.get("config"), project_root=project_root)
     ctx = PipelineContext.create(config)

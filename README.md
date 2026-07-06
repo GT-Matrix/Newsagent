@@ -220,6 +220,8 @@ python -m modnews.cli.main --mode local ingest run newsnow
 python -m modnews.cli.main --mode local ingest run site_lists
 ```
 
+其中 `ingest run site_lists` 不会再走单个聚合抓取 step，而是会按当前启用的站点 source 展开成多个 `web_source.run` 队列任务。
+
 只跑 classify：
 
 ```bash

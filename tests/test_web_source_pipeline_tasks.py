@@ -17,6 +17,7 @@ from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
 from modnews.service.ingest.planner import plan_ingest_tasks
 from modnews.service.extraction.tasks import run_web_source_task
+from modnews.service.ingest.tasks import run_ingest_step_task
 
 
 class WebSourcePipelineTasksTest(unittest.TestCase):
@@ -280,6 +281,20 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in response.get_json()["tasks"]], ["web_source.run", "web_source.run"])
             self.assertTrue(response.get_json()["run"]["steps"])
+
+    def test_direct_legacy_site_lists_ingest_task_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            task = TaskEvent(
+                id="legacy-site-lists-1",
+                type="ingest.run_step",
+                pipeline_run_id="run-1",
+                step_id="ingest/site_lists",
+                payload={"project_root": str(project_root), "run_id": "run-1", "step_id": "site_lists"},
+            )
+
+            with self.assertRaisesRegex(ValueError, "site_lists must be planned as per-source web_source.run tasks"):
+                run_ingest_step_task(task)
 
     def test_blocked_web_source_task_auto_queues_repair_and_skips_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
