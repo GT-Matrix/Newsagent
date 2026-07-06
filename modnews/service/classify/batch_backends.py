@@ -61,16 +61,22 @@ class EventQueueBatchExecutionBackend:
         if self.auto_drain:
             self.queue.drain_ready()
 
-        results: list[R] = []
-        for task_id in task_ids:
-            task = self.queue.get(task_id)
-            if task.state != "succeeded":
-                result = self.queue.result(task_id)
-                reason = result.get("error") or result.get("blocked_reason") or f"task ended as {task.state}"
-                raise RuntimeError(f"batch task {task_id} did not succeed: {reason}")
-            result = self.queue.result(task_id)
-            results.append(result["batch_result"])
-        return results
+        summary = self.queue.group_summary(group_id)
+        if summary["size"] != len(task_ids):
+            raise RuntimeError(
+                f"batch task group {group_id} registered {summary['size']} members, expected {len(task_ids)}"
+            )
+        if summary["active"] > 0:
+            raise RuntimeError(
+                f"batch task group {group_id} still active: {summary['by_state']}"
+            )
+        if summary["succeeded"] != len(task_ids):
+            raise RuntimeError(
+                f"batch task group {group_id} did not fully succeed: "
+                f"{summary['by_state']} details={self._member_terminal_details(task_ids)}"
+            )
+
+        return [self.queue.result(task_id)["batch_result"] for task_id in task_ids]
 
     def _task_id(self, group_id: str, item: BatchExecutionItem[object]) -> str:
         metadata = item.metadata
@@ -88,6 +94,7 @@ class EventQueueBatchExecutionBackend:
         if self.base_task is not None:
             payload.setdefault("parent_task_id", self.base_task.id)
             payload.setdefault("parent_task_type", self.base_task.type)
+        payload.setdefault("task_group_id", group_id)
         payload["item_payload"] = item.payload
         return TaskEvent(
             id=self._task_id(group_id, item),
@@ -105,3 +112,19 @@ class EventQueueBatchExecutionBackend:
             max_attempts=self.base_task.max_attempts if self.base_task is not None else 1,
             retry_backoff_seconds=self.base_task.retry_backoff_seconds if self.base_task is not None else 0,
         )
+
+    def _member_terminal_details(self, task_ids: list[str]) -> list[dict[str, Any]]:
+        details: list[dict[str, Any]] = []
+        for task_id in task_ids:
+            task = self.queue.get(task_id)
+            result = self.queue.result(task_id)
+            details.append(
+                {
+                    "task_id": task_id,
+                    "state": task.state,
+                    "error": result.get("error"),
+                    "blocked_reason": result.get("blocked_reason"),
+                    "waiting_reason": result.get("waiting_reason"),
+                }
+            )
+        return details

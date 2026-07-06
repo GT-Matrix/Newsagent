@@ -308,8 +308,38 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual(task.retry_backoff_seconds, 45)
         self.assertEqual(task.parent_task_id, "classify-parent-1")
         self.assertIsNotNone(task.task_group_id)
+        self.assertEqual(task.payload["task_group_id"], task.task_group_id)
         self.assertEqual(task.payload["parent_task_id"], "classify-parent-1")
         self.assertEqual(task.payload["parent_task_type"], "classify.clustered_event_extraction")
+
+    def test_event_queue_backend_uses_group_summary_for_failure_reporting(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/embedding",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+
+        def fail_second(task: TaskEvent) -> dict[str, object]:
+            item_payload = task.payload.get("item_payload") if isinstance(task.payload.get("item_payload"), dict) else {}
+            if item_payload.get("key") == "evt_2":
+                raise RuntimeError("boom")
+            return {"batch_result": {"key": task.payload["item_payload"]["key"], "vector": [1.0]}}
+
+        queue.register_executor("classify.embedding", fail_second)
+
+        with self.assertRaisesRegex(RuntimeError, "did not fully succeed") as raised:
+            run_profiled_batch(
+                lambda value: {"key": value["key"], "vector": [2.0]},
+                [{"key": "evt_1", "text": "hello"}, {"key": "evt_2", "text": "world"}],
+                profile=CLUSTERED_EMBEDDING_BATCH,
+                max_workers=1,
+                backend=backend,
+            )
+
+        self.assertIn("'failed': 1", str(raised.exception))
+        self.assertIn("boom", str(raised.exception))
 
 
 if __name__ == "__main__":
