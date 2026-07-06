@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import Any, Callable, Generic, Iterator, Protocol, TypeVar
 from uuid import uuid4
-import threading
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
@@ -15,8 +14,6 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 _DEFAULT_BACKEND: ContextVar[BatchExecutionBackend | None] = ContextVar("classify_batch_backend", default=None)
-_BATCH_EXECUTION_REGISTRY: dict[str, tuple[Callable[[Any], Any], Any]] = {}
-_BATCH_EXECUTION_LOCK = threading.Lock()
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,14 +68,12 @@ class EventQueueBatchExecutionBackend:
         *,
         run_id: str | None = None,
         step_id: str | None = None,
-        task_type_prefix: str = "classify.batch_item",
         base_payload: dict[str, Any] | None = None,
         auto_drain: bool = True,
     ) -> None:
         self.queue = queue
         self.run_id = run_id
         self.step_id = step_id
-        self.task_type_prefix = task_type_prefix
         self.base_payload = dict(base_payload or {})
         self.auto_drain = auto_drain
 
@@ -86,42 +81,33 @@ class EventQueueBatchExecutionBackend:
         if not items:
             return []
 
-        self._ensure_executor(items)
+        if any(item.metadata.queue_task_type is None for item in items):
+            raise RuntimeError("event queue batch backend requires explicit queue_task_type for all classify batch items")
         group_id = uuid4().hex
-        try:
-            task_ids: list[str] = []
-            for item in items:
-                task = self._task_for_item(group_id, item)
-                if item.metadata.queue_task_type is None:
-                    register_batch_execution(task.id, fn, item.payload)
-                task_ids.append(task.id)
-                self.queue.register(task)
+        task_ids: list[str] = []
+        for item in items:
+            task = self._task_for_item(group_id, item)
+            task_ids.append(task.id)
+            self.queue.register(task)
 
-            if self.auto_drain:
-                self.queue.drain_ready()
+        if self.auto_drain:
+            self.queue.drain_ready()
 
-            results: list[R] = []
-            for task_id in task_ids:
-                task = self.queue.get(task_id)
-                if task.state != "succeeded":
-                    result = self.queue.result(task_id)
-                    reason = result.get("error") or result.get("blocked_reason") or f"task ended as {task.state}"
-                    raise RuntimeError(f"batch task {task_id} did not succeed: {reason}")
+        results: list[R] = []
+        for task_id in task_ids:
+            task = self.queue.get(task_id)
+            if task.state != "succeeded":
                 result = self.queue.result(task_id)
-                results.append(result["batch_result"])
-            return results
-        finally:
-            for task_id in task_ids if "task_ids" in locals() else []:
-                unregister_batch_execution(task_id)
-
-    def _ensure_executor(self, items: list[BatchExecutionItem[T]]) -> None:
-        if any(item.metadata.queue_task_type is None for item in items) and self.task_type_prefix not in self.queue._executors:
-            self.queue.register_executor(self.task_type_prefix, execute_registered_batch_item)
+                reason = result.get("error") or result.get("blocked_reason") or f"task ended as {task.state}"
+                raise RuntimeError(f"batch task {task_id} did not succeed: {reason}")
+            result = self.queue.result(task_id)
+            results.append(result["batch_result"])
+        return results
 
     def _task_id(self, group_id: str, item: BatchExecutionItem[object]) -> str:
         metadata = item.metadata
         index = metadata.batch_index if metadata.batch_index is not None else metadata.item_index + 1
-        prefix = metadata.queue_task_type or self.task_type_prefix
+        prefix = str(metadata.queue_task_type)
         return f"{prefix}:{group_id}:{index}"
 
     def _task_for_item(self, group_id: str, item: BatchExecutionItem[object]) -> TaskEvent:
@@ -131,11 +117,10 @@ class EventQueueBatchExecutionBackend:
             "batch": describe_batch_items([item])[0],
             "labels": metadata.labels,
         }
-        if metadata.queue_task_type is not None:
-            payload["item_payload"] = item.payload
+        payload["item_payload"] = item.payload
         return TaskEvent(
             id=self._task_id(group_id, item),
-            type=metadata.queue_task_type or self.task_type_prefix,
+            type=str(metadata.queue_task_type),
             pipeline_run_id=self.run_id,
             step_id=self.step_id or metadata.labels.get("stage") or metadata.task_type,
             payload=payload,
@@ -143,25 +128,6 @@ class EventQueueBatchExecutionBackend:
             max_concurrency=metadata.max_concurrency,
             checkpoint_policy="none",
         )
-
-
-def register_batch_execution(task_id: str, fn: Callable[[Any], Any], payload: Any) -> None:
-    with _BATCH_EXECUTION_LOCK:
-        _BATCH_EXECUTION_REGISTRY[task_id] = (fn, payload)
-
-
-def unregister_batch_execution(task_id: str) -> None:
-    with _BATCH_EXECUTION_LOCK:
-        _BATCH_EXECUTION_REGISTRY.pop(task_id, None)
-
-
-def execute_registered_batch_item(task: TaskEvent) -> dict[str, Any]:
-    with _BATCH_EXECUTION_LOCK:
-        entry = _BATCH_EXECUTION_REGISTRY.get(task.id)
-    if entry is None:
-        raise RuntimeError(f"no batch execution registered for {task.id}")
-    fn, payload = entry
-    return {"batch_result": fn(payload)}
 
 
 def build_batch_items(

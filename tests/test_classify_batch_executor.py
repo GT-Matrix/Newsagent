@@ -13,6 +13,7 @@ from modnews.service.classify.batch_executor import (
     run_batch_parallel,
 )
 from modnews.service.classify.batch_profile import (
+    CLUSTERED_EMBEDDING_BATCH,
     CLUSTERED_EVENT_EXTRACTION_BATCH,
     CLUSTERED_EVENT_MERGE_BATCH,
     RELEVANCE_BATCH,
@@ -99,26 +100,18 @@ class BatchExecutorTest(unittest.TestCase):
         queue = EventQueue()
         backend = EventQueueBatchExecutionBackend(queue, run_id="run-1", step_id="classify/relevance")
 
-        result = run_batch_parallel(
-            lambda value: value.upper(),
-            ["a", "b"],
-            max_workers=2,
-            task_type="classify.batch_relevance",
-            concurrency_key="classify.llm",
-            batch_indexes=[1, 2],
-            batch_count=2,
-            labels={"stage": "relevance"},
-            backend=backend,
-        )
-
-        self.assertEqual(result, ["A", "B"])
-        tasks = queue.list()
-        self.assertEqual(len(tasks), 2)
-        self.assertEqual([task.state for task in tasks], ["succeeded", "succeeded"])
-        self.assertEqual({task.concurrency_key for task in tasks}, {"classify.llm"})
-        self.assertEqual({task.max_concurrency for task in tasks}, {2})
-        self.assertEqual([queue.result(task.id)["batch_result"] for task in tasks], ["A", "B"])
-        self.assertIn("classify.batch_item", queue._executors)
+        with self.assertRaisesRegex(RuntimeError, "explicit queue_task_type"):
+            run_batch_parallel(
+                lambda value: value.upper(),
+                ["a", "b"],
+                max_workers=2,
+                task_type="classify.batch_relevance",
+                concurrency_key="classify.llm",
+                batch_indexes=[1, 2],
+                batch_count=2,
+                labels={"stage": "relevance"},
+                backend=backend,
+            )
 
     def test_event_queue_backend_uses_fixed_queue_task_type_when_present(self) -> None:
         queue = EventQueue()
@@ -226,17 +219,14 @@ class BatchExecutorTest(unittest.TestCase):
         backend = EventQueueBatchExecutionBackend(queue, run_id="run-1", step_id="classify/default")
 
         with default_batch_backend(backend):
-            result = run_batch_parallel(
-                lambda value: value + 10,
-                [1, 2],
-                max_workers=2,
-                task_type="classify.embedding",
-                concurrency_key="classify.embedding",
-            )
-
-        self.assertEqual(result, [11, 12])
-        self.assertEqual(len(queue.list()), 2)
-        self.assertEqual({task.type for task in queue.list()}, {"classify.batch_item"})
+            with self.assertRaisesRegex(RuntimeError, "explicit queue_task_type"):
+                run_batch_parallel(
+                    lambda value: value + 10,
+                    [1, 2],
+                    max_workers=2,
+                    task_type="classify.embedding",
+                    concurrency_key="classify.embedding",
+                )
 
     def test_profiled_batch_reuses_standard_task_metadata(self) -> None:
         backend = RecordingBackend()
@@ -258,6 +248,27 @@ class BatchExecutorTest(unittest.TestCase):
         ])
         self.assertEqual(backend.seen[0].metadata.concurrency_key, "classify.llm")
         self.assertEqual(backend.seen[0].metadata.labels, {"stage": "relevance"})
+
+    def test_event_queue_backend_keeps_fixed_queue_task_types_as_only_runtime_path(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/embedding",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        queue.register_executor("classify.embedding", lambda task: {"batch_result": {"key": task.payload["item_payload"]["key"], "vector": [1.0]}})
+
+        result = run_profiled_batch(
+            lambda value: {"key": value["key"], "vector": [2.0]},
+            [{"key": "evt_1", "text": "hello"}],
+            profile=CLUSTERED_EMBEDDING_BATCH,
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"key": "evt_1", "vector": [1.0]}])
+        self.assertEqual({task.type for task in queue.list()}, {"classify.embedding"})
 
 
 if __name__ == "__main__":
