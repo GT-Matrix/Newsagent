@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from modnews.core.context import PipelineContext
 from modnews.core.progress import emit
 
@@ -18,6 +20,8 @@ RELEVANCE_STAGE = LlmBatchStage[list[dict[str, object]]](
     done_event="batch_relevance_batch_done",
     system_prompt=batch_relevance_system_prompt(),
     payload_key="items",
+    request_event_key="items",
+    build_payload=lambda batch: batch,
 )
 
 
@@ -39,8 +43,6 @@ def classify_relevance_batches(
         stage=RELEVANCE_STAGE,
         batches=batches,
         max_workers=max_workers,
-        build_payload=lambda batch: batch,
-        request_event_key="items",
     )
     for batch_index in range(1, len(batches) + 1):
         emit("batch_relevance_done", batch_index=batch_index, batch_count=len(batches))

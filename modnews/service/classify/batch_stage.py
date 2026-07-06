@@ -21,6 +21,8 @@ class LlmBatchStage(Generic[T]):
     done_event: str
     system_prompt: str
     payload_key: str
+    request_event_key: str
+    build_payload: Callable[[T], object]
 
 
 def run_llm_batch_stage(
@@ -29,15 +31,13 @@ def run_llm_batch_stage(
     stage: LlmBatchStage[T],
     batches: list[T],
     max_workers: int,
-    build_payload: Callable[[T], object],
-    request_event_key: str,
 ) -> list[dict]:
     queue_task_type = stage.profile.queue_task_type
-    batch_payload_builder = (lambda batch: batch) if queue_task_type else build_payload
+    batch_payload_builder = (lambda batch: batch) if queue_task_type else stage.build_payload
     items = (
         [
             {
-                "payload": build_payload(batch),
+                "payload": stage.build_payload(batch),
                 "batch_index": batch_index,
                 "batch_count": len(batches),
             }
@@ -54,7 +54,7 @@ def run_llm_batch_stage(
             batch_index=args["batch_index"] if queue_task_type else args[1],
             batch_count=args["batch_count"] if queue_task_type else args[2],
             build_payload=batch_payload_builder,
-            request_event_key=request_event_key,
+            request_event_key=stage.request_event_key,
         ),
         items,
         max_workers=max_workers,
@@ -80,7 +80,7 @@ def run_llm_batch_task(
         batch_index=batch_index,
         batch_count=batch_count,
         build_payload=lambda batch: batch,
-        request_event_key=request_event_key or stage.payload_key,
+        request_event_key=request_event_key or stage.request_event_key,
     )
 
 

@@ -15,6 +15,8 @@ CLUSTERED_MERGE_STAGE = LlmBatchStage[list[dict[str, object]]](
     done_event="clustered_merge_batch_done",
     system_prompt=clustered_event_merge_system_prompt(),
     payload_key="events",
+    request_event_key="events",
+    build_payload=lambda batch: _batch_payload(batch),
 )
 
 
@@ -37,8 +39,6 @@ def merge_event_clusters(
         stage=CLUSTERED_MERGE_STAGE,
         batches=batches,
         max_workers=config.batch_concurrency,
-        build_payload=_batch_payload,
-        request_event_key="events",
     )
 
     by_id = {state.record.event_id: state for state in events}

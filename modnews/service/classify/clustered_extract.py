@@ -25,6 +25,8 @@ CLUSTERED_EXTRACTION_STAGE = LlmBatchStage[list[dict[str, object]]](
     done_event="clustered_extraction_batch_done",
     system_prompt=clustered_event_extraction_system_prompt(),
     payload_key="items",
+    request_event_key="items",
+    build_payload=lambda batch: _batch_payload(batch),
 )
 
 
@@ -49,8 +51,6 @@ def extract_events_from_title_clusters(
         stage=CLUSTERED_EXTRACTION_STAGE,
         batches=batches,
         max_workers=config.batch_concurrency,
-        build_payload=_batch_payload,
-        request_event_key="items",
     )
 
     events: list[EventState] = []
