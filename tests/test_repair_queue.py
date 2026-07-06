@@ -23,7 +23,7 @@ class RepairQueueTest(unittest.TestCase):
                 task.error = None
                 self._save_task(task)
 
-            with patch("modnews.service.extraction.repair.RepairManager.run_task", new=write_log):
+            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task", new=write_log):
                 result = client.repair_create({"source_id": "source-1", "reason": "test repair"})
 
             self.assertTrue(result["ok"])

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.repair_queue_runtime import ensure_repair_queue_task
 from modnews.service.extraction.registry import registry_from_project
 from modnews.repository.web_jobs import WebJobStore

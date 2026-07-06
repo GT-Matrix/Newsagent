@@ -5,7 +5,7 @@ from pathlib import Path
 from modnews.repository.web_jobs import WebJobStore
 from modnews.service.extraction.job_runtime import finish_failure
 from modnews.service.extraction.registry import registry_from_project
-from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.repair_policy import classify_exception
 from modnews.service.extraction.source_selection import enabled_sources as resolve_enabled_sources
 from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource

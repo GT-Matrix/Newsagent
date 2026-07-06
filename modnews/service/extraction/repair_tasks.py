@@ -5,7 +5,7 @@ from pathlib import Path
 from modnews.core.progress import emit
 from modnews.core.task import TaskEvent
 from modnews.service.extraction.registry import registry_from_project
-from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.repair_task_result import build_repair_task_result
 from modnews.service.extraction.task_registry import REGISTERED_EXTRACTION_TASKS
 

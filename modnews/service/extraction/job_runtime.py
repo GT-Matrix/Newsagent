@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.repair_policy import should_auto_repair
 from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
 
