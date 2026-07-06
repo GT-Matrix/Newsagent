@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.paths import runtime_paths
-from modnews.repository.runtime_config_defaults import editable_step_keys
 from modnews.repository.runtime_config_io import now as current_time
 from modnews.repository.runtime_config_io import read_json, write_config
 from modnews.repository.runtime_config_lifecycle import load_runtime_config, save_runtime_config
+from modnews.repository.runtime_config_mutations import apply_classification_patch, apply_step_patch
 from modnews.repository.runtime_config_sources import (
     delete_rss_item as delete_rss_item_data,
     delete_site_list_item as delete_site_list_item_data,
@@ -66,29 +66,12 @@ class RuntimeConfigStore:
 
     def update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         data = self.load()
-        step = data["steps"].setdefault(step_id, {})
-        if not isinstance(step, dict):
-            step = {}
-            data["steps"][step_id] = step
-        for key, value in patch.items():
-            if key in editable_step_keys(step_id):
-                step[key] = value
+        data = apply_step_patch(data, step_id, patch)
         return self.save(data)
 
     def update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
         data = self.load()
-        target = data.setdefault("classification", {})
-        for key in (
-            "enabled",
-            "batch_size",
-            "batch_concurrency",
-            "event_candidate_count",
-            "merge_candidate_count",
-            "time_window_hours",
-            "suspect_mode",
-        ):
-            if key in patch:
-                target[key] = patch[key]
+        data = apply_classification_patch(data, patch)
         return self.save(data)
 
     def update_rss(self, items: list[dict[str, Any]]) -> dict[str, Any]:
