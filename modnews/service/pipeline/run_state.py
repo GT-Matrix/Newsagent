@@ -8,7 +8,7 @@ from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.runs import RunRepository
-from modnews.service.pipeline.read_model_support import build_pipeline_step_views
+from modnews.service.pipeline.read_model_support import build_pipeline_step_views, pipeline_status_overrides
 from modnews.service.pipeline.step import PipelineFollowupDescriptor, PipelineStepDescriptor
 
 
@@ -27,6 +27,7 @@ def initialize_run_state(
         "steps": step_snapshots,
         "pipeline_steps": _build_pipeline_step_snapshots(
             step_snapshots,
+            run_payload=record.get("payload"),
             descriptors=pipeline_descriptors or _restore_pipeline_descriptors(record.get("pipeline_steps")),
             existing=record.get("pipeline_steps"),
         ),
@@ -56,6 +57,7 @@ def sync_run_state(
         "steps": step_snapshots,
         "pipeline_steps": _build_pipeline_step_snapshots(
             step_snapshots,
+            run_payload=record.get("payload"),
             descriptors=pipeline_descriptors or _restore_pipeline_descriptors(record.get("pipeline_steps")),
             existing=record.get("pipeline_steps"),
         ),
@@ -242,12 +244,17 @@ def _load_checkpoints(project_root: Path, run_id: str) -> list[dict[str, Any]]:
 def _build_pipeline_step_snapshots(
     step_snapshots: list[dict[str, Any]],
     *,
+    run_payload: Any,
     descriptors: list[PipelineStepDescriptor],
     existing: Any = None,
 ) -> list[dict[str, Any]]:
     if not descriptors:
         return list(existing) if isinstance(existing, list) else []
-    pipeline_steps = build_pipeline_step_views(descriptors, step_snapshots)
+    pipeline_steps = build_pipeline_step_views(
+        descriptors,
+        step_snapshots,
+        status_overrides=pipeline_status_overrides(run_payload),
+    )
     existing_by_step = {
         str(item.get("step_id")): item
         for item in existing

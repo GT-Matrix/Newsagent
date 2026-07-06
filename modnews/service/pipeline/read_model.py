@@ -17,6 +17,7 @@ from modnews.service.pipeline.read_model_support import (
     merge_steps,
     normalize_checkpoints,
     normalize_steps,
+    pipeline_status_overrides,
     related_checkpoint_path,
     status_summary,
     task_display_summary,
@@ -39,6 +40,7 @@ def build_run_list_item(
         project_root,
         queue,
         run_id,
+        run_payload=run.get("payload"),
         persisted_steps=run.get("steps"),
         pipeline_descriptors=pipeline_descriptors,
     )
@@ -66,6 +68,7 @@ def build_run_detail(
         project_root,
         queue,
         run_id,
+        run_payload=run.get("payload"),
         persisted_steps=run.get("steps"),
         pipeline_descriptors=pipeline_descriptors,
     )
@@ -152,6 +155,7 @@ def _load_run_view(
     queue: EventQueue,
     run_id: str,
     *,
+    run_payload: Any,
     persisted_steps: Any,
     pipeline_descriptors: list[PipelineStepDescriptor] | None,
 ) -> tuple[list[TaskEvent], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -163,7 +167,11 @@ def _load_run_view(
         if str(checkpoint.get("run_id") or run_id) == run_id
     )
     steps = merge_steps(build_step_views(tasks, checkpoints), normalize_steps(persisted_steps))
-    pipeline_steps = build_pipeline_step_views(pipeline_descriptors or [], steps)
+    pipeline_steps = build_pipeline_step_views(
+        pipeline_descriptors or [],
+        steps,
+        status_overrides=pipeline_status_overrides(run_payload),
+    )
     return tasks, checkpoints, steps, pipeline_steps
 
 

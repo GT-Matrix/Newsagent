@@ -32,6 +32,9 @@ class RunControlTest(unittest.TestCase):
             self.assertTrue(result["run"]["steps"])
             self.assertTrue(result["run"]["pipeline_steps"])
             self.assertEqual(result["run"]["pipeline_steps"][0]["step_id"], "pipeline_ingest")
+            pipeline_steps = {step["step_id"]: step for step in result["run"]["pipeline_steps"]}
+            self.assertEqual(pipeline_steps["pipeline_classify"]["status"], "skipped")
+            self.assertEqual(pipeline_steps["pipeline_report"]["status"], "skipped")
             self.assertTrue(all(not step["step_id"].startswith("pipeline/") for step in result["run"]["steps"]))
 
     def test_run_start_can_explicitly_disable_report_followup(self) -> None:
@@ -43,6 +46,7 @@ class RunControlTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertTrue(result["run"]["payload"]["disable_report"])
             self.assertEqual(result["run"]["pipeline_steps"][-1]["step_id"], "pipeline_report")
+            self.assertEqual(result["run"]["pipeline_steps"][-1]["status"], "skipped")
 
     def test_pipeline_callbacks_register_followup_tasks_incrementally(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

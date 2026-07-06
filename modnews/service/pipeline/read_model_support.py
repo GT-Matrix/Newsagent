@@ -56,6 +56,8 @@ def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) 
 def build_pipeline_step_views(
     descriptors: list[PipelineStepDescriptor],
     concrete_steps: list[dict[str, Any]],
+    *,
+    status_overrides: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     concrete_by_step_id = {
         str(step.get("step_id") or ""): step
@@ -102,8 +104,25 @@ def build_pipeline_step_views(
             "stats": latest_checkpoint.get("stats", {}) if latest_checkpoint else {},
             "callback_events": _merge_callback_events(matched_steps),
         }
+        if row["status"] == "idle":
+            override = (status_overrides or {}).get(descriptor.step_id)
+            if override:
+                row["status"] = override
         rows.append(row)
     return rows
+
+
+def pipeline_status_overrides(run_payload: Any) -> dict[str, str]:
+    if not isinstance(run_payload, dict):
+        return {}
+    overrides: dict[str, str] = {}
+    if bool(run_payload.get("disable_classification")):
+        overrides["pipeline_classify"] = "skipped"
+        overrides["pipeline_report"] = "skipped"
+        return overrides
+    if bool(run_payload.get("disable_report")):
+        overrides["pipeline_report"] = "skipped"
+    return overrides
 
 
 def step_status(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> str:
