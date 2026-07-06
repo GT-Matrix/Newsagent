@@ -723,6 +723,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "checkpoint_path": related_checkpoint_path(result, checkpoints),
             "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
             "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
         }
     if task.type == "extractor.repair.codex":
         repair_task = result.get("repair_task") if isinstance(result.get("repair_task"), dict) else {}
@@ -748,6 +750,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
             "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
             "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
             "resume_hint": resume_hint,
             "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
             "stats": checkpoint_meta,
@@ -761,6 +765,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "checkpoint_path": related_checkpoint_path(result, checkpoints),
             "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
             "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
             "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
             "report_output_dir": result.get("report_output_dir"),
             "stats": result.get("stats"),
@@ -774,6 +780,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "checkpoint_path": related_checkpoint_path(result, checkpoints),
             "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
             "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
             "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
         }
     if task.type.startswith("ingest.") or task.type == "web_source.run":
@@ -785,6 +793,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "checkpoint_path": related_checkpoint_path(result, checkpoints),
             "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
             "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
         }
     return {
         "kind": "task",
@@ -792,3 +802,41 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
         "run_id": task.pipeline_run_id,
         "step_id": task.step_id,
     }
+
+
+def publish_targets_for_task(task: TaskEvent, checkpoint: dict[str, Any]) -> list[dict[str, Any]]:
+    output_refs = checkpoint.get("output_refs") if isinstance(checkpoint.get("output_refs"), dict) else {}
+    if not output_refs:
+        return []
+    targets: list[dict[str, Any]] = []
+    mapping: dict[str, str] = {}
+    if task.type.startswith("classify."):
+        mapping = {
+            "news_with_events": "news_with_events",
+            "events": "events",
+            "discarded_news": "discarded_news",
+            "classification_progress": "checkpoint",
+        }
+    elif task.type == "report.generate":
+        mapping = {
+            "report_markdown": "report_markdown",
+            "report_debug_markdown": "report_debug_markdown",
+            "report_events": "report_events",
+            "report_trend_summary": "report_trend_summary",
+        }
+    elif task.type == "pipeline.combine_ingest":
+        mapping = {
+            "items": "combined_news",
+        }
+    for output_key, target_key in mapping.items():
+        source = output_refs.get(output_key)
+        if not source:
+            continue
+        targets.append(
+            {
+                "source_key": output_key,
+                "target_key": target_key,
+                "source_path": str(source),
+            }
+        )
+    return targets

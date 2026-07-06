@@ -102,6 +102,12 @@ class PipelineReadModelTest(unittest.TestCase):
                 "task-1",
                 {
                     "status": "succeeded",
+                    "output_refs": {
+                        "report_markdown": str(project_root / "data" / "output" / "daily_report.md"),
+                        "report_debug_markdown": str(project_root / "data" / "output" / "daily_report_debug.md"),
+                        "report_events": str(project_root / "data" / "output" / "enriched_events.json"),
+                        "report_trend_summary": str(project_root / "data" / "output" / "trend_summary.json"),
+                    },
                 },
             )
             client.container.runs().append_checkpoint("run-1", checkpoint)
@@ -129,7 +135,11 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["recovery_policy"], "fail_running")
             self.assertEqual(task["domain_view"]["checkpoint_path"], str(checkpoint))
             self.assertEqual(task["domain_view"]["input_refs"], {})
-            self.assertEqual(task["domain_view"]["output_refs"], {})
+            self.assertEqual(task["domain_view"]["output_refs"]["report_markdown"], str(project_root / "data" / "output" / "daily_report.md"))
+            self.assertEqual(
+                [item["target_key"] for item in task["domain_view"]["publish_targets"]],
+                ["report_markdown", "report_debug_markdown", "report_events", "report_trend_summary"],
+            )
 
     def test_queue_list_exposes_restored_task_error_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -529,6 +539,11 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result["domain_view"]["output_refs"]["classification_progress"], str(artifact))
             self.assertEqual(result["domain_view"]["resume_hint"]["kind"], "report")
             self.assertEqual(result["domain_view"]["stats"]["event_count"], 3)
+            self.assertEqual(
+                [item["target_key"] for item in result["domain_view"]["publish_targets"]],
+                ["checkpoint"],
+            )
+            self.assertEqual(result["domain_view"]["artifacts"][0]["name"], "classification_progress")
 
     def test_queue_show_exposes_pipeline_combine_domain_view_details(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -562,6 +577,8 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result["domain_view"]["checkpoint_path"], str(checkpoint))
             self.assertEqual(result["domain_view"]["output_refs"]["items"], str(artifact))
             self.assertEqual(result["domain_view"]["resume_hint"]["kind"], "classify")
+            self.assertEqual(result["domain_view"]["publish_targets"][0]["target_key"], "combined_news")
+            self.assertEqual(result["domain_view"]["artifacts"][0]["name"], "items")
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
