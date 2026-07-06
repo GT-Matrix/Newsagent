@@ -5,16 +5,10 @@ from pathlib import Path
 from typing import Any
 
 from modnews.core.paths import runtime_paths
-from modnews.repository.runtime_config_defaults import (
-    build_initial_config,
-    editable_step_keys,
-    merge_builtin_newsnow,
-    merge_builtin_rss,
-)
-from modnews.repository.runtime_config_migration import migrate_runtime_config, needs_migration
-from modnews.repository.runtime_config_normalize import normalize_config
+from modnews.repository.runtime_config_defaults import editable_step_keys
 from modnews.repository.runtime_config_io import now as current_time
 from modnews.repository.runtime_config_io import read_json, write_config
+from modnews.repository.runtime_config_lifecycle import load_runtime_config, save_runtime_config
 from modnews.repository.runtime_config_sources import (
     delete_rss_item as delete_rss_item_data,
     delete_site_list_item as delete_site_list_item_data,
@@ -50,23 +44,25 @@ class RuntimeConfigStore:
         return self.project_root / "modnews" / "data" / "newsnow_sources.json"
 
     def load(self) -> dict[str, Any]:
-        if not self.path.exists():
-            self.save(self._initial_config())
-            return read_json(self.path)
-        original = read_json(self.path)
-        data = original
-        if needs_migration(data):
-            data = self._migrate(data)
-        data = normalize_config(data, now=current_time(), rss_row=rss_row)
-        if data != original:
-            self.save(data)
-        return data
+        return load_runtime_config(
+            path=self.path,
+            legacy_source_config_path=self.legacy_source_config_path,
+            rss_seed_path=self.rss_seed_path,
+            newsnow_seed_path=self.newsnow_seed_path,
+            current_time=current_time,
+            read_json=read_json,
+            write_config=write_config,
+            rss_row=rss_row,
+        )
 
     def save(self, data: dict[str, Any]) -> dict[str, Any]:
-        data = normalize_config(data, now=current_time(), rss_row=rss_row)
-        data.setdefault("meta", {})["updated_at"] = current_time()
-        write_config(self.path, data)
-        return data
+        return save_runtime_config(
+            path=self.path,
+            data=data,
+            current_time=current_time,
+            write_config=write_config,
+            rss_row=rss_row,
+        )
 
     def update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         data = self.load()
@@ -139,20 +135,6 @@ class RuntimeConfigStore:
 
     def enabled_newsnow_sources(self) -> list[dict[str, Any]]:
         return enabled_newsnow_sources_data(self.load())
-
-    def _initial_config(self) -> dict[str, Any]:
-        if self.legacy_source_config_path.exists():
-            legacy = read_json(self.legacy_source_config_path)
-            if isinstance(legacy, dict):
-                return self._migrate(legacy)
-        return build_initial_config(
-            now=current_time(),
-            rss_rows=[rss_row(row) for row in read_json(self.rss_seed_path, default=[])],
-            newsnow_data=read_json(self.newsnow_seed_path, default={}),
-        )
-
-    def _migrate(self, data: dict[str, Any]) -> dict[str, Any]:
-        return migrate_runtime_config(data, now=current_time(), rss_row=rss_row)
 
 
 def runtime_config_store(project_root: Path) -> RuntimeConfigStore:
