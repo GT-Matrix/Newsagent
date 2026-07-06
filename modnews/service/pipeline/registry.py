@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import inspect
 from typing import Any
 
 from modnews.core.event_queue import EventQueue
@@ -33,10 +32,9 @@ class PipelineRegistry:
 
     def notify(self, handler_name: str, event: dict[str, Any], queue: EventQueue | None) -> None:
         for step in self.list():
-            handler = getattr(step, handler_name, None)
-            if not callable(handler):
-                continue
-            if len(inspect.signature(handler).parameters) >= 2:
-                handler(event, queue)
-            else:
-                handler(event)
+            if handler_name == "on_task_completed":
+                step.on_task_completed(event, queue)
+            elif handler_name == "on_task_failed":
+                step.on_task_failed(event, queue)
+            elif handler_name == "on_task_blocked":
+                step.on_task_blocked(event, queue)

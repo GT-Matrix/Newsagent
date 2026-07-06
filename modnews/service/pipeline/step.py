@@ -20,3 +20,19 @@ class PipelineStep(Protocol):
 
     def on_task_blocked(self, event: dict[str, Any], queue: EventQueue) -> None:
         ...
+
+
+class PipelineStepBase:
+    id: str
+
+    def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
+        raise NotImplementedError
+
+    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+        return None
+
+    def on_task_failed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+        return None
+
+    def on_task_blocked(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+        return None

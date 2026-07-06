@@ -6,6 +6,7 @@ from typing import Any
 from modnews.core.task import TaskEvent
 
 from .runtime import load_runtime_plan
+from .step import PipelineStepBase
 from .task_builder import (
     build_classify_tasks,
     build_combine_ingest_task,
@@ -15,7 +16,7 @@ from .task_builder import (
 
 
 @dataclass(slots=True)
-class IngestPipelineStep:
+class IngestPipelineStep(PipelineStepBase):
     id: str = "pipeline_ingest"
 
     def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
@@ -32,7 +33,7 @@ class IngestPipelineStep:
 
 
 @dataclass(slots=True)
-class CombineIngestPipelineStep:
+class CombineIngestPipelineStep(PipelineStepBase):
     id: str = "pipeline_combine_ingest"
 
     def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
@@ -43,7 +44,7 @@ class CombineIngestPipelineStep:
 
 
 @dataclass(slots=True)
-class ClassifyPipelineStep:
+class ClassifyPipelineStep(PipelineStepBase):
     id: str = "pipeline_classify"
 
     def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
@@ -61,7 +62,7 @@ class ClassifyPipelineStep:
 
 
 @dataclass(slots=True)
-class ReportPipelineStep:
+class ReportPipelineStep(PipelineStepBase):
     id: str = "pipeline_report"
 
     def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:

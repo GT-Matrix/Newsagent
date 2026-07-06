@@ -9,6 +9,7 @@ from modnews.cli.local_client import LocalClient
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
 from modnews.service.pipeline.manager import PipelineManager
+from modnews.service.pipeline.step import PipelineStepBase
 
 
 class RunControlTest(unittest.TestCase):
@@ -84,7 +85,7 @@ class RunControlTest(unittest.TestCase):
             self.assertEqual(response.get_json()["run"]["state"], "cancelled")
 
     def test_blocked_step_callback_can_safely_skip_task(self) -> None:
-        class SkipBlockedStep:
+        class SkipBlockedStep(PipelineStepBase):
             id = "skip_blocked"
 
             def plan(self, state, completed_event=None):
