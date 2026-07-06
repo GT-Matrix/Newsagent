@@ -70,6 +70,7 @@ def _with_classify_batch_queue(queue: EventQueue, executor):
             run_id=task.pipeline_run_id,
             step_id=task.step_id,
             base_payload=task.payload,
+            base_task=task,
         )
         with default_batch_backend(backend):
             return executor(task)

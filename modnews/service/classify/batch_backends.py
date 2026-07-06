@@ -41,6 +41,7 @@ class EventQueueBatchExecutionBackend:
     run_id: str | None = None
     step_id: str | None = None
     base_payload: dict[str, Any] = field(default_factory=dict)
+    base_task: TaskEvent | None = None
     auto_drain: bool = True
 
     def run(self, fn: Callable[[T], R], items: list[BatchExecutionItem[T]]) -> list[R]:
@@ -84,14 +85,21 @@ class EventQueueBatchExecutionBackend:
             "batch": describe_batch_items([item])[0],
             "labels": metadata.labels,
         }
+        if self.base_task is not None:
+            payload.setdefault("parent_task_id", self.base_task.id)
+            payload.setdefault("parent_task_type", self.base_task.type)
         payload["item_payload"] = item.payload
         return TaskEvent(
             id=self._task_id(group_id, item),
             type=str(metadata.queue_task_type),
-            pipeline_run_id=self.run_id,
+            pipeline_run_id=self.run_id or (self.base_task.pipeline_run_id if self.base_task is not None else None),
             step_id=self.step_id or metadata.labels.get("stage") or metadata.task_type,
             payload=payload,
             concurrency_key=metadata.concurrency_key,
             max_concurrency=metadata.max_concurrency,
             checkpoint_policy="none",
+            priority=self.base_task.priority if self.base_task is not None else 100,
+            recovery_policy=self.base_task.recovery_policy if self.base_task is not None else "requeue_running",
+            max_attempts=self.base_task.max_attempts if self.base_task is not None else 1,
+            retry_backoff_seconds=self.base_task.retry_backoff_seconds if self.base_task is not None else 0,
         )

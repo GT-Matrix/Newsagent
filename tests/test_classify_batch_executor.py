@@ -4,6 +4,7 @@ import unittest
 from typing import Callable, TypeVar
 
 from modnews.core.event_queue import EventQueue
+from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_executor import (
     BatchExecutionItem,
     EventQueueBatchExecutionBackend,
@@ -269,6 +270,44 @@ class BatchExecutorTest(unittest.TestCase):
 
         self.assertEqual(result, [{"key": "evt_1", "vector": [1.0]}])
         self.assertEqual({task.type for task in queue.list()}, {"classify.embedding"})
+
+    def test_event_queue_backend_inherits_parent_task_runtime_policy(self) -> None:
+        queue = EventQueue()
+        parent_task = TaskEvent(
+            id="classify-parent-1",
+            type="classify.clustered_event_extraction",
+            pipeline_run_id="run-1",
+            step_id="classify/clustered_event_extraction",
+            priority=7,
+            recovery_policy="fail_running",
+            max_attempts=3,
+            retry_backoff_seconds=45,
+            payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            base_payload=parent_task.payload,
+            base_task=parent_task,
+        )
+        queue.register_executor("classify.embedding", lambda task: {"batch_result": {"key": task.payload["item_payload"]["key"], "vector": [1.0]}})
+
+        result = run_profiled_batch(
+            lambda value: {"key": value["key"], "vector": [2.0]},
+            [{"key": "evt_1", "text": "hello"}],
+            profile=CLUSTERED_EMBEDDING_BATCH,
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"key": "evt_1", "vector": [1.0]}])
+        task = queue.list()[0]
+        self.assertEqual(task.pipeline_run_id, "run-1")
+        self.assertEqual(task.priority, 7)
+        self.assertEqual(task.recovery_policy, "fail_running")
+        self.assertEqual(task.max_attempts, 3)
+        self.assertEqual(task.retry_backoff_seconds, 45)
+        self.assertEqual(task.payload["parent_task_id"], "classify-parent-1")
+        self.assertEqual(task.payload["parent_task_type"], "classify.clustered_event_extraction")
 
 
 if __name__ == "__main__":
