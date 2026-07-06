@@ -7,7 +7,11 @@ from modnews.core.context import PipelineContext
 
 from .run_result import build_classify_step_result
 from .task_registry import REGISTERED_CLASSIFY_TASKS, get_registered_classify_task
-from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
+from .runtime_build import (
+    build_classify_runtime_for_context,
+    build_classify_state_from_resolved_input,
+    resolve_classify_state_input,
+)
 from .runner import ClassifyStepRunner
 from .steps import get_registered_classify_flow
 from .task_checkpoint import write_classify_task_checkpoint
@@ -53,10 +57,14 @@ def run_classification(
     if not config.enabled:
         return items, [], StepResult(step="classify", item_count=len(items), meta={"enabled": False})
 
-    state = build_classify_state_from_items(
-        items,
-        resume_checkpoint_path=config.checkpoint_path,
+    resolved_state_input = resolve_classify_state_input(
+        ctx.config.project_root,
+        "manual",
+        items=items,
+        configured_resume_checkpoint_path=config.checkpoint_path,
+        prefer_run_checkpoint=False,
     )
+    state = build_classify_state_from_resolved_input(resolved_state_input)
     runtime = build_classify_runtime_for_context(
         ctx,
         config,

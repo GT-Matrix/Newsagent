@@ -55,7 +55,7 @@ class ClassifyTaskExecutionTest(unittest.TestCase):
                 ),
             )
 
-            with patch("modnews.service.classify.task_execution.build_classify_state_from_items", return_value=state):
+            with patch("modnews.service.classify.task_execution.build_classify_state_from_resolved_input", return_value=state):
                 with patch("modnews.service.classify.task_execution.build_classify_runtime_for_context", return_value=object()):
                     with patch("modnews.service.classify.task_execution.ClassifyStepRunner.run", return_value=run_result):
                         items, events, step_result = run_classification(

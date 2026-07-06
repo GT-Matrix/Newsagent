@@ -8,6 +8,7 @@ from pathlib import Path
 from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
 from modnews.service.classify.io import resolve_input_path, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
+from modnews.service.classify.runtime_build import build_classify_state_from_resolved_input, resolve_classify_state_input
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
 from modnews.service.classify.state_codec import decode_resume_state
 from modnews.service.classify.state import ClassifyState
@@ -227,6 +228,77 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
         self.assertEqual(result.processed_candidates, 3)
         self.assertEqual(result.events[0].record.event_id, "e1")
         self.assertEqual(result.discarded[0].reason, "no")
+
+    def test_resolve_classify_state_input_prefers_run_checkpoint_for_taskized_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            manager = CheckpointManager(project_root)
+            runs = RunRepository(project_root)
+            runs.create("run-1", {})
+            item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
+            configured_checkpoint = project_root / "output" / "classification_progress.json"
+            configured_checkpoint.parent.mkdir(parents=True)
+            configured_checkpoint.write_text(
+                json.dumps({"meta": {"stage": "started"}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            artifact_checkpoint = manager.write_artifact(
+                "run-1",
+                "classify/test",
+                "task-1",
+                "classification_progress.json",
+                {"meta": {"stage": "after_clustered_event_extraction"}},
+            )
+            checkpoint_path = manager.write(
+                "run-1",
+                "classify/test",
+                "task-1",
+                {
+                    "run_id": "run-1",
+                    "step_id": "classify/test",
+                    "task_id": "task-1",
+                    "status": "succeeded",
+                    "output_refs": {"classification_progress": str(artifact_checkpoint)},
+                    "stats": {},
+                    "error": None,
+                },
+            )
+            runs.update("run-1", checkpoints=[str(checkpoint_path)])
+
+            resolved = resolve_classify_state_input(
+                project_root,
+                "run-1",
+                items=[item],
+                configured_resume_checkpoint_path=configured_checkpoint,
+                prefer_run_checkpoint=True,
+            )
+
+            self.assertEqual(resolved.resume_checkpoint_path, artifact_checkpoint.resolve())
+            state = build_classify_state_from_resolved_input(resolved)
+            self.assertEqual(state.stage, "after_clustered_event_extraction")
+
+    def test_resolve_classify_state_input_uses_configured_checkpoint_for_manual_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
+            configured_checkpoint = project_root / "output" / "classification_progress.json"
+            configured_checkpoint.parent.mkdir(parents=True)
+            configured_checkpoint.write_text(
+                json.dumps({"meta": {"stage": "after_clustered_event_extraction"}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            resolved = resolve_classify_state_input(
+                project_root,
+                "missing-run",
+                items=[item],
+                configured_resume_checkpoint_path=configured_checkpoint,
+                prefer_run_checkpoint=False,
+            )
+
+            self.assertEqual(resolved.resume_checkpoint_path, configured_checkpoint)
+            state = build_classify_state_from_resolved_input(resolved)
+            self.assertEqual(state.stage, "after_clustered_event_extraction")
 
 
 if __name__ == "__main__":
