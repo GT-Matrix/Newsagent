@@ -8,6 +8,7 @@ from modnews.core.task import TaskEvent
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.read_model_support import (
+    attach_checkpoint_callback_summaries,
     build_attempt_history,
     build_domain_view,
     build_pipeline_step_views,
@@ -166,6 +167,7 @@ def _load_run_view(
         for checkpoint in checkpoints_repo.list(run_id)
         if str(checkpoint.get("run_id") or run_id) == run_id
     )
+    checkpoints = attach_checkpoint_callback_summaries(project_root, checkpoints)
     steps = merge_steps(build_step_views(tasks, checkpoints), normalize_steps(persisted_steps))
     pipeline_steps = build_pipeline_step_views(
         pipeline_descriptors or [],
@@ -177,8 +179,11 @@ def _load_run_view(
 
 def _task_checkpoints(project_root: Path, task: TaskEvent) -> list[dict[str, Any]]:
     checkpoints_repo = CheckpointRepository(project_root)
-    return normalize_checkpoints(
+    return attach_checkpoint_callback_summaries(
+        project_root,
+        normalize_checkpoints(
         checkpoint
         for checkpoint in checkpoints_repo.list(task.pipeline_run_id)
         if checkpoint.get("task_id") == task.id
+        ),
     )

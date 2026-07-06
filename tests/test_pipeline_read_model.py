@@ -356,6 +356,44 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(item["resume_hint"]["kind"], "report")
             self.assertIn("report generate", item["resume_hint"]["cli_command"])
 
+    def test_checkpoints_list_exposes_callback_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            artifact = client.container.checkpoints().write_artifact("run-1", "ingest/site_lists/site-1", "task-1", "items.json", [{"title": "A"}])
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "ingest/site_lists/site-1",
+                "task-1",
+                {
+                    "status": "blocked",
+                    "output_refs": {"items": str(artifact)},
+                },
+            )
+            client.container.runs().create("run-1", {})
+            client.container.runs().update(
+                "run-1",
+                step_callback_events=[
+                    {
+                        "step_id": "pipeline_ingest",
+                        "handler": "on_task_blocked",
+                        "event_task_id": "task-1",
+                        "event_task_type": "web_source.run",
+                        "event_step_id": "ingest/site_lists/site-1",
+                        "changed_tasks": [{"task_id": "task-1", "before_state": "blocked", "after_state": "skipped"}],
+                        "decisions": [{"action": "skip_blocked_task", "task_id": "task-1"}],
+                    }
+                ],
+            )
+
+            result = client.checkpoints_list("run-1")
+
+            item = next(row for row in result if row["path"] == str(checkpoint))
+            self.assertEqual(item["callback_summary"]["event_count"], 1)
+            self.assertEqual(item["callback_summary"]["latest_handler"], "on_task_blocked")
+            self.assertEqual(item["callback_summary"]["latest_event_task_type"], "web_source.run")
+            self.assertEqual(item["callback_summary"]["decision_actions"], ["skip_blocked_task"])
+
     def test_queue_show_exposes_child_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)

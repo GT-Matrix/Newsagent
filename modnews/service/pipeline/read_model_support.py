@@ -6,6 +6,7 @@ from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
+from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.step import PipelineStepDescriptor
 
 
@@ -210,6 +211,30 @@ def normalize_checkpoints(checkpoints: Any) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda row: str(row.get("finished_at") or row.get("started_at") or row.get("path") or ""))
 
 
+def attach_checkpoint_callback_summaries(project_root: Path, checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not checkpoints:
+        return []
+    run_events_cache: dict[str, list[dict[str, Any]]] = {}
+    rows: list[dict[str, Any]] = []
+    for checkpoint in checkpoints:
+        row = dict(checkpoint)
+        run_id = str(row.get("run_id") or "")
+        if run_id and run_id not in run_events_cache:
+            try:
+                record = RunRepository(project_root).get(run_id)
+            except KeyError:
+                run_events_cache[run_id] = []
+            else:
+                raw_events = record.get("step_callback_events")
+                run_events_cache[run_id] = [item for item in raw_events if isinstance(item, dict)] if isinstance(raw_events, list) else []
+        row["callback_summary"] = checkpoint_callback_summary(
+            row,
+            run_events_cache.get(run_id, []),
+        )
+        rows.append(row)
+    return rows
+
+
 def normalize_steps(steps: Any) -> list[dict[str, Any]]:
     if not isinstance(steps, list):
         return []
@@ -330,6 +355,47 @@ def checkpoint_resume_hint(checkpoint: dict[str, Any]) -> dict[str, Any] | None:
             "cli_command": f"python -m modnews.cli.main --mode local report generate --input {checkpoint_dir}",
         }
     return None
+
+
+def checkpoint_callback_summary(checkpoint: dict[str, Any], callback_events: list[dict[str, Any]]) -> dict[str, Any] | None:
+    task_id = str(checkpoint.get("task_id") or "")
+    step_id = str(checkpoint.get("step_id") or "")
+    if not task_id and not step_id:
+        return None
+    matched: list[dict[str, Any]] = []
+    for event in callback_events:
+        event_task_id = str(event.get("event_task_id") or "")
+        event_step_id = str(event.get("event_step_id") or "")
+        changed_tasks = event.get("changed_tasks")
+        changed_task_ids = {
+            str(change.get("task_id") or "")
+            for change in changed_tasks
+            if isinstance(change, dict) and change.get("task_id")
+        } if isinstance(changed_tasks, list) else set()
+        if task_id and (event_task_id == task_id or task_id in changed_task_ids):
+            matched.append(event)
+            continue
+        if step_id and event_step_id == step_id:
+            matched.append(event)
+    if not matched:
+        return None
+    latest = matched[-1]
+    decisions = latest.get("decisions") if isinstance(latest.get("decisions"), list) else []
+    changed_tasks = latest.get("changed_tasks") if isinstance(latest.get("changed_tasks"), list) else []
+    decision_actions = [
+        str(decision.get("action") or decision.get("trigger") or "")
+        for decision in decisions
+        if isinstance(decision, dict) and (decision.get("action") or decision.get("trigger"))
+    ]
+    return {
+        "event_count": len(matched),
+        "latest_handler": latest.get("handler"),
+        "latest_event_task_type": latest.get("event_task_type"),
+        "latest_event_step_id": latest.get("event_step_id"),
+        "changed_task_count": len(changed_tasks),
+        "decision_count": len(decisions),
+        "decision_actions": decision_actions,
+    }
 
 
 def status_summary(statuses: Any) -> dict[str, Any]:
