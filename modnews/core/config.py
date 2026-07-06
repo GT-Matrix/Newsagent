@@ -8,7 +8,7 @@ from typing import Any
 
 from modnews.core.env import ensure_runtime_env
 from modnews.core.paths import runtime_paths
-from modnews.repository.runtime_config import runtime_config_store
+from modnews.repository.runtime_config_store import runtime_config_store
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]

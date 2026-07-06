@@ -11,7 +11,7 @@ from modnews.core.progress import BUS
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
-from modnews.repository.runtime_config import RuntimeConfigRepository
+from modnews.repository.runtime_config_repository import RuntimeConfigRepository
 from modnews.repository.runs import RunRepository
 from modnews.repository.task_logs import TaskLogRepository
 from modnews.repository.web_jobs import WebJobRepository

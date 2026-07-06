@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews.repository.runtime_config import RuntimeConfigStore, runtime_config_store
+from modnews.repository.runtime_config_store import RuntimeConfigStore, runtime_config_store
 
 SourceConfigStore = RuntimeConfigStore
 
