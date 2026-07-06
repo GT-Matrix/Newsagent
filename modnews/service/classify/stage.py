@@ -4,13 +4,9 @@ from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
 from modnews.core.models import EventRecord, NewsItem, StepResult
 
-from .checkpoint import load_resume_state
-from .llm_client import LlmClient
-from .retriever import EventVectorRetriever
 from .runner import ClassifyRuntime, ClassifyStepRunner
-from .state import ClassifyState
 from .steps import build_full_classify_steps
-from .utils import prepare_item
+from .task_runtime import build_classify_runtime_for_context, build_classify_state_from_items
 
 
 def run_classification(
@@ -21,20 +17,13 @@ def run_classification(
     if not config.enabled:
         return items, [], StepResult(step="classify", item_count=len(items), meta={"enabled": False})
 
-    resume_state = load_resume_state(config.checkpoint_path, items)
-    state = ClassifyState(
-        items=resume_state.items,
-        prepared=[prepare_item(index, item) for index, item in enumerate(resume_state.items)],
-        events=resume_state.events,
-        discarded=resume_state.discarded,
-        stage=resume_state.stage,
-        processed_candidates=resume_state.processed_candidates,
+    state = build_classify_state_from_items(
+        items,
+        resume_checkpoint_path=config.checkpoint_path,
     )
-    runtime = ClassifyRuntime(
-        ctx=ctx,
-        config=config,
-        client=LlmClient(config.llm, ctx.session),
-        retriever=EventVectorRetriever(config.embedding, ctx.session),
+    runtime = build_classify_runtime_for_context(
+        ctx,
+        config,
     )
     state = _build_runner().run(state, runtime)
 

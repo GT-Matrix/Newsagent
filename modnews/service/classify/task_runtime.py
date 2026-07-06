@@ -3,8 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from modnews.core.config import PipelineConfig, load_config
+from modnews.core.config import ClassificationConfig, PipelineConfig, load_config
 from modnews.core.context import PipelineContext
+from modnews.core.models import NewsItem
 from modnews.core.task import TaskEvent
 
 from .checkpoint import load_resume_state
@@ -31,7 +32,7 @@ def prepare_clustered_task_runtime(task: TaskEvent) -> ClusteredTaskRuntime:
     config = load_config(task.payload.get("config"), project_root=project_root)
     input_path = resolve_input_path(project_root, run_id, task.payload.get("input_path"), config.output_path)
     items = load_news_items(input_path)
-    state = _build_state(project_root, run_id, items)
+    state = build_classify_state_for_run(project_root, run_id, items)
     runtime = build_classify_runtime(config, write_fixed_outputs=bool(task.payload.get("write_fixed_outputs")))
     return ClusteredTaskRuntime(
         project_root=project_root,
@@ -45,22 +46,43 @@ def prepare_clustered_task_runtime(task: TaskEvent) -> ClusteredTaskRuntime:
 def build_classify_runtime(config: PipelineConfig, *, write_fixed_outputs: bool = True) -> ClassifyRuntime:
     ctx = PipelineContext.create(config)
     ctx.work_dir.mkdir(parents=True, exist_ok=True)
+    return build_classify_runtime_for_context(
+        ctx,
+        config.classification,
+        write_fixed_outputs=write_fixed_outputs,
+    )
+
+
+def build_classify_runtime_for_context(
+    ctx: PipelineContext,
+    config: ClassificationConfig,
+    *,
+    write_fixed_outputs: bool = True,
+) -> ClassifyRuntime:
     return ClassifyRuntime(
         ctx=ctx,
-        config=config.classification,
-        client=LlmClient(config.classification.llm, ctx.session),
-        retriever=EventVectorRetriever(config.classification.embedding, ctx.session),
+        config=config,
+        client=LlmClient(config.llm, ctx.session),
+        retriever=EventVectorRetriever(config.embedding, ctx.session),
         write_fixed_outputs=write_fixed_outputs,
     )
 
 
 def build_classify_state(project_root: Path, run_id: str, input_path: Path, output_path: Path) -> ClassifyState:
     items = load_news_items(input_path)
-    return _build_state(project_root, run_id, items)
+    return build_classify_state_for_run(project_root, run_id, items)
 
 
-def _build_state(project_root: Path, run_id: str, items) -> ClassifyState:
+def build_classify_state_for_run(project_root: Path, run_id: str, items: list[NewsItem]) -> ClassifyState:
     resume_checkpoint_path = resolve_task_resume_checkpoint_path(project_root, run_id)
+    return build_classify_state_from_items(items, resume_checkpoint_path=resume_checkpoint_path)
+
+
+def build_classify_state_from_items(
+    items: list[NewsItem],
+    *,
+    resume_checkpoint_path: Path | None,
+) -> ClassifyState:
     resume_state = load_resume_state(resume_checkpoint_path, items)
     return ClassifyState(
         items=resume_state.items,
