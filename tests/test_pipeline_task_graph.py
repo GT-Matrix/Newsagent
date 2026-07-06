@@ -11,6 +11,7 @@ from modnews.service.classify.planner import (
     build_clustered_event_extraction_task,
     build_clustered_event_merge_task,
 )
+from modnews.service.ingest.registry import REGISTERED_INGEST_STEP_SPEC_BY_ID
 from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASK_BY_TYPE
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.pipeline.steps import REGISTERED_PIPELINE_STEP_SPEC_BY_ID
@@ -47,6 +48,14 @@ class PipelineTaskGraphTest(unittest.TestCase):
         self.assertEqual(spec.task_id_prefix, "ingest")
         self.assertEqual(spec.concurrency_key_prefix, "ingest")
         self.assertEqual(spec.max_concurrency, 1)
+
+    def test_ingest_step_registry_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_INGEST_STEP_SPEC_BY_ID),
+            ["rss", "newsnow", "site_lists"],
+        )
+        self.assertEqual(REGISTERED_INGEST_STEP_SPEC_BY_ID["rss"].factory.__name__, "RssStep")
+        self.assertEqual(REGISTERED_INGEST_STEP_SPEC_BY_ID["site_lists"].factory.__name__, "SiteListsStep")
 
     def test_pipeline_registry_registers_split_steps(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
