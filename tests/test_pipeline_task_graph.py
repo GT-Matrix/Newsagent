@@ -5,7 +5,10 @@ import unittest
 from pathlib import Path
 
 from modnews.bootstrap import configure_services
-from modnews.core.task import TaskEvent
+from modnews.repository.runs import RunRepository
+from modnews.service.classify.io import resolve_input_path
+from modnews.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.report.tasks import _resolve_report_input
 
 
 class PipelineTaskGraphTest(unittest.TestCase):
@@ -18,61 +21,64 @@ class PipelineTaskGraphTest(unittest.TestCase):
                 ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"],
             )
 
-    def test_classify_completion_patches_report_input_to_checkpoint(self) -> None:
+    def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            container = configure_services(Path(tmp))
-            queue = container.event_queue
-            manager = container.pipeline_manager
-            report_task = TaskEvent(
-                id="report-run-1-generate",
-                type="report.generate",
-                pipeline_run_id="run-1",
-                step_id="report/generate",
-                payload={"project_root": tmp, "input_path": "__latest_classify_checkpoint__"},
+            project_root = Path(tmp)
+            runs = RunRepository(project_root)
+            checkpoints = CheckpointManager(project_root)
+            artifact_path = checkpoints.write_artifact(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
+                "classification_progress.json",
+                {"items": [], "events": [], "discarded": [], "meta": {"stage": "after_clustered_event_merge"}},
             )
-            queue.register(report_task)
-
-            manager.on_task_completed(
+            checkpoint_path = checkpoints.write(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
                 {
-                    "task": {
-                        "id": "classify-run-1-clustered-event-merge",
-                        "type": "classify.clustered_event_merge",
-                        "pipeline_run_id": "run-1",
-                        "payload": {"project_root": tmp},
-                    },
-                    "result": {"checkpoint_path": "/tmp/classify/checkpoint.json"},
+                    "run_id": "run-1",
+                    "step_id": "classify/clustered_event_merge",
+                    "task_id": "task-1",
+                    "status": "succeeded",
+                    "output_refs": {"classification_progress": str(artifact_path)},
+                    "stats": {},
+                    "error": None,
                 },
             )
+            runs.create("run-1", {})
+            runs.append_checkpoint("run-1", checkpoint_path)
 
-            self.assertEqual(queue.get(report_task.id).payload["input_path"], "/tmp/classify/checkpoint.json")
+            self.assertEqual(
+                _resolve_report_input(
+                    type("Task", (), {"payload": {"input_path": "__latest_classify_checkpoint__"}})(),
+                    project_root,
+                    "run-1",
+                ),
+                checkpoint_path.resolve(),
+            )
 
-    def test_combine_ingest_completion_patches_classify_input(self) -> None:
+    def test_classify_input_placeholder_resolves_combined_ingest_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            container = configure_services(Path(tmp))
-            queue = container.event_queue
-            manager = container.pipeline_manager
-            classify_task = TaskEvent(
-                id="classify-run-1-clustered-event-extraction",
-                type="classify.clustered_event_extraction",
-                pipeline_run_id="run-1",
-                step_id="classify/clustered_event_extraction",
-                payload={"project_root": tmp, "input_path": "__combined_ingest__"},
-            )
-            queue.register(classify_task)
+            project_root = Path(tmp)
+            combined_dir = project_root / "runtime" / "checkpoints" / "run-1" / "pipeline" / "combine_ingest" / "task-1"
+            combined_dir.mkdir(parents=True)
+            items_path = combined_dir / "items.json"
+            items_path.write_text("[]", encoding="utf-8")
+            runs = RunRepository(project_root)
+            runs.create("run-1", {})
+            runs.update("run-1", combined_ingest_path=str(items_path))
 
-            manager.on_task_completed(
-                {
-                    "task": {
-                        "id": "pipeline-run-1-combine-ingest",
-                        "type": "pipeline.combine_ingest",
-                        "pipeline_run_id": "run-1",
-                        "payload": {"project_root": tmp},
-                    },
-                    "result": {"combined_ingest_path": "/tmp/combined/items.json"},
-                }
+            self.assertEqual(
+                resolve_input_path(
+                    project_root,
+                    "run-1",
+                    "__combined_ingest__",
+                    project_root / "fallback.json",
+                ),
+                items_path.resolve(),
             )
-
-            self.assertEqual(queue.get(classify_task.id).payload["input_path"], "/tmp/combined/items.json")
 
 
 if __name__ == "__main__":
