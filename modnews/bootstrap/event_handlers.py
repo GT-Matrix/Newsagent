@@ -5,6 +5,7 @@ from pathlib import Path
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
+from modnews.service.classify.extraction_node_runtime import handle_clustered_event_extraction_callback
 from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
 from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASKS
 from modnews.service.classify.batch_executor import (
@@ -24,6 +25,9 @@ from modnews.service.pipeline.manager import PipelineManager
 
 def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline_manager: PipelineManager) -> None:
     registry.register("task.completed", _auto_publish_checkpoint)
+    registry.register("task.completed", _handle_classify_child_task_callback(pipeline_manager.event_queue))
+    registry.register("task.blocked", _handle_classify_child_task_callback(pipeline_manager.event_queue))
+    registry.register("task.failed", _handle_classify_child_task_callback(pipeline_manager.event_queue))
     registry.register("task.completed", pipeline_manager.on_task_completed)
     registry.register("task.failed", pipeline_manager.on_task_failed)
     registry.register("task.blocked", pipeline_manager.on_task_blocked)
@@ -86,5 +90,15 @@ def _auto_queue_blocked_web_source_repair(queue: EventQueue | None):
         if queue is None:
             return None
         return handle_blocked_web_source_event(queue, event)
+
+    return callback
+
+
+def _handle_classify_child_task_callback(queue: EventQueue | None):
+    def callback(event: dict[str, object]) -> dict[str, object] | None:
+        decisions = handle_clustered_event_extraction_callback(event, queue)
+        if not decisions:
+            return None
+        return {"classify_callback_decisions": decisions}
 
     return callback

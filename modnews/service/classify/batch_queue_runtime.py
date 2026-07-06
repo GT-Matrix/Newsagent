@@ -5,9 +5,16 @@ from typing import Any
 from uuid import uuid4
 
 from modnews.core.event_queue import EventQueue
+from modnews.core.task import TaskBlocked
 from modnews.core.task import TaskEvent
 
 from .batch_items import BatchExecutionItem, describe_batch_items
+
+
+@dataclass(frozen=True, slots=True)
+class ClassifyBatchSubmission:
+    group_id: str
+    task_ids: list[str]
 
 
 @dataclass(slots=True)
@@ -20,8 +27,12 @@ class ClassifyBatchQueueRuntime:
     auto_drain: bool = True
 
     def submit_and_collect(self, items: list[BatchExecutionItem[object]]) -> list[dict[str, Any]]:
+        submission = self.submit(items)
+        return self.collect_group_results(submission.group_id, submission.task_ids)
+
+    def submit(self, items: list[BatchExecutionItem[object]]) -> ClassifyBatchSubmission:
         if not items:
-            return []
+            return ClassifyBatchSubmission(group_id="", task_ids=[])
         if any(item.metadata.queue_task_type is None for item in items):
             raise RuntimeError("event queue batch backend requires explicit queue_task_type for all classify batch items")
 
@@ -35,14 +46,30 @@ class ClassifyBatchQueueRuntime:
         if self.auto_drain:
             self.queue.drain_ready()
 
+        return ClassifyBatchSubmission(group_id=group_id, task_ids=task_ids)
+
+    def collect_group_results(self, group_id: str, task_ids: list[str]) -> list[dict[str, Any]]:
+        if not group_id:
+            return []
         summary = self.queue.group_summary(group_id)
         if summary["size"] != len(task_ids):
             raise RuntimeError(
                 f"batch task group {group_id} registered {summary['size']} members, expected {len(task_ids)}"
             )
         if summary["active"] > 0:
-            raise RuntimeError(
-                f"batch task group {group_id} still active: {summary['by_state']}"
+            raise TaskBlocked(
+                f"batch task group {group_id} still active",
+                details={"kind": "child_task_group_active", "task_group_id": group_id, "by_state": summary["by_state"]},
+            )
+        if summary["blocked"] > 0:
+            raise TaskBlocked(
+                f"batch task group {group_id} blocked",
+                details={
+                    "kind": "child_task_group_blocked",
+                    "task_group_id": group_id,
+                    "by_state": summary["by_state"],
+                    "members": self.member_terminal_details(task_ids),
+                },
             )
         if summary["succeeded"] != len(task_ids):
             raise RuntimeError(
