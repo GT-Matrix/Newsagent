@@ -6,7 +6,7 @@ from typing import Any
 from modnews.core.task import TaskEvent
 
 from .runtime import load_runtime_plan
-from .step import PipelineStepBase
+from .step import PipelinePlanContext, PipelineStepBase
 from .task_builder import (
     build_classify_tasks,
     build_combine_ingest_task,
@@ -19,10 +19,10 @@ from .task_builder import (
 class IngestPipelineStep(PipelineStepBase):
     id: str = "pipeline_ingest"
 
-    def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
+    def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
             return []
-        request = state.get("request") if isinstance(state.get("request"), dict) else {}
+        request = context.request
         run_id, project_root, config_path, config = load_runtime_plan(request)
         return build_ingest_tasks(
             project_root=project_root,
@@ -36,24 +36,23 @@ class IngestPipelineStep(PipelineStepBase):
 class CombineIngestPipelineStep(PipelineStepBase):
     id: str = "pipeline_combine_ingest"
 
-    def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
+    def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
             return []
-        request = state.get("request") if isinstance(state.get("request"), dict) else {}
-        return build_combine_ingest_task(state=state, request=request)
+        return build_combine_ingest_task(context=context)
 
 
 @dataclass(slots=True)
 class ClassifyPipelineStep(PipelineStepBase):
     id: str = "pipeline_classify"
 
-    def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
+    def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
             return []
-        request = state.get("request") if isinstance(state.get("request"), dict) else {}
+        request = context.request
         run_id, project_root, config_path, config = load_runtime_plan(request)
         return build_classify_tasks(
-            state=state,
+            context=context,
             run_id=run_id,
             project_root=project_root,
             config_path=config_path,
@@ -65,13 +64,13 @@ class ClassifyPipelineStep(PipelineStepBase):
 class ReportPipelineStep(PipelineStepBase):
     id: str = "pipeline_report"
 
-    def plan(self, state: dict[str, Any], completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
+    def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         if completed_event is not None:
             return []
-        request = state.get("request") if isinstance(state.get("request"), dict) else {}
+        request = context.request
         run_id, project_root, config_path, config = load_runtime_plan(request)
         return build_report_tasks(
-            state=state,
+            context=context,
             run_id=run_id,
             project_root=project_root,
             config_path=config_path,

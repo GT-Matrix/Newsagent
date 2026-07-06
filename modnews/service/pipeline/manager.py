@@ -7,7 +7,7 @@ from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.service.pipeline.registry import PipelineRegistry
 from modnews.service.pipeline.run_state import update_run_state
-from modnews.service.pipeline.step import PipelineStep
+from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep
 
 
 @dataclass(slots=True)
@@ -30,7 +30,7 @@ class PipelineManager:
 
     def start_run(self, request: dict[str, Any], *, submit: bool = False) -> dict[str, Any]:
         run_id = str(request.get("run_id") or "local")
-        tasks = self.step_registry.plan_run({"run_id": run_id, "request": request})
+        tasks = self.step_registry.plan_run(PipelinePlanContext(run_id=run_id, request=request))
         if self.event_queue:
             for task in tasks:
                 if submit:

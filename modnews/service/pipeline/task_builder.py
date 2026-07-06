@@ -5,6 +5,7 @@ from typing import Any
 
 from modnews.core.task import TaskEvent
 from modnews.service.ingest.planner import plan_ingest_tasks
+from modnews.service.pipeline.step import PipelinePlanContext
 
 
 def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, config: Any) -> list[TaskEvent]:
@@ -24,13 +25,13 @@ def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, c
     return ingest_tasks
 
 
-def build_combine_ingest_task(*, state: dict[str, Any], request: dict[str, Any]) -> list[TaskEvent]:
-    run_id = str(state.get("run_id") or request.get("run_id") or "local")
-    project_root = str(request.get("project_root") or "")
+def build_combine_ingest_task(*, context: PipelinePlanContext) -> list[TaskEvent]:
+    run_id = context.run_id
+    project_root = str(context.request.get("project_root") or "")
     ingest_task_ids = [
         task.id
-        for task in state.get("tasks", [])
-        if isinstance(task, TaskEvent) and task.step_id and task.step_id.startswith("ingest/")
+        for task in context.tasks
+        if task.step_id and task.step_id.startswith("ingest/")
     ]
     if not ingest_task_ids:
         return []
@@ -50,7 +51,7 @@ def build_combine_ingest_task(*, state: dict[str, Any], request: dict[str, Any])
 
 def build_classify_tasks(
     *,
-    state: dict[str, Any],
+    context: PipelinePlanContext,
     run_id: str,
     project_root: str,
     config_path: object,
@@ -61,8 +62,8 @@ def build_classify_tasks(
     combine_task = next(
         (
             task
-            for task in state.get("tasks", [])
-            if isinstance(task, TaskEvent) and task.type == "pipeline.combine_ingest"
+            for task in context.tasks
+            if task.type == "pipeline.combine_ingest"
         ),
         None,
     )
@@ -103,7 +104,7 @@ def build_classify_tasks(
 
 def build_report_tasks(
     *,
-    state: dict[str, Any],
+    context: PipelinePlanContext,
     run_id: str,
     project_root: str,
     config_path: object,
@@ -114,8 +115,8 @@ def build_report_tasks(
     merge_task = next(
         (
             task
-            for task in state.get("tasks", [])
-            if isinstance(task, TaskEvent) and task.type == "classify.clustered_event_merge"
+            for task in context.tasks
+            if task.type == "classify.clustered_event_merge"
         ),
         None,
     )

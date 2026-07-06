@@ -5,7 +5,7 @@ from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
-from modnews.service.pipeline.step import PipelineStep
+from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep
 
 
 @dataclass(slots=True)
@@ -18,16 +18,16 @@ class PipelineRegistry:
     def list(self) -> list[PipelineStep]:
         return list(self.steps.values())
 
-    def plan_run(self, state: dict[str, Any]) -> list[TaskEvent]:
-        tasks: list[TaskEvent] = []
+    def plan_run(self, context: PipelinePlanContext) -> list[TaskEvent]:
+        tasks = list(context.tasks)
         for step in self.list():
-            tasks.extend(step.plan({**state, "tasks": tasks}))
+            tasks.extend(step.plan(PipelinePlanContext(run_id=context.run_id, request=context.request, tasks=tasks)))
         return tasks
 
     def plan_followup(self, completed_event: dict[str, Any]) -> list[TaskEvent]:
         tasks: list[TaskEvent] = []
         for step in self.list():
-            tasks.extend(step.plan({}, completed_event=completed_event))
+            tasks.extend(step.plan(PipelinePlanContext(run_id="", request={}, tasks=[]), completed_event=completed_event))
         return tasks
 
     def notify(self, handler_name: str, event: dict[str, Any], queue: EventQueue | None) -> None:
