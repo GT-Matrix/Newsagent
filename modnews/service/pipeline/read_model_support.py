@@ -750,6 +750,8 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
         batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else {}
         return {
             "kind": "classify",
+            "classify_task_kind": classify_task_kind(task),
+            "batch_task_type": task.type if ".batch" in task.type or task.type == "classify.embedding" or task.type == "classify.batch_relevance" else None,
             "step_id": task.step_id,
             "run_id": task.pipeline_run_id,
             "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
@@ -871,3 +873,19 @@ def item_payload_size(payload: Any) -> int | None:
     if isinstance(payload, list):
         return len(payload)
     return None
+
+
+def classify_task_kind(task: TaskEvent) -> str:
+    if task.type == "classify.embedding":
+        return "embedding_batch"
+    if task.type == "classify.batch_relevance":
+        return "relevance_batch"
+    if task.type == "classify.clustered_event_extraction.batch":
+        return "clustered_event_extraction_batch"
+    if task.type == "classify.clustered_event_merge.batch":
+        return "clustered_event_merge_batch"
+    if task.type == "classify.clustered_event_extraction":
+        return "clustered_event_extraction"
+    if task.type == "classify.clustered_event_merge":
+        return "clustered_event_merge"
+    return "classify_task"

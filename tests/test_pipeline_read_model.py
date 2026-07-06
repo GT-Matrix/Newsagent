@@ -673,6 +673,96 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result["domain_view"]["item_payload_kind"], "list")
             self.assertEqual(result["domain_view"]["item_payload_size"], 1)
             self.assertEqual(result["domain_view"]["batch_result_keys"], ["items"])
+            self.assertEqual(result["domain_view"]["classify_task_kind"], "relevance_batch")
+            self.assertEqual(result["domain_view"]["batch_task_type"], "classify.batch_relevance")
+
+    def test_queue_show_exposes_clustered_extraction_llm_batch_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="classify.clustered_event_extraction.batch:group-2:1",
+                type="classify.clustered_event_extraction.batch",
+                pipeline_run_id="run-1",
+                step_id="classify/clustered_event_extraction",
+                parent_task_id="classify-parent-3",
+                task_group_id="group-2",
+                payload={
+                    "project_root": tmp,
+                    "run_id": "run-1",
+                    "parent_task_id": "classify-parent-3",
+                    "parent_task_type": "classify.clustered_event_extraction",
+                    "task_group_id": "group-2",
+                    "labels": {"stage": "clustered_event_extraction"},
+                    "batch": {
+                        "task_type": "classify.clustered_event_extraction.batch",
+                        "task_name": "classify.clustered_event_extraction.batch[1/3]",
+                        "concurrency_key": "classify.llm",
+                        "max_concurrency": 3,
+                        "queue_task_type": "classify.clustered_event_extraction.batch",
+                        "item_index": 0,
+                        "item_count": 3,
+                        "batch_index": 1,
+                        "batch_count": 3,
+                    },
+                    "item_payload": [{"index": 0, "title": "hello"}],
+                },
+            )
+            client.container.event_queue.register(task)
+            client.container.event_queue._results[task.id] = {  # type: ignore[attr-defined]
+                "batch_result": {"items": [{"index": 0, "status": "candidate"}]},
+            }
+
+            result = client.queue_show(task.id)
+
+            self.assertEqual(result["domain_view"]["classify_task_kind"], "clustered_event_extraction_batch")
+            self.assertEqual(result["domain_view"]["batch_task_type"], "classify.clustered_event_extraction.batch")
+            self.assertEqual(result["domain_view"]["batch"]["batch_count"], 3)
+            self.assertEqual(result["domain_view"]["batch_result_keys"], ["items"])
+
+    def test_queue_show_exposes_clustered_merge_llm_batch_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="classify.clustered_event_merge.batch:group-3:1",
+                type="classify.clustered_event_merge.batch",
+                pipeline_run_id="run-1",
+                step_id="classify/clustered_event_merge",
+                parent_task_id="classify-parent-4",
+                task_group_id="group-3",
+                payload={
+                    "project_root": tmp,
+                    "run_id": "run-1",
+                    "parent_task_id": "classify-parent-4",
+                    "parent_task_type": "classify.clustered_event_merge",
+                    "task_group_id": "group-3",
+                    "labels": {"stage": "clustered_event_merge"},
+                    "batch": {
+                        "task_type": "classify.clustered_event_merge.batch",
+                        "task_name": "classify.clustered_event_merge.batch[2/4]",
+                        "concurrency_key": "classify.llm",
+                        "max_concurrency": 3,
+                        "queue_task_type": "classify.clustered_event_merge.batch",
+                        "item_index": 1,
+                        "item_count": 4,
+                        "batch_index": 2,
+                        "batch_count": 4,
+                    },
+                    "item_payload": [{"event_id": "evt_1", "event_label": "hello"}],
+                },
+            )
+            client.container.event_queue.register(task)
+            client.container.event_queue._results[task.id] = {  # type: ignore[attr-defined]
+                "batch_result": {"events": [{"event_id": "evt_1"}]},
+            }
+
+            result = client.queue_show(task.id)
+
+            self.assertEqual(result["domain_view"]["classify_task_kind"], "clustered_event_merge_batch")
+            self.assertEqual(result["domain_view"]["batch_task_type"], "classify.clustered_event_merge.batch")
+            self.assertEqual(result["domain_view"]["batch"]["batch_index"], 2)
+            self.assertEqual(result["domain_view"]["batch_result_keys"], ["events"])
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
