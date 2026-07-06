@@ -6,6 +6,13 @@ import unittest
 
 
 class ClassifyPackageBoundaryTest(unittest.TestCase):
+    def test_classify_package_does_not_export_manual_entrypoint(self) -> None:
+        package = importlib.import_module("modnews.service.classify")
+        manual = importlib.import_module("modnews.service.classify.manual")
+
+        self.assertFalse(hasattr(package, "run_classification"))
+        self.assertTrue(hasattr(manual, "run_classification"))
+
     def test_legacy_clustered_tasks_module_is_not_importable(self) -> None:
         self.assertIsNone(importlib.util.find_spec("modnews.service.classify.clustered_tasks"))
 
