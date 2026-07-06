@@ -8,6 +8,7 @@ from modnews.app.server import create_app
 from modnews.cli.local_client import LocalClient
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
+from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.service.pipeline.step import PipelineStepBase
 
@@ -98,20 +99,44 @@ class RunControlTest(unittest.TestCase):
                 task = event.get("task")
                 if isinstance(task, dict):
                     queue.skip(str(task["id"]), reason="optional source blocked")
+                    return [{"action": "skip_blocked_task", "task_id": task["id"], "reason": "optional source blocked"}]
+                return []
 
-        queue = EventQueue()
-        manager = PipelineManager()
-        manager.bind(queue, None)  # type: ignore[arg-type]
-        manager.register_step(SkipBlockedStep())
-        queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
-        queue.register(TaskEvent(id="blocked", type="diagnostic.missing"))
-        queue.register(TaskEvent(id="dependent", type="diagnostic.echo", depends_on=["blocked"]))
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            queue = EventQueue()
+            manager = PipelineManager()
+            manager.bind(queue, None)  # type: ignore[arg-type]
+            manager.register_step(SkipBlockedStep())
+            queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+            RunRepository(project_root).create("run-1", {})
+            queue.register(
+                TaskEvent(
+                    id="blocked",
+                    type="diagnostic.missing",
+                    pipeline_run_id="run-1",
+                    payload={"project_root": tmp},
+                )
+            )
+            queue.register(
+                TaskEvent(
+                    id="dependent",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    depends_on=["blocked"],
+                    payload={"project_root": tmp},
+                )
+            )
 
-        queue.drain_ready()
-        manager.on_task_blocked({"task": queue.get("blocked").to_dict(), "result": queue.result("blocked")})
+            queue.drain_ready()
+            manager.on_task_blocked({"task": queue.get("blocked").to_dict(), "result": queue.result("blocked")})
 
-        self.assertEqual(queue.get("blocked").state, "skipped")
-        self.assertEqual(queue.get("dependent").state, "succeeded")
+            self.assertEqual(queue.get("blocked").state, "skipped")
+            self.assertEqual(queue.get("dependent").state, "succeeded")
+            run = RunRepository(project_root).get("run-1")
+            callback_step = next(step for step in run["steps"] if step["step_id"] == "skip_blocked")
+            self.assertEqual(callback_step["callback_events"][-1]["handler"], "on_task_blocked")
+            self.assertEqual(callback_step["callback_events"][-1]["decisions"][-1]["action"], "skip_blocked_task")
 
 
 if __name__ == "__main__":

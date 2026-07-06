@@ -107,6 +107,38 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertTrue(any(log["type"] == "task.completed" for log in result["logs"]))
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
 
+    def test_run_status_exposes_step_callback_events(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.runs().create("run-1", {})
+            client.container.runs().update(
+                "run-1",
+                steps=[
+                    {
+                        "step_id": "pipeline_ingest",
+                        "status": "partial",
+                        "callback_events": [
+                            {
+                                "step_id": "pipeline_ingest",
+                                "handler": "on_task_blocked",
+                                "event_task_id": "task-1",
+                                "event_task_type": "web_source.run",
+                                "event_step_id": "ingest/site_lists/site-1",
+                                "changed_tasks": [{"task_id": "task-1", "before_state": "blocked", "after_state": "skipped"}],
+                                "decisions": [{"action": "skip_blocked_task", "task_id": "task-1"}],
+                            }
+                        ],
+                    }
+                ],
+            )
+
+            result = client.run_status("run-1")
+
+            step = next(step for step in result["steps"] if step["step_id"] == "pipeline_ingest")
+            self.assertEqual(step["callback_events"][-1]["handler"], "on_task_blocked")
+            self.assertEqual(step["callback_events"][-1]["changed_tasks"][-1]["after_state"], "skipped")
+
 
 if __name__ == "__main__":
     unittest.main()

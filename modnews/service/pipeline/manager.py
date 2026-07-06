@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.service.pipeline.registry import PipelineRegistry
-from modnews.service.pipeline.run_state import update_run_state
+from modnews.service.pipeline.run_state import append_step_callback_events, update_run_state
 from modnews.service.pipeline.step import PipelinePlanContext, PipelineStep
 
 
@@ -42,18 +43,22 @@ class PipelineManager:
     def on_task_completed(self, event: dict[str, Any]) -> None:
         if self.event_queue:
             update_run_state(self.event_queue, event)
-            self.step_registry.notify("on_task_completed", event, self.event_queue)
+            callback_events = self.step_registry.notify("on_task_completed", event, self.event_queue)
+            self._store_step_callback_events(event, callback_events)
         self._dispatch_next(event, failed=False)
 
     def on_task_failed(self, event: dict[str, Any]) -> None:
         if self.event_queue:
             update_run_state(self.event_queue, event, failed=True)
+            callback_events = self.step_registry.notify("on_task_failed", event, self.event_queue)
+            self._store_step_callback_events(event, callback_events)
         self._dispatch_next(event, failed=True)
 
     def on_task_blocked(self, event: dict[str, Any]) -> None:
         if self.event_queue:
             update_run_state(self.event_queue, event, blocked=True)
-            self.step_registry.notify("on_task_blocked", event, self.event_queue)
+            callback_events = self.step_registry.notify("on_task_blocked", event, self.event_queue)
+            self._store_step_callback_events(event, callback_events)
 
     def _dispatch_next(self, event: dict[str, Any], *, failed: bool) -> None:
         if failed:
@@ -62,3 +67,14 @@ class PipelineManager:
             return
         for task in self.step_registry.plan_followup(event):
             self.event_queue.submit(task)
+
+    def _store_step_callback_events(self, event: dict[str, Any], callback_events: list[dict[str, Any]]) -> None:
+        task = event.get("task")
+        if not isinstance(task, dict):
+            return
+        payload = task.get("payload") if isinstance(task.get("payload"), dict) else {}
+        project_root = payload.get("project_root")
+        run_id = task.get("pipeline_run_id")
+        if not project_root or not run_id:
+            return
+        append_step_callback_events(Path(str(project_root)), str(run_id), callback_events)

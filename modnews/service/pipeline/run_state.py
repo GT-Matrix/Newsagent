@@ -44,6 +44,37 @@ def sync_run_state(
     return runs.update(run_id, **updates)
 
 
+def append_step_callback_events(project_root: Path, run_id: str, callback_events: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not callback_events:
+        return None
+    runs = RunRepository(project_root)
+    try:
+        record = runs.get(run_id)
+    except KeyError:
+        return None
+    existing_events = list(record.get("step_callback_events", [])) if isinstance(record.get("step_callback_events"), list) else []
+    merged_events = [*existing_events, *callback_events][-200:]
+    existing_steps = list(record.get("steps", [])) if isinstance(record.get("steps"), list) else []
+    step_map = {
+        str(step.get("step_id")): dict(step)
+        for step in existing_steps
+        if isinstance(step, dict) and step.get("step_id")
+    }
+    for callback in callback_events:
+        step_id = str(callback.get("step_id") or "")
+        if not step_id:
+            continue
+        step = step_map.setdefault(step_id, {"step_id": step_id})
+        history = list(step.get("callback_events", [])) if isinstance(step.get("callback_events"), list) else []
+        history.append(callback)
+        step["callback_events"] = history[-50:]
+    return runs.update(
+        run_id,
+        step_callback_events=merged_events,
+        steps=sorted(step_map.values(), key=lambda item: str(item.get("step_id") or "")),
+    )
+
+
 def update_run_state(queue: EventQueue, event: dict[str, Any], *, failed: bool = False, blocked: bool = False) -> None:
     task = event.get("task")
     result = event.get("result")
@@ -133,6 +164,7 @@ def _build_step_snapshots(
             "checkpoint_count": len(step_checkpoints) or int(previous.get("checkpoint_count", 0)),
             "artifacts": _checkpoint_artifacts(latest_checkpoint),
             "stats": latest_checkpoint.get("stats", {}) if isinstance(latest_checkpoint, dict) else dict(previous.get("stats", {})),
+            "callback_events": list(previous.get("callback_events", [])) if isinstance(previous.get("callback_events"), list) else [],
         }
         snapshots.append(snapshot)
     return snapshots

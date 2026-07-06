@@ -20,13 +20,13 @@ class PipelineStep(Protocol):
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         ...
 
-    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]] | None:
         ...
 
-    def on_task_failed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+    def on_task_failed(self, event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]] | None:
         ...
 
-    def on_task_blocked(self, event: dict[str, Any], queue: EventQueue) -> None:
+    def on_task_blocked(self, event: dict[str, Any], queue: EventQueue) -> list[dict[str, Any]] | None:
         ...
 
 
@@ -36,11 +36,11 @@ class PipelineStepBase:
     def plan(self, context: PipelinePlanContext, completed_event: dict[str, Any] | None = None) -> list[TaskEvent]:
         raise NotImplementedError
 
-    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]] | None:
         return None
 
-    def on_task_failed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+    def on_task_failed(self, event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]] | None:
         return None
 
-    def on_task_blocked(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+    def on_task_blocked(self, event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]] | None:
         return None

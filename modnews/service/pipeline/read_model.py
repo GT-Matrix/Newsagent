@@ -167,6 +167,11 @@ def _normalize_steps(steps: Any) -> list[dict[str, Any]]:
             for artifact in row.get("artifacts", [])
             if isinstance(artifact, dict) and artifact.get("path")
         ]
+        row["callback_events"] = [
+            event
+            for event in row.get("callback_events", [])
+            if isinstance(event, dict) and event.get("handler")
+        ]
         rows.append(row)
     return sorted(rows, key=lambda row: str(row.get("step_id") or ""))
 
