@@ -8,6 +8,7 @@ from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.step import PipelineStepDescriptor
+from modnews.service.pipeline.task_presentation import default_task_title, resolve_task_presentation
 
 
 def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -439,57 +440,20 @@ def collect_callbacks(result: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def task_title(task: TaskEvent) -> str:
-    if task.type == "pipeline.combine_ingest":
-        return "Combine ingest outputs"
-    if task.type == "report.generate":
-        return "Generate report"
-    if task.type == "web_source.run":
-        source_id = str(task.payload.get("source_id") or "")
-        return f"Run web source {source_id}" if source_id else "Run web source"
-    if task.type == "extractor.repair.codex":
-        source_id = str(task.payload.get("source_id") or "")
-        return f"Run extractor repair {source_id}" if source_id else "Run extractor repair"
-    if task.type == "classify.clustered_event_extraction":
-        return "Classify clustered event extraction"
-    if task.type == "classify.clustered_event_merge":
-        return "Classify clustered event merge"
-    if task.type == "classify.embedding":
-        return _batch_title("Classify embedding batch", task)
-    if task.type == "classify.batch_relevance":
-        return _batch_title("Classify relevance batch", task)
-    if task.type.endswith(".batch"):
-        return _batch_title(task.type, task)
-    if task.type.startswith("ingest."):
-        return f"Run ingest task {task.type.removeprefix('ingest.')}"
-    if task.type.startswith("classify."):
-        return f"Run classify task {task.type.removeprefix('classify.')}"
-    return task.type
+    presentation = resolve_task_presentation(task)
+    if presentation is None:
+        return default_task_title(task)
+    return presentation.title_builder(task)
 
 
 def task_log_kind(task: TaskEvent) -> str:
-    if task.type == "extractor.repair.codex":
-        return "codex"
-    if task.type == "web_source.run":
-        return "web_job"
-    if task.type.startswith("classify."):
-        return "classify"
-    if task.type == "report.generate":
-        return "report"
-    return "task"
+    presentation = resolve_task_presentation(task)
+    return presentation.log_kind if presentation is not None else "task"
 
 
 def task_detail_kind(task: TaskEvent) -> str:
-    if task.type == "extractor.repair.codex":
-        return "repair_task"
-    if task.type == "web_source.run":
-        return "web_source_task"
-    if task.type.startswith("classify."):
-        return "classify_task"
-    if task.type == "report.generate":
-        return "report_task"
-    if task.type.startswith("ingest.") or task.type == "pipeline.combine_ingest":
-        return "ingest_task"
-    return "task"
+    presentation = resolve_task_presentation(task)
+    return presentation.detail_kind if presentation is not None else "task"
 
 
 def build_retry_state(task: TaskEvent, result: dict[str, Any]) -> dict[str, Any]:
@@ -632,16 +596,6 @@ def build_attempt_history(logs: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return rows
-
-
-def _batch_title(base: str, task: TaskEvent) -> str:
-    batch = task.payload.get("batch")
-    if isinstance(batch, dict):
-        batch_index = batch.get("batch_index")
-        batch_count = batch.get("batch_count")
-        if isinstance(batch_index, int) and isinstance(batch_count, int):
-            return f"{base} [{batch_index}/{batch_count}]"
-    return base
 
 
 def _matches_pipeline_descriptor(descriptor: PipelineStepDescriptor, step_id: str) -> bool:

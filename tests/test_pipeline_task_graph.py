@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from modnews.bootstrap import configure_services
+from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.service.classify.io import resolve_input_path
 from modnews.service.classify.planner import (
@@ -15,7 +16,12 @@ from modnews.service.extraction.task_registry import REGISTERED_EXTRACTION_TASK_
 from modnews.service.ingest.registry import REGISTERED_INGEST_STEP_SPEC_BY_ID
 from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASK_BY_TYPE
 from modnews.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.read_model_support import task_detail_kind, task_log_kind, task_title
 from modnews.service.pipeline.steps import REGISTERED_PIPELINE_STEP_SPEC_BY_ID
+from modnews.service.pipeline.task_presentation import (
+    REGISTERED_TASK_PRESENTATION_BY_ID,
+    resolve_task_presentation,
+)
 from modnews.service.pipeline.task_registry import REGISTERED_PIPELINE_TASK_BY_TYPE
 from modnews.service.pipeline.task_builder import build_report_generate_task
 from modnews.service.report.planner import plan_report_tasks
@@ -98,6 +104,58 @@ class PipelineTaskGraphTest(unittest.TestCase):
                 ("classify/clustered_event_extraction", "classify/clustered_event_merge"),
             )
             self.assertEqual(descriptors[3].group, "report")
+
+    def test_task_presentation_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_TASK_PRESENTATION_BY_ID),
+            [
+                "pipeline.combine_ingest",
+                "report.generate",
+                "web_source.run",
+                "extractor.repair.codex",
+                "classify.clustered_event_extraction",
+                "classify.clustered_event_merge",
+                "classify.embedding",
+                "classify.batch_relevance",
+                "classify.clustered_event_extraction.batch",
+                "classify.clustered_event_merge.batch",
+                "classify.batch",
+                "ingest.task",
+            ],
+        )
+        self.assertEqual(REGISTERED_TASK_PRESENTATION_BY_ID["report.generate"].log_kind, "report")
+        self.assertEqual(REGISTERED_TASK_PRESENTATION_BY_ID["pipeline.combine_ingest"].detail_kind, "ingest_task")
+
+    def test_task_presentation_registry_drives_titles_and_kinds(self) -> None:
+        batch_task = TaskEvent(
+            id="classify.clustered_event_extraction.batch:group-1:1",
+            type="classify.clustered_event_extraction.batch",
+            payload={"batch": {"batch_index": 1, "batch_count": 3}},
+        )
+        report_task = TaskEvent(id="report-run-1-generate", type="report.generate")
+        ingest_task = TaskEvent(id="ingest-rss", type="ingest.run_step")
+        web_task = TaskEvent(
+            id="web-source-run-1-site-1",
+            type="web_source.run",
+            payload={"source_id": "site-1"},
+        )
+
+        self.assertEqual(resolve_task_presentation(batch_task).id, "classify.clustered_event_extraction.batch")
+        self.assertEqual(task_title(batch_task), "classify.clustered_event_extraction.batch [1/3]")
+        self.assertEqual(task_log_kind(batch_task), "classify")
+        self.assertEqual(task_detail_kind(batch_task), "classify_task")
+
+        self.assertEqual(task_title(report_task), "Generate report")
+        self.assertEqual(task_log_kind(report_task), "report")
+        self.assertEqual(task_detail_kind(report_task), "report_task")
+
+        self.assertEqual(task_title(ingest_task), "Run ingest task run_step")
+        self.assertEqual(task_log_kind(ingest_task), "task")
+        self.assertEqual(task_detail_kind(ingest_task), "ingest_task")
+
+        self.assertEqual(task_title(web_task), "Run web source site-1")
+        self.assertEqual(task_log_kind(web_task), "web_job")
+        self.assertEqual(task_detail_kind(web_task), "web_source_task")
 
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
