@@ -82,6 +82,7 @@ class QueueControlTest(unittest.TestCase):
             result = client.queue_cancel("task-1", "test cancel")
 
             self.assertTrue(result["ok"])
+            self.assertEqual(result["item"]["id"], "task-1")
             self.assertEqual(result["task"]["state"], "cancelled")
             self.assertEqual(result["task"]["result"]["cancel_reason"], "test cancel")
 
@@ -112,8 +113,21 @@ class QueueControlTest(unittest.TestCase):
             result = client.queue_retry("task-1")
 
             self.assertTrue(result["ok"])
+            self.assertEqual(result["item"]["id"], "task-1")
             self.assertEqual(result["task"]["state"], "succeeded")
             self.assertEqual(result["task"]["result"]["value"], "ok")
+
+    def test_queue_drain_returns_items_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+            client.container.event_queue.register(TaskEvent(id="task-1", type="diagnostic.echo"))
+
+            result = client.queue_drain()
+
+            self.assertTrue(result["ok"])
+            self.assertEqual([item["id"] for item in result["items"]], ["task-1"])
+            self.assertEqual(result["items"], result["ran"])
 
     def test_queue_retry_api_route(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

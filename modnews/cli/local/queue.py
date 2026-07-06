@@ -42,18 +42,27 @@ class QueueLocalMixin:
 
     def queue_drain(self, limit: int | None = None) -> dict[str, Any]:
         ran = self.container.event_queue.drain_ready(limit=limit)
-        return {"ran": [task.to_dict() for task in ran], **self.queue_status()}
+        items = [build_task_list_item(self.project_root, self.container.event_queue, task) for task in ran]
+        return {
+            "ok": True,
+            "items": items,
+            "ran": items,
+            **self.queue_status(),
+        }
 
     def queue_cancel(self, task_id: str, reason: str = "cancelled by user") -> dict[str, Any]:
         task = self.container.event_queue.cancel(task_id, reason=reason)
-        return {"ok": task.state == "cancelled", "task": self.queue_show(task_id)}
+        item = self.queue_show(task_id)
+        return {"ok": task.state == "cancelled", "item": item, "task": item}
 
     def queue_retry(self, task_id: str) -> dict[str, Any]:
         task = self.container.event_queue.retry(task_id)
         if task.state == "queued":
             self.container.event_queue.drain_ready()
-        return {"ok": self.container.event_queue.get(task_id).state == "succeeded", "task": self.queue_show(task_id)}
+        item = self.queue_show(task_id)
+        return {"ok": self.container.event_queue.get(task_id).state == "succeeded", "item": item, "task": item}
 
     def queue_skip(self, task_id: str, reason: str = "skipped by user") -> dict[str, Any]:
         task = self.container.event_queue.skip(task_id, reason=reason)
-        return {"ok": task.state == "skipped", "task": self.queue_show(task_id)}
+        item = self.queue_show(task_id)
+        return {"ok": task.state == "skipped", "item": item, "task": item}
