@@ -12,10 +12,20 @@ class QueueLocalMixin:
         waiting_retry_ids: list[str] = []
         waiting_dependency_ids: list[str] = []
         waiting_concurrency_ids: list[str] = []
+        blocked_dependency_ids: list[str] = []
+        blocked_business_ids: list[str] = []
         next_retry_at: str | None = None
         for task in self.container.event_queue.list():
             details = self.container.event_queue.waiting_details(task)
             if not details:
+                blocked = self.container.event_queue.blocked_details(task)
+                if not blocked:
+                    continue
+                blocked_kind = blocked.get("kind")
+                if blocked_kind == "dependency":
+                    blocked_dependency_ids.append(task.id)
+                else:
+                    blocked_business_ids.append(task.id)
                 continue
             kind = details.get("kind")
             if kind == "retry_window":
@@ -33,6 +43,8 @@ class QueueLocalMixin:
             "waiting_retry_ids": waiting_retry_ids,
             "waiting_dependency_ids": waiting_dependency_ids,
             "waiting_concurrency_ids": waiting_concurrency_ids,
+            "blocked_dependency_ids": blocked_dependency_ids,
+            "blocked_business_ids": blocked_business_ids,
             "next_retry_at": next_retry_at,
             "completion_callbacks": self.container.completion_callbacks.list(),
             "snapshot": {

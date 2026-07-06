@@ -101,6 +101,7 @@ class EventQueueTest(unittest.TestCase):
         second = queue.get("second")
         self.assertEqual(second.state, "blocked")
         self.assertEqual(queue.result("second")["blocked_reason"], "dependency first ended as failed")
+        self.assertEqual(queue.blocked_details(second), {"kind": "dependency", "dependency_id": "first", "dependency_state": "failed"})
         self.assertEqual(len(seen), 1)
 
     def test_business_blocked_dispatches_blocked_event(self) -> None:
@@ -115,6 +116,7 @@ class EventQueueTest(unittest.TestCase):
 
         self.assertEqual(task.state, "blocked")
         self.assertEqual(queue.blocked_reason(task), "captcha required")
+        self.assertEqual(queue.blocked_details(task), {"kind": "business"})
         self.assertEqual(len(seen), 1)
         self.assertEqual(seen[0]["result"]["blocked_reason"], "captcha required")  # type: ignore[index]
 

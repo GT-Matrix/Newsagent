@@ -80,6 +80,7 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
     waiting_reason = queue.waiting_reason(task)
     waiting_details = queue.waiting_details(task)
     blocked_reason = queue.blocked_reason(task)
+    blocked_details = queue.blocked_details(task)
     result = queue.result(task.id)
     if waiting_reason:
         payload["waiting_reason"] = waiting_reason
@@ -87,6 +88,8 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
         payload["waiting_details"] = waiting_details
     if blocked_reason:
         payload["blocked_reason"] = blocked_reason
+    if blocked_details:
+        payload["blocked_details"] = blocked_details
     if result.get("retry_scheduled") is not None:
         payload["retry_scheduled"] = bool(result.get("retry_scheduled"))
     if result.get("retry_delay_seconds") is not None:

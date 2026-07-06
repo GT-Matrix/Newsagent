@@ -8,6 +8,7 @@ from typing import Any
 from .events import EventRouter
 from .event_queue_support import (
     blocked_tasks_to_mark,
+    dependency_blocked_details,
     dependency_blocked_reason,
     is_ready,
     mark_task_blocked,
@@ -134,12 +135,13 @@ class EventQueue:
         blocked_before_run = False
         with self._lock:
             task = self._tasks[task_id]
-            blocked_reason = dependency_blocked_reason(task, snapshot_tasks(self._tasks))
+            tasks_snapshot = snapshot_tasks(self._tasks)
+            blocked_reason = dependency_blocked_reason(task, tasks_snapshot)
             if blocked_reason:
-                mark_task_blocked(task, self._results, blocked_reason)
+                mark_task_blocked(task, self._results, blocked_reason, details=dependency_blocked_details(task, tasks_snapshot))
                 self._log(task, "task.blocked", reason=blocked_reason)
                 blocked_before_run = True
-            current_waiting_reason = waiting_reason(task, snapshot_tasks(self._tasks))
+            current_waiting_reason = waiting_reason(task, tasks_snapshot)
             if not blocked_before_run and current_waiting_reason:
                 mark_task_waiting(task, self._results, current_waiting_reason)
                 self._persist()
@@ -285,8 +287,26 @@ class EventQueue:
         if task.state == "blocked":
             result = self.result(task.id)
             reason = result.get("blocked_reason") or task.status_reason
-            return str(reason) if reason else None
+            if reason:
+                return str(reason)
+            with self._lock:
+                tasks = snapshot_tasks(self._tasks)
+            inferred = dependency_blocked_reason(task, tasks)
+            if inferred:
+                return inferred
         return None
+
+    def blocked_details(self, task: TaskEvent) -> dict[str, Any] | None:
+        if task.state != "blocked":
+            return None
+        result = self.result(task.id)
+        details = result.get("blocked_details")
+        if isinstance(details, dict):
+            return dict(details)
+        with self._lock:
+            tasks = snapshot_tasks(self._tasks)
+        dependency_details = dependency_blocked_details(task, tasks)
+        return dict(dependency_details) if isinstance(dependency_details, dict) else None
 
     def ready(self) -> list[TaskEvent]:
         with self._lock:

@@ -29,12 +29,27 @@ def status_counts(tasks: dict[str, TaskEvent]) -> dict[str, int]:
 
 
 def dependency_blocked_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
+    details = dependency_blocked_details(task, tasks)
+    if details:
+        return f"dependency {details['dependency_id']} ended as {details['dependency_state']}"
+    return None
+
+
+def dependency_blocked_details(task: TaskEvent, tasks: dict[str, TaskEvent]) -> dict[str, Any] | None:
     for dependency_id in task.depends_on:
         dependency = tasks.get(dependency_id)
         if dependency is None:
-            return f"missing dependency {dependency_id}"
+            return {
+                "kind": "dependency",
+                "dependency_id": dependency_id,
+                "dependency_state": "missing",
+            }
         if dependency.state in TERMINAL_STATES and dependency.state not in SUCCESS_STATES:
-            return f"dependency {dependency_id} ended as {dependency.state}"
+            return {
+                "kind": "dependency",
+                "dependency_id": dependency_id,
+                "dependency_state": dependency.state,
+            }
     return None
 
 
@@ -116,7 +131,10 @@ def mark_task_blocked(
     task.state = "blocked"
     task.status_reason = reason
     task.finished_at = now()
-    results[task.id] = {"blocked_reason": reason, **(details or {})}
+    blocked_details = dict(details or {})
+    if "kind" not in blocked_details:
+        blocked_details["kind"] = "business"
+    results[task.id] = {"blocked_reason": reason, "blocked_details": blocked_details, **blocked_details}
 
 
 def mark_task_waiting(
@@ -252,7 +270,7 @@ def blocked_tasks_to_mark(tasks: dict[str, TaskEvent], results: dict[str, dict[s
     for task in snapshot.values():
         blocked_reason = dependency_blocked_reason(task, snapshot)
         if task.state in {"queued", "waiting"} and blocked_reason:
-            mark_task_blocked(task, results, blocked_reason)
+            mark_task_blocked(task, results, blocked_reason, details=dependency_blocked_details(task, snapshot))
             blocked.append(task)
             continue
         reason = waiting_reason(task, snapshot)

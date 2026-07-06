@@ -44,6 +44,28 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result[0]["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(result[0]["artifact_count"], 1)
 
+    def test_queue_list_exposes_blocked_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.event_queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="failed"))
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    step_id="pipeline/report",
+                    state="blocked",
+                    depends_on=["dep-1"],
+                )
+            )
+
+            result = client.queue_list()
+            task = next(item for item in result if item["id"] == "task-1")
+
+            self.assertEqual(task["blocked_reason"], "dependency dep-1 ended as failed")
+            self.assertEqual(task["blocked_details"], {"kind": "dependency", "dependency_id": "dep-1", "dependency_state": "failed"})
+
     def test_queue_list_returns_frontend_ready_task_summaries(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)

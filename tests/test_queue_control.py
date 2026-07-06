@@ -43,6 +43,8 @@ class QueueControlTest(unittest.TestCase):
             self.assertEqual(result["waiting_retry_ids"], ["task-1"])
             self.assertEqual(result["waiting_dependency_ids"], [])
             self.assertEqual(result["waiting_concurrency_ids"], [])
+            self.assertEqual(result["blocked_dependency_ids"], [])
+            self.assertEqual(result["blocked_business_ids"], [])
             self.assertEqual(result["next_retry_at"], next_attempt_at)
 
     def test_queue_status_separates_dependency_and_concurrency_waiting(self) -> None:
@@ -58,6 +60,19 @@ class QueueControlTest(unittest.TestCase):
 
             self.assertEqual(result["waiting_dependency_ids"], ["wait-dep"])
             self.assertEqual(result["waiting_concurrency_ids"], ["wait-slot"])
+
+    def test_queue_status_separates_blocked_dependency_and_business_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="failed"))
+            client.container.event_queue.register(TaskEvent(id="blocked-dep", type="diagnostic.echo", state="blocked", depends_on=["dep-1"]))
+            client.container.event_queue.register(TaskEvent(id="blocked-business", type="diagnostic.echo", state="blocked"))
+            client.container.event_queue._results["blocked-business"] = {"blocked_reason": "captcha required", "blocked_details": {"kind": "business"}}  # type: ignore[attr-defined]
+
+            result = client.queue_status()
+
+            self.assertEqual(result["blocked_dependency_ids"], ["blocked-dep"])
+            self.assertEqual(result["blocked_business_ids"], ["blocked-business"])
 
     def test_queue_cancel_marks_task_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
