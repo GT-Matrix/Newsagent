@@ -10,6 +10,7 @@ from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.step import PipelineStepDescriptor
 from modnews.service.pipeline.task_domain_view import resolve_task_domain_view
 from modnews.service.pipeline.task_presentation import default_task_title, resolve_task_presentation
+from modnews.service.pipeline.task_read_model_meta import resolve_task_read_model_meta
 
 
 def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -840,27 +841,11 @@ def publish_targets_for_task(task: TaskEvent, checkpoint: dict[str, Any]) -> lis
     output_refs = checkpoint.get("output_refs") if isinstance(checkpoint.get("output_refs"), dict) else {}
     if not output_refs:
         return []
+    task_meta = resolve_task_read_model_meta(task)
+    if task_meta is None or not task_meta.publish_targets:
+        return []
     targets: list[dict[str, Any]] = []
-    mapping: dict[str, str] = {}
-    if task.type.startswith("classify."):
-        mapping = {
-            "news_with_events": "news_with_events",
-            "events": "events",
-            "discarded_news": "discarded_news",
-            "classification_progress": "checkpoint",
-        }
-    elif task.type == "report.generate":
-        mapping = {
-            "report_markdown": "report_markdown",
-            "report_debug_markdown": "report_debug_markdown",
-            "report_events": "report_events",
-            "report_trend_summary": "report_trend_summary",
-        }
-    elif task.type == "pipeline.combine_ingest":
-        mapping = {
-            "items": "combined_news",
-        }
-    for output_key, target_key in mapping.items():
+    for output_key, target_key in task_meta.publish_targets:
         source = output_refs.get(output_key)
         if not source:
             continue
@@ -893,18 +878,9 @@ def item_payload_size(payload: Any) -> int | None:
 
 
 def classify_task_kind(task: TaskEvent) -> str:
-    if task.type == "classify.embedding":
-        return "embedding_batch"
-    if task.type == "classify.batch_relevance":
-        return "relevance_batch"
-    if task.type == "classify.clustered_event_extraction.batch":
-        return "clustered_event_extraction_batch"
-    if task.type == "classify.clustered_event_merge.batch":
-        return "clustered_event_merge_batch"
-    if task.type == "classify.clustered_event_extraction":
-        return "clustered_event_extraction"
-    if task.type == "classify.clustered_event_merge":
-        return "clustered_event_merge"
+    task_meta = resolve_task_read_model_meta(task)
+    if task_meta is not None and task_meta.classify_task_kind:
+        return task_meta.classify_task_kind
     return "classify_task"
 
 

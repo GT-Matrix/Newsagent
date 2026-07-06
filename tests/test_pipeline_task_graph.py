@@ -26,6 +26,10 @@ from modnews.service.pipeline.task_presentation import (
     REGISTERED_TASK_PRESENTATION_BY_ID,
     resolve_task_presentation,
 )
+from modnews.service.pipeline.task_read_model_meta import (
+    REGISTERED_TASK_READ_MODEL_META_BY_ID,
+    resolve_task_read_model_meta,
+)
 from modnews.service.pipeline.task_registry import REGISTERED_PIPELINE_TASK_BY_TYPE
 from modnews.service.pipeline.task_builder import build_report_generate_task
 from modnews.service.report.planner import plan_report_tasks
@@ -186,6 +190,48 @@ class PipelineTaskGraphTest(unittest.TestCase):
         self.assertEqual(resolve_task_domain_view(report_task).id, "report.generate")
         self.assertEqual(resolve_task_domain_view(ingest_task).id, "ingest.task")
         self.assertIsNone(resolve_task_domain_view(fallback_task))
+
+    def test_task_read_model_meta_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_TASK_READ_MODEL_META_BY_ID),
+            [
+                "classify.embedding",
+                "classify.batch_relevance",
+                "classify.clustered_event_extraction.batch",
+                "classify.clustered_event_merge.batch",
+                "classify.clustered_event_extraction",
+                "classify.clustered_event_merge",
+                "classify.task",
+                "report.generate",
+                "pipeline.combine_ingest",
+            ],
+        )
+        self.assertEqual(
+            REGISTERED_TASK_READ_MODEL_META_BY_ID["report.generate"].publish_targets,
+            (
+                ("report_markdown", "report_markdown"),
+                ("report_debug_markdown", "report_debug_markdown"),
+                ("report_events", "report_events"),
+                ("report_trend_summary", "report_trend_summary"),
+            ),
+        )
+        self.assertEqual(
+            REGISTERED_TASK_READ_MODEL_META_BY_ID["classify.clustered_event_merge.batch"].classify_task_kind,
+            "clustered_event_merge_batch",
+        )
+
+    def test_task_read_model_meta_registry_resolves_specific_and_prefix_matches(self) -> None:
+        classify_batch = TaskEvent(id="classify-1", type="classify.clustered_event_merge.batch")
+        classify_other = TaskEvent(id="classify-2", type="classify.custom")
+        report_task = TaskEvent(id="report-1", type="report.generate")
+        combine_task = TaskEvent(id="combine-1", type="pipeline.combine_ingest")
+        fallback_task = TaskEvent(id="diag-1", type="diagnostic.echo")
+
+        self.assertEqual(resolve_task_read_model_meta(classify_batch).id, "classify.clustered_event_merge.batch")
+        self.assertEqual(resolve_task_read_model_meta(classify_other).id, "classify.task")
+        self.assertEqual(resolve_task_read_model_meta(report_task).id, "report.generate")
+        self.assertEqual(resolve_task_read_model_meta(combine_task).id, "pipeline.combine_ingest")
+        self.assertIsNone(resolve_task_read_model_meta(fallback_task))
 
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
