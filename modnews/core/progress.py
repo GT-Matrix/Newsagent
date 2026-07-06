@@ -176,15 +176,6 @@ def simulate_cached_latency(
 
 def describe_llm_request(task: str, messages: list[dict[str, str]]) -> dict[str, Any]:
     user_payload = _last_user_json(messages)
-    if task == "batch_ai_relevance":
-        items = user_payload.get("items", []) if isinstance(user_payload, dict) else []
-        titles = [_news_brief(row) for row in items[:5]]
-        return {
-            "name": "\u6279\u91cf AI \u76f8\u5173\u6027\u5224\u65ad",
-            "goal": f"\u5224\u65ad {len(items)} \u6761\u6807\u9898\u662f\u5426\u662f AI \u6838\u5fc3\u65b0\u95fb\uff0c\u8f93\u51fa candidate / suspect / discard\u3002",
-            "summary": "\uff1b".join(titles),
-            "payload": user_payload,
-        }
     if task == "clustered_event_extraction":
         items = user_payload.get("items", []) if isinstance(user_payload, dict) else []
         titles = [_news_brief(row) for row in items[:5]]
@@ -219,14 +210,6 @@ def describe_llm_request(task: str, messages: list[dict[str, str]]) -> dict[str,
             "name": "\u4e8b\u4ef6\u4e8c\u6b21\u5408\u5e76",
             "goal": f"\u4ee5 seed \u4e8b\u4ef6\u4e3a\u4e2d\u5fc3\uff0c\u5728 {len(candidates)} \u4e2a\u5411\u91cf\u5019\u9009\u91cc\u5224\u65ad\u54ea\u4e9b\u5e94\u8be5\u5408\u5e76\u3002",
             "summary": _event_brief(seed),
-            "payload": user_payload,
-        }
-    if task == "suspect_article_review":
-        title = user_payload.get("title", "") if isinstance(user_payload, dict) else ""
-        return {
-            "name": "\u7591\u4f3c\u65b0\u95fb\u6b63\u6587\u590d\u6838",
-            "goal": "\u6839\u636e\u6b63\u6587\u6458\u5f55\u5224\u65ad\u7591\u4f3c\u6807\u9898\u662f\u5426\u5e94\u8fdb\u5165\u4e8b\u4ef6\u5f52\u7c7b\u3002",
-            "summary": title,
             "payload": user_payload,
         }
     return {"name": task, "goal": "\u8bf7\u6c42 LLM \u8fd4\u56de\u7ed3\u6784\u5316 JSON\u3002", "summary": task, "payload": user_payload}

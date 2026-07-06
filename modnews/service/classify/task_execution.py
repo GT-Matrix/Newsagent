@@ -84,6 +84,5 @@ def run_classification(
             "embedding_model": config.embedding.model,
             "batch_size": config.batch_size,
             "batch_concurrency": config.batch_concurrency,
-            "suspect_mode": config.suspect_mode,
         },
     )
