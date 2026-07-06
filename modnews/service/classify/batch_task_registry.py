@@ -25,17 +25,23 @@ T = TypeVar("T")
 
 @dataclass(frozen=True, slots=True)
 class RegisteredLlmBatchStage:
-    task_type: str
     stage: LlmBatchStage[T]
     payload_loader: Callable[[object], T]
+
+    @property
+    def task_type(self) -> str:
+        return self.stage.profile.task_type
 
 
 @dataclass(frozen=True, slots=True)
 class RegisteredBatchTask:
-    task_type: str
     profile: BatchTaskProfile
     executor: Callable[[TaskEvent], dict[str, object]]
     llm_stage: RegisteredLlmBatchStage | None = None
+
+    @property
+    def task_type(self) -> str:
+        return self.profile.task_type
 
 
 def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
@@ -96,26 +102,21 @@ def _build_llm_client(task: TaskEvent) -> LlmClient:
 
 REGISTERED_BATCH_TASKS: tuple[RegisteredBatchTask, ...] = (
     RegisteredBatchTask(
-        task_type="classify.embedding",
         profile=CLUSTERED_EMBEDDING_BATCH,
         executor=run_embedding_batch_item,
     ),
     RegisteredBatchTask(
-        task_type="classify.clustered_event_extraction.batch",
         profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
         executor=run_clustered_event_extraction_batch_item,
         llm_stage=RegisteredLlmBatchStage(
-            task_type="classify.clustered_event_extraction.batch",
             stage=CLUSTERED_EXTRACTION_STAGE,
             payload_loader=lambda payload: payload if isinstance(payload, list) else [],
         ),
     ),
     RegisteredBatchTask(
-        task_type="classify.clustered_event_merge.batch",
         profile=CLUSTERED_EVENT_MERGE_BATCH,
         executor=run_clustered_event_merge_batch_item,
         llm_stage=RegisteredLlmBatchStage(
-            task_type="classify.clustered_event_merge.batch",
             stage=CLUSTERED_MERGE_STAGE,
             payload_loader=lambda payload: payload if isinstance(payload, list) else [],
         ),
