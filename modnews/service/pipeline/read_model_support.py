@@ -204,6 +204,8 @@ def normalize_checkpoints(checkpoints: Any) -> list[dict[str, Any]]:
         row = dict(checkpoint)
         row["input_artifacts"] = artifact_refs(row.get("input_refs"), role="input")
         row["output_artifacts"] = artifact_refs(row.get("output_refs"), role="output")
+        row["task_refs"] = checkpoint_task_refs(row)
+        row["resume_hint"] = checkpoint_resume_hint(row)
         rows.append(row)
     return sorted(rows, key=lambda row: str(row.get("finished_at") or row.get("started_at") or row.get("path") or ""))
 
@@ -293,6 +295,41 @@ def checkpoint_artifacts(checkpoint: dict[str, Any] | None) -> list[dict[str, An
     if not checkpoint:
         return []
     return list(checkpoint.get("output_artifacts", []))
+
+
+def checkpoint_task_refs(checkpoint: dict[str, Any]) -> dict[str, str | None]:
+    return {
+        "run_id": str(checkpoint.get("run_id") or "") or None,
+        "step_id": str(checkpoint.get("step_id") or "") or None,
+        "task_id": str(checkpoint.get("task_id") or "") or None,
+    }
+
+
+def checkpoint_resume_hint(checkpoint: dict[str, Any]) -> dict[str, Any] | None:
+    path_value = checkpoint.get("path")
+    if not path_value:
+        return None
+    checkpoint_path = Path(str(path_value)).expanduser().resolve()
+    checkpoint_dir = checkpoint_path.parent
+    run_id = str(checkpoint.get("run_id") or "") or "<run_id>"
+    step_id = str(checkpoint.get("step_id") or "")
+    if step_id == "pipeline/combine_ingest":
+        return {
+            "kind": "classify",
+            "checkpoint_path": str(checkpoint_path),
+            "checkpoint_dir": str(checkpoint_dir),
+            "accepted_inputs": ["checkpoint_dir", "checkpoint_json"],
+            "cli_command": f"python -m modnews.cli.main --mode local classify run --run-id {run_id} --input {checkpoint_dir}",
+        }
+    if step_id.startswith("classify/"):
+        return {
+            "kind": "report",
+            "checkpoint_path": str(checkpoint_path),
+            "checkpoint_dir": str(checkpoint_dir),
+            "accepted_inputs": ["checkpoint_dir", "checkpoint_json"],
+            "cli_command": f"python -m modnews.cli.main --mode local report generate --input {checkpoint_dir}",
+        }
+    return None
 
 
 def status_summary(statuses: Any) -> dict[str, Any]:

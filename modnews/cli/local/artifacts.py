@@ -5,6 +5,7 @@ from typing import Any
 from modnews.repository.cache import CacheRepository
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
+from modnews.service.pipeline.read_model_support import normalize_checkpoints
 
 
 class ArtifactsLocalMixin:
@@ -25,7 +26,7 @@ class ArtifactsLocalMixin:
         }
 
     def checkpoints_list(self, run_id: str | None = None) -> list[dict[str, Any]]:
-        return CheckpointRepository(self.project_root).list(run_id)
+        return normalize_checkpoints(CheckpointRepository(self.project_root).list(run_id))
 
     def checkpoint_publish(self, checkpoint_path: str) -> dict[str, Any]:
         checkpoint = CheckpointRepository(self.project_root).read(checkpoint_path)

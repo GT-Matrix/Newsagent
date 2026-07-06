@@ -302,6 +302,60 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result["checkpoints"][0]["output_artifacts"][0]["name"], "items")
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
 
+    def test_checkpoints_list_exposes_task_refs_and_resume_hint(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            artifact = client.container.checkpoints().write_artifact("run-1", "pipeline/combine_ingest", "task-1", "items.json", [{"title": "A"}])
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "pipeline/combine_ingest",
+                "task-1",
+                {
+                    "status": "succeeded",
+                    "output_refs": {"items": str(artifact)},
+                },
+            )
+
+            result = client.checkpoints_list("run-1")
+
+            item = next(row for row in result if row["path"] == str(checkpoint))
+            self.assertEqual(
+                item["task_refs"],
+                {"run_id": "run-1", "step_id": "pipeline/combine_ingest", "task_id": "task-1"},
+            )
+            self.assertEqual(item["resume_hint"]["kind"], "classify")
+            self.assertEqual(item["resume_hint"]["accepted_inputs"], ["checkpoint_dir", "checkpoint_json"])
+            self.assertIn("--run-id run-1", item["resume_hint"]["cli_command"])
+            self.assertIn("--input", item["resume_hint"]["cli_command"])
+
+    def test_classify_checkpoint_resume_hint_points_to_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            artifact = client.container.checkpoints().write_artifact(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
+                "classification_progress.json",
+                {"items": [], "events": [], "discarded": [], "meta": {"stage": "done"}},
+            )
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
+                {
+                    "status": "succeeded",
+                    "output_refs": {"classification_progress": str(artifact)},
+                },
+            )
+
+            result = client.checkpoints_list("run-1")
+
+            item = next(row for row in result if row["path"] == str(checkpoint))
+            self.assertEqual(item["resume_hint"]["kind"], "report")
+            self.assertIn("report generate", item["resume_hint"]["cli_command"])
+
     def test_queue_show_exposes_child_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
