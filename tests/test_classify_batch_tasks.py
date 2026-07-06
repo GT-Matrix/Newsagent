@@ -7,7 +7,7 @@ from unittest.mock import patch
 from modnews.core.task import TaskEvent
 from modnews.service.classify.batch_stage import LlmBatchStage, run_llm_batch_stage, run_llm_batch_task, task_batch_progress
 from modnews.service.classify.batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
-from modnews.service.classify.batch_tasks import run_clustered_event_extraction_batch_item
+from modnews.service.classify.batch_tasks import BATCH_TASK_EXECUTORS, run_clustered_event_extraction_batch_item
 
 
 class _FakeClient:
@@ -118,6 +118,16 @@ class ClassifyBatchTaskTest(unittest.TestCase):
         helper.assert_called_once()
         self.assertEqual(helper.call_args.kwargs["stage"].request_event, "clustered_extraction_request")
         self.assertEqual(helper.call_args.kwargs["task"].id, "task-1")
+
+    def test_batch_task_executors_are_registered_by_task_type(self) -> None:
+        self.assertEqual(
+            sorted(BATCH_TASK_EXECUTORS),
+            [
+                "classify.clustered_event_extraction.batch",
+                "classify.clustered_event_merge.batch",
+                "classify.embedding",
+            ],
+        )
 
 
 if __name__ == "__main__":
