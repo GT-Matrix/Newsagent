@@ -324,6 +324,10 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             client.container.event_queue.drain_ready()
 
             self.assertEqual(client.container.event_queue.get("web-source-task-1").state, "skipped")
+            self.assertEqual(
+                [action["action"] for action in client.container.event_queue.result("web-source-task-1")["repair_queue_actions"]],
+                ["submit_repair_queue_task", "skip_blocked_task"],
+            )
             self.assertEqual(client.container.event_queue.get("combine").state, "succeeded")
             repair_tasks = [task for task in client.container.event_queue.list() if task.type == "extractor.repair.codex"]
             self.assertEqual(len(repair_tasks), 1)
