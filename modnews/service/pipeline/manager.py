@@ -7,22 +7,28 @@ from typing import Any
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
+from modnews.service.pipeline.registry import PipelineRegistry
 from modnews.service.pipeline.run_state import update_run_state
+from modnews.service.pipeline.step import PipelineStep
 
 
 @dataclass(slots=True)
 class PipelineManager:
-    steps: list[Any] = field(default_factory=list)
+    step_registry: PipelineRegistry = field(default_factory=PipelineRegistry)
     event_queue: EventQueue | None = None
     event_router: EventRouter | None = None
     ingest_registry: Any | None = None
+
+    @property
+    def steps(self) -> list[PipelineStep]:
+        return self.step_registry.list()
 
     def bind(self, event_queue: EventQueue, event_router: EventRouter) -> None:
         self.event_queue = event_queue
         self.event_router = event_router
 
-    def register_step(self, step: Any) -> None:
-        self.steps.append(step)
+    def register_step(self, step: PipelineStep) -> None:
+        self.step_registry.register(step)
 
     def start_run(self, request: dict[str, Any], *, submit: bool = False) -> dict[str, Any]:
         run_id = str(request.get("run_id") or "local")
