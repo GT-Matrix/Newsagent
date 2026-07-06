@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from modnews.core.task import TaskEvent
-from modnews.service.report import generate_report
+from modnews.service.report.execution import generate_report
 from modnews.service.report.task_registry import REGISTERED_REPORT_TASKS
 from modnews.service.report.task_result import build_report_task_stats, persist_report_task_result
 from modnews.service.report.task_runtime import build_report_task_runtime, resolve_report_input
