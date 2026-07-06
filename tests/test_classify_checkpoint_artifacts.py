@@ -9,6 +9,7 @@ from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
 from modnews.service.classify.io import resolve_input_path, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
+from modnews.service.classify.state_codec import decode_resume_state
 from modnews.service.classify.state import ClassifyState
 from modnews.service.classify.task_checkpoint import write_classify_task_checkpoint
 from modnews.service.classify.types import DiscardedRecord
@@ -170,6 +171,38 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
             self.assertEqual(checkpoint_payload["stats"]["total_candidates"], 9)
             self.assertEqual(progress_payload["meta"]["processed_candidates"], 7)
             self.assertEqual(progress_payload["meta"]["total_candidates"], 9)
+
+    def test_resume_state_decode_isolated_from_checkpoint_io(self) -> None:
+        item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
+        payload = {
+            "meta": {"stage": "after_clustered_event_extraction", "processed_candidates": 3},
+            "items": [item.to_dict()],
+            "events": [
+                {
+                    "event_id": "e1",
+                    "event_label": "label",
+                    "member_count": 1,
+                    "platforms": ["x"],
+                    "latest_pubtime": None,
+                    "representative_titles": ["t"],
+                    "first_pubtime": None,
+                    "confidence": 88,
+                    "event_summary": "summary",
+                    "event_type": "company",
+                    "key_entities": ["x"],
+                    "source_news_ids": [0],
+                    "last_llm_updated_at": "2026-07-03",
+                }
+            ],
+            "discarded": [{"index": 2, "title": "drop", "platform": "x", "stage": "test", "reason": "no"}],
+        }
+
+        result = decode_resume_state(payload, [item])
+
+        self.assertEqual(result.stage, "after_clustered_event_extraction")
+        self.assertEqual(result.processed_candidates, 3)
+        self.assertEqual(result.events[0].record.event_id, "e1")
+        self.assertEqual(result.discarded[0].reason, "no")
 
 
 if __name__ == "__main__":
