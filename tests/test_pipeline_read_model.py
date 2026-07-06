@@ -7,6 +7,7 @@ from pathlib import Path
 
 from modnews.cli.local_client import LocalClient
 from modnews.core.task import TaskEvent
+from modnews.service.pipeline.artifact_facade import PipelineArtifactFacade
 from modnews.service.pipeline.query_facade import PipelineQueryFacade
 
 
@@ -41,6 +42,36 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task_item["id"], "task-1")
             self.assertEqual(run_detail["run"]["run_id"], "run-1")
             self.assertEqual(task_detail["id"], "task-1")
+
+    def test_pipeline_artifact_facade_exposes_checkpoint_views(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            artifact = client.container.checkpoints().write_artifact(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
+                "classification_progress.json",
+                {"items": [], "events": [], "discarded": [], "meta": {"stage": "done"}},
+            )
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "classify/clustered_event_merge",
+                "task-1",
+                {
+                    "status": "succeeded",
+                    "output_refs": {"classification_progress": str(artifact)},
+                },
+            )
+            facade = PipelineArtifactFacade(project_root)
+
+            rows = facade.checkpoints("run-1")
+            published = facade.publish_checkpoint(str(checkpoint))
+
+            item = next(row for row in rows if row["path"] == str(checkpoint))
+            self.assertEqual(item["resume_hint"]["kind"], "report")
+            self.assertTrue(published["ok"])
+            self.assertIn("outputs", published)
 
     def test_run_list_returns_frontend_ready_summaries(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import Any
 
 from modnews.repository.cache import CacheRepository
-from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
-from modnews.service.pipeline.read_model_support import attach_checkpoint_callback_summaries, normalize_checkpoints
+from modnews.service.pipeline.artifact_facade import PipelineArtifactFacade
 
 
 class ArtifactsLocalMixin:
+    def _pipeline_artifacts(self) -> PipelineArtifactFacade:
+        return PipelineArtifactFacade(self.project_root)
+
     def outputs_status(self) -> dict[str, Any]:
         return OutputRepository(self.project_root).state()
 
@@ -26,11 +28,7 @@ class ArtifactsLocalMixin:
         }
 
     def checkpoints_list(self, run_id: str | None = None) -> list[dict[str, Any]]:
-        return attach_checkpoint_callback_summaries(
-            self.project_root,
-            normalize_checkpoints(CheckpointRepository(self.project_root).list(run_id)),
-        )
+        return self._pipeline_artifacts().checkpoints(run_id)
 
     def checkpoint_publish(self, checkpoint_path: str) -> dict[str, Any]:
-        checkpoint = CheckpointRepository(self.project_root).read(checkpoint_path)
-        return {"ok": True, **OutputRepository(self.project_root).publish_from_checkpoint(checkpoint)}
+        return self._pipeline_artifacts().publish_checkpoint(checkpoint_path)
