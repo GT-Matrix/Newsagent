@@ -112,7 +112,7 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual({task.concurrency_key for task in tasks}, {"classify.llm"})
         self.assertEqual({task.max_concurrency for task in tasks}, {2})
         self.assertEqual([queue.result(task.id)["batch_result"] for task in tasks], ["A", "B"])
-        self.assertEqual(queue._executors, {})
+        self.assertIn("classify.batch_item", queue._executors)
 
     def test_default_backend_context_routes_batches_to_event_queue(self) -> None:
         queue = EventQueue()
@@ -129,7 +129,7 @@ class BatchExecutorTest(unittest.TestCase):
 
         self.assertEqual(result, [11, 12])
         self.assertEqual(len(queue.list()), 2)
-        self.assertEqual({task.type.rsplit(".", 1)[0] for task in queue.list()}, {"classify.batch_item"})
+        self.assertEqual({task.type for task in queue.list()}, {"classify.batch_item"})
 
     def test_profiled_batch_reuses_standard_task_metadata(self) -> None:
         backend = RecordingBackend()
