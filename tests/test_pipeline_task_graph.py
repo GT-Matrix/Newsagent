@@ -8,6 +8,8 @@ from modnews.bootstrap import configure_services
 from modnews.repository.runs import RunRepository
 from modnews.service.classify.io import resolve_input_path
 from modnews.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.task_builder import build_report_generate_task
+from modnews.service.report.planner import plan_report_tasks
 from modnews.service.report.tasks import _resolve_report_input
 
 
@@ -99,6 +101,39 @@ class PipelineTaskGraphTest(unittest.TestCase):
                 ),
                 items_path.resolve(),
             )
+
+    def test_report_task_definition_is_shared_between_pipeline_and_manual_planner(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+
+            followup_task = build_report_generate_task(
+                run_id="run-1",
+                project_root=str(project_root),
+                config_path="runtime/config.json",
+                depends_on=["classify-run-1-clustered-event-merge"],
+            )
+            manual_task = plan_report_tasks(
+                project_root=project_root,
+                input_path="output/events.json",
+                run_id="run-1",
+                output_dir="data/custom-output",
+                date="2026-07-06",
+                config="runtime/config.json",
+            )[0]
+
+            self.assertEqual(followup_task.type, "report.generate")
+            self.assertEqual(followup_task.step_id, "report/generate")
+            self.assertEqual(followup_task.id, "report-run-1-generate")
+            self.assertEqual(followup_task.payload["input_path"], "__latest_classify_checkpoint__")
+            self.assertEqual(followup_task.payload["output_dir"], "data/output")
+            self.assertEqual(followup_task.depends_on, ["classify-run-1-clustered-event-merge"])
+
+            self.assertEqual(manual_task.type, followup_task.type)
+            self.assertEqual(manual_task.step_id, followup_task.step_id)
+            self.assertEqual(manual_task.id, followup_task.id)
+            self.assertEqual(manual_task.payload["config"], followup_task.payload["config"])
+            self.assertEqual(manual_task.concurrency_key, followup_task.concurrency_key)
+            self.assertEqual(manual_task.max_concurrency, followup_task.max_concurrency)
 
 
 if __name__ == "__main__":

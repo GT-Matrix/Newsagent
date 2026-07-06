@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
+
+from .task_registry import (
+    build_registered_report_task,
+    get_registered_report_task,
+    resolve_report_run_id,
+)
 
 
 def plan_report_tasks(
@@ -15,22 +20,15 @@ def plan_report_tasks(
     date: str | None = None,
     config: str | None = None,
 ) -> list[TaskEvent]:
-    task_run_id = run_id or f"report-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    task_run_id = resolve_report_run_id(run_id)
     return [
-        TaskEvent(
-            id=f"report-{task_run_id}-generate",
-            type="report.generate",
-            pipeline_run_id=task_run_id,
-            step_id="report/generate",
-            payload={
-                "project_root": str(project_root),
-                "run_id": task_run_id,
-                "config": config,
-                "input_path": input_path,
-                "output_dir": output_dir,
-                "date": date,
-            },
-            concurrency_key="report",
-            max_concurrency=1,
+        build_registered_report_task(
+            get_registered_report_task("report.generate"),
+            project_root=project_root,
+            run_id=task_run_id,
+            input_path=input_path,
+            output_dir=output_dir,
+            date=date,
+            config=config,
         )
     ]

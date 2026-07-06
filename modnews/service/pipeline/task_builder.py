@@ -9,6 +9,10 @@ from modnews.service.classify.planner import (
     build_clustered_event_merge_task,
 )
 from modnews.service.ingest.planner import plan_ingest_tasks
+from modnews.service.report.task_registry import (
+    build_registered_report_task,
+    get_registered_report_task,
+)
 
 
 def build_ingest_tasks(*, project_root: str, run_id: str, config_path: object, config: Any) -> list[TaskEvent]:
@@ -81,19 +85,10 @@ def build_report_generate_task(
     config_path: object,
     depends_on: list[str],
 ) -> TaskEvent:
-    return TaskEvent(
-        id=f"report-{run_id}-generate",
-        type="report.generate",
-        pipeline_run_id=run_id,
-        step_id="report/generate",
-        payload={
-            "project_root": project_root,
-            "run_id": run_id,
-            "config": config_path,
-            "input_path": "__latest_classify_checkpoint__",
-            "output_dir": "data/output",
-        },
+    return build_registered_report_task(
+        get_registered_report_task("report.generate"),
+        project_root=Path(project_root) if project_root else Path.cwd(),
+        run_id=run_id,
+        config=str(config_path) if config_path is not None else None,
         depends_on=depends_on,
-        concurrency_key="report",
-        max_concurrency=1,
     )
