@@ -2,25 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
 
 from modnews.core.paths import runtime_paths
 from modnews.repository.runtime_config_io import now as current_time
 from modnews.repository.runtime_config_io import read_json, write_config
 from modnews.repository.runtime_config_lifecycle import load_runtime_config, save_runtime_config
 from modnews.repository.runtime_config_mutations import apply_classification_patch, apply_step_patch
-from modnews.repository.runtime_config_sources import (
-    delete_rss_item as delete_rss_item_data,
-    delete_site_list_item as delete_site_list_item_data,
-    enabled_newsnow_sources as enabled_newsnow_sources_data,
-    enabled_rss_sources as enabled_rss_sources_data,
-    restore_builtin_sources as restore_builtin_sources_data,
-    rss_row,
-    update_newsnow_item as update_newsnow_item_data,
-    update_rss as update_rss_data,
-    update_rss_item as update_rss_item_data,
-    update_site_list_item as update_site_list_item_data,
-)
+from modnews.repository.runtime_config_sources import rss_row
+
+T = TypeVar("T")
 
 
 @dataclass(slots=True)
@@ -65,59 +56,18 @@ class RuntimeConfigStore:
         )
 
     def update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        data = self.load()
-        data = apply_step_patch(data, step_id, patch)
-        return self.save(data)
+        return self._mutate(lambda data: apply_step_patch(data, step_id, patch))
 
     def update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
+        return self._mutate(lambda data: apply_classification_patch(data, patch))
+
+    def _mutate(self, mutate: Callable[[dict[str, Any]], dict[str, Any]]) -> dict[str, Any]:
         data = self.load()
-        data = apply_classification_patch(data, patch)
+        data = mutate(data)
         return self.save(data)
 
-    def update_rss(self, items: list[dict[str, Any]]) -> dict[str, Any]:
-        data = self.load()
-        data = update_rss_data(data, items)
-        return self.save(data)
-
-    def update_rss_item(self, source_id: str, row: dict[str, Any]) -> dict[str, Any]:
-        data = self.load()
-        data = update_rss_item_data(data, source_id, row)
-        return self.save(data)
-
-    def delete_rss_item(self, source_id: str) -> dict[str, Any]:
-        data = self.load()
-        data = delete_rss_item_data(data, source_id)
-        return self.save(data)
-
-    def update_newsnow_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        data = self.load()
-        data = update_newsnow_item_data(data, source_id, patch)
-        return self.save(data)
-
-    def update_site_list_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        data = self.load()
-        data = update_site_list_item_data(data, source_id, patch)
-        return self.save(data)
-
-    def delete_site_list_item(self, source_id: str) -> dict[str, Any]:
-        data = self.load()
-        data = delete_site_list_item_data(data, source_id)
-        return self.save(data)
-
-    def restore_builtin_sources(self) -> dict[str, Any]:
-        data = self.load()
-        data = restore_builtin_sources_data(
-            data,
-            rss_seed_path=self.rss_seed_path,
-            newsnow_seed_path=self.newsnow_seed_path,
-        )
-        return self.save(data)
-
-    def enabled_rss_sources(self) -> list[dict[str, Any]]:
-        return enabled_rss_sources_data(self.load())
-
-    def enabled_newsnow_sources(self) -> list[dict[str, Any]]:
-        return enabled_newsnow_sources_data(self.load())
+    def _query(self, query: Callable[[dict[str, Any]], T]) -> T:
+        return query(self.load())
 
 
 def runtime_config_store(project_root: Path) -> RuntimeConfigStore:
