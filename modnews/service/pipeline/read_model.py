@@ -64,6 +64,7 @@ def build_task_list_item(project_root: Path, queue: EventQueue, task: TaskEvent)
     payload["latest_checkpoint"] = checkpoints[-1] if checkpoints else None
     payload["artifact_count"] = len(collect_artifacts(result, checkpoints))
     payload["dependent_count"] = len(queue.dependents_of(task.id))
+    payload["child_count"] = len(queue.children_of(task.id))
     payload["domain_view"] = build_domain_view(task, result, checkpoints)
     return payload
 
@@ -80,6 +81,10 @@ def build_task_detail(project_root: Path, queue: EventQueue, task_id: str) -> di
     task_payload["dependents"] = [
         task_summary(queue, dependent, include_result=False)
         for dependent in queue.dependents_of(task_id)
+    ]
+    task_payload["children"] = [
+        task_summary(queue, child, include_result=False)
+        for child in queue.children_of(task_id)
     ]
     task_payload["domain_view"] = build_domain_view(task, result, checkpoints)
     return task_payload

@@ -23,6 +23,8 @@ class TaskEvent:
     type: str
     pipeline_run_id: str | None = None
     step_id: str | None = None
+    parent_task_id: str | None = None
+    task_group_id: str | None = None
     payload: dict[str, Any] = field(default_factory=dict)
     concurrency_key: str | None = None
     max_concurrency: int | None = None
@@ -50,6 +52,8 @@ class TaskEvent:
             type=str(raw["type"]),
             pipeline_run_id=str(raw["pipeline_run_id"]) if raw.get("pipeline_run_id") is not None else None,
             step_id=str(raw["step_id"]) if raw.get("step_id") is not None else None,
+            parent_task_id=str(raw["parent_task_id"]) if raw.get("parent_task_id") is not None else None,
+            task_group_id=str(raw["task_group_id"]) if raw.get("task_group_id") is not None else None,
             payload=dict(raw.get("payload") or {}),
             concurrency_key=str(raw["concurrency_key"]) if raw.get("concurrency_key") is not None else None,
             max_concurrency=int(raw["max_concurrency"]) if raw.get("max_concurrency") is not None else None,

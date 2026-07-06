@@ -94,6 +94,8 @@ class EventQueueBatchExecutionBackend:
             type=str(metadata.queue_task_type),
             pipeline_run_id=self.run_id or (self.base_task.pipeline_run_id if self.base_task is not None else None),
             step_id=self.step_id or metadata.labels.get("stage") or metadata.task_type,
+            parent_task_id=self.base_task.id if self.base_task is not None else None,
+            task_group_id=group_id,
             payload=payload,
             concurrency_key=metadata.concurrency_key,
             max_concurrency=metadata.max_concurrency,

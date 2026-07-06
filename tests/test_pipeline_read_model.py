@@ -109,6 +109,7 @@ class PipelineReadModelTest(unittest.TestCase):
 
             self.assertEqual(task["checkpoint_count"], 1)
             self.assertEqual(task["dependent_count"], 1)
+            self.assertEqual(task["child_count"], 0)
             self.assertEqual(task["domain_view"]["kind"], "report")
             self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(task["priority"], 20)
@@ -267,9 +268,37 @@ class PipelineReadModelTest(unittest.TestCase):
 
             self.assertEqual(result["domain_view"]["kind"], "task")
             self.assertEqual([item["id"] for item in result["dependents"]], ["task-2"])
+            self.assertEqual(result["children"], [])
             self.assertEqual(result["checkpoints"][0]["task_id"], "task-1")
             self.assertEqual(result["checkpoints"][0]["output_artifacts"][0]["name"], "items")
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
+
+    def test_queue_show_exposes_child_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="parent-1",
+                    type="classify.clustered_event_extraction",
+                    pipeline_run_id="run-1",
+                    step_id="classify/clustered_event_extraction",
+                )
+            )
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="child-1",
+                    type="classify.embedding",
+                    pipeline_run_id="run-1",
+                    step_id="classify/clustered_event_extraction",
+                    parent_task_id="parent-1",
+                    task_group_id="group-1",
+                )
+            )
+
+            result = client.queue_show("parent-1")
+
+            self.assertEqual([item["id"] for item in result["children"]], ["child-1"])
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

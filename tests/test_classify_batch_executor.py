@@ -306,6 +306,8 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual(task.recovery_policy, "fail_running")
         self.assertEqual(task.max_attempts, 3)
         self.assertEqual(task.retry_backoff_seconds, 45)
+        self.assertEqual(task.parent_task_id, "classify-parent-1")
+        self.assertIsNotNone(task.task_group_id)
         self.assertEqual(task.payload["parent_task_id"], "classify-parent-1")
         self.assertEqual(task.payload["parent_task_type"], "classify.clustered_event_extraction")
 

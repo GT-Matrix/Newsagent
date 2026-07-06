@@ -268,6 +268,10 @@ class EventQueue:
         with self._lock:
             return [task for task in self._tasks.values() if task_id in task.depends_on]
 
+    def children_of(self, task_id: str) -> list[TaskEvent]:
+        with self._lock:
+            return [task for task in self._tasks.values() if task.parent_task_id == task_id]
+
     def status(self) -> dict[str, int]:
         with self._lock:
             return status_counts(self._tasks)
