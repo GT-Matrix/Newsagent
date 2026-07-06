@@ -7,9 +7,41 @@ from pathlib import Path
 
 from modnews.cli.local_client import LocalClient
 from modnews.core.task import TaskEvent
+from modnews.service.pipeline.query_facade import PipelineQueryFacade
 
 
 class PipelineReadModelTest(unittest.TestCase):
+    def test_pipeline_query_facade_exposes_run_and_task_views(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.runs().create("run-1", {"source": "test"})
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    step_id="ingest/rss",
+                    state="succeeded",
+                    payload={"project_root": tmp, "run_id": "run-1"},
+                )
+            )
+            facade = PipelineQueryFacade(
+                project_root,
+                client.container.event_queue,
+                client.container.pipeline_manager.describe_steps(),
+            )
+
+            run_item = facade.run_list_item(client.container.runs().get("run-1"))
+            task_item = facade.task_list_item(client.container.event_queue.get("task-1"))
+            run_detail = facade.run_detail("run-1")
+            task_detail = facade.task_detail("task-1")
+
+            self.assertEqual(run_item["run_id"], "run-1")
+            self.assertEqual(task_item["id"], "task-1")
+            self.assertEqual(run_detail["run"]["run_id"], "run-1")
+            self.assertEqual(task_detail["id"], "task-1")
+
     def test_run_list_returns_frontend_ready_summaries(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)

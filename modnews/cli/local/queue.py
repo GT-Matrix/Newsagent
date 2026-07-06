@@ -3,10 +3,17 @@ from __future__ import annotations
 from typing import Any
 
 from modnews.core.task import TaskEvent
-from modnews.service.pipeline.read_model import build_task_detail, build_task_list_item
+from modnews.service.pipeline.query_facade import PipelineQueryFacade
 
 
 class QueueLocalMixin:
+    def _pipeline_queries(self) -> PipelineQueryFacade:
+        return PipelineQueryFacade(
+            self.project_root,
+            self.container.event_queue,
+            self.container.pipeline_manager.describe_steps(),
+        )
+
     def queue_status(self) -> dict[str, Any]:
         snapshot = self.container.queue_state().load()
         waiting_groups = self.container.event_queue.waiting_groups()
@@ -30,10 +37,11 @@ class QueueLocalMixin:
         }
 
     def queue_list(self, states: set[str] | None = None) -> list[dict[str, Any]]:
-        return [build_task_list_item(self.project_root, self.container.event_queue, task) for task in self.container.event_queue.list(states)]
+        queries = self._pipeline_queries()
+        return [queries.task_list_item(task) for task in self.container.event_queue.list(states)]
 
     def queue_show(self, task_id: str) -> dict[str, Any]:
-        return build_task_detail(self.project_root, self.container.event_queue, task_id)
+        return self._pipeline_queries().task_detail(task_id)
 
     def queue_echo(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         task = TaskEvent(id=task_id, type="diagnostic.echo", payload=payload)
@@ -42,7 +50,8 @@ class QueueLocalMixin:
 
     def queue_drain(self, limit: int | None = None) -> dict[str, Any]:
         ran = self.container.event_queue.drain_ready(limit=limit)
-        items = [build_task_list_item(self.project_root, self.container.event_queue, task) for task in ran]
+        queries = self._pipeline_queries()
+        items = [queries.task_list_item(task) for task in ran]
         return {
             "ok": True,
             "items": items,

@@ -5,11 +5,18 @@ from typing import Any
 
 from modnews.repository.runs import RunRepository
 from modnews.core.progress import BUS, emit
-from modnews.service.pipeline.read_model import build_run_detail, build_run_list_item
+from modnews.service.pipeline.query_facade import PipelineQueryFacade
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
 
 
 class RunsLocalMixin:
+    def _pipeline_queries(self) -> PipelineQueryFacade:
+        return PipelineQueryFacade(
+            self.project_root,
+            self.container.event_queue,
+            self.container.pipeline_manager.describe_steps(),
+        )
+
     def run_start(self, payload: dict[str, Any]) -> dict[str, Any]:
         run_id = str(payload.get("run_id") or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-main")
         runs = RunRepository(self.project_root)
@@ -48,25 +55,15 @@ class RunsLocalMixin:
         return {"ok": ok, "run": run_record, "tasks": tasks}
 
     def run_list(self) -> list[dict[str, Any]]:
-        descriptors = self.container.pipeline_manager.describe_steps()
+        queries = self._pipeline_queries()
         return [
-            build_run_list_item(
-                self.project_root,
-                self.container.event_queue,
-                record,
-                pipeline_descriptors=descriptors,
-            )
+            queries.run_list_item(record)
             for record in RunRepository(self.project_root).list()
         ]
 
     def run_status(self, run_id: str | None = None) -> dict[str, Any]:
         if run_id:
-            return build_run_detail(
-                self.project_root,
-                self.container.event_queue,
-                run_id,
-                pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
-            )
+            return self._pipeline_queries().run_detail(run_id)
         return {"runs": self.run_list(), "state": self.state()}
 
     def run_resume(self, run_id: str) -> dict[str, Any]:
