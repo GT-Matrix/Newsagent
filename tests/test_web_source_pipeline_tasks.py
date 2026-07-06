@@ -17,6 +17,7 @@ from modnews.repository.source_config import SourceConfigRepository
 from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
+from modnews.service.ingest.queue_runtime import submit_ingest_step_run
 from modnews.service.ingest.planner import plan_ingest_tasks
 from modnews.service.ingest.steps.site_lists import SiteListsStep
 from modnews.service.extraction.tasks import run_web_source_task
@@ -24,6 +25,43 @@ from modnews.service.ingest.tasks import run_ingest_step_task
 
 
 class WebSourcePipelineTasksTest(unittest.TestCase):
+    def test_submit_ingest_step_run_uses_planned_site_list_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            repo = SourceConfigRepository(project_root)
+            repo.upsert_site(
+                "site-1",
+                {
+                    "url": "https://example.com/1",
+                    "name": "Site 1",
+                    "extractor_id": "extractor-1",
+                    "enabled": True,
+                },
+            )
+            captured = []
+
+            def execute(task):
+                captured.append(task)
+                return {"job": {"id": task.id, "source_id": task.payload["source_id"]}}
+
+            client.container.event_queue.register_executor("web_source.run", execute)
+
+            result = submit_ingest_step_run(
+                project_root=project_root,
+                queue=client.container.event_queue,
+                queue_show=client.queue_show,
+                step_id="site_lists",
+                run_id="run-1",
+                options={"sites": ["site-1"]},
+                pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
+            )
+
+            self.assertTrue(result["ok"])
+            self.assertEqual([task.type for task in captured], ["web_source.run"])
+            self.assertEqual(result["run_id"], "run-1")
+            self.assertEqual(result["tasks"][0]["payload"]["source_id"], "site-1")
+
     def test_plan_ingest_tasks_delegates_site_lists_expansion_to_step(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
