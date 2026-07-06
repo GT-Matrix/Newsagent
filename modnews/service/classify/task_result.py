@@ -53,6 +53,22 @@ def build_classify_task_snapshot(
     )
 
 
+def publish_fixed_classify_outputs(
+    *,
+    config: ClassificationConfig,
+    run_result: ClassifyRunResult,
+    checkpoint_meta: dict[str, object] | None = None,
+) -> None:
+    state = run_result.state
+    write_outputs(
+        config,
+        state.items,
+        state.event_records,
+        state.discarded,
+        checkpoint_meta if checkpoint_meta is not None else build_classify_checkpoint_meta(run_result),
+    )
+
+
 def persist_classify_task_result(
     *,
     project_root: Path,
@@ -77,7 +93,11 @@ def persist_classify_task_result(
         snapshot.checkpoint_meta,
     )
     if bool(task.payload.get("write_fixed_outputs")):
-        write_outputs(config, state.items, state.event_records, state.discarded, snapshot.checkpoint_meta)
+        publish_fixed_classify_outputs(
+            config=config,
+            run_result=run_result,
+            checkpoint_meta=snapshot.checkpoint_meta,
+        )
     checkpoint_payload = {
         "run_id": run_id,
         "step_id": snapshot.step_id,

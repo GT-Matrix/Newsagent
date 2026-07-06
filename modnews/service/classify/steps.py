@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from .checkpoint import build_checkpoint_meta, write_outputs
+from .checkpoint import build_checkpoint_meta
 from .clustered_extract import extract_events_from_title_clusters
 from .clustered_merge import merge_event_clusters
 from .runner import ClassifyRuntime, ClassifyStep, ClassifyStepResult
@@ -106,7 +106,8 @@ def _apply_clustered_event_merge(state: ClassifyState, runtime: ClassifyRuntime)
 
 
 def _complete_step_result(state: ClassifyState, runtime: ClassifyRuntime, *, next_stage: str) -> ClassifyStepResult:
-    result = ClassifyStepResult(
+    del runtime
+    return ClassifyStepResult(
         state=state,
         next_stage=next_stage,
         checkpoint_meta=build_checkpoint_meta(
@@ -127,9 +128,6 @@ def _complete_step_result(state: ClassifyState, runtime: ClassifyRuntime, *, nex
             "merged_event_count": state.merged_event_count,
         },
     )
-    if runtime.write_fixed_outputs:
-        write_outputs(runtime.config, state.items, state.event_records, state.discarded, result.checkpoint_meta)
-    return result
 
 
 REGISTERED_CLASSIFY_STEP_SPECS: tuple[ClassifyStepSpec, ...] = (

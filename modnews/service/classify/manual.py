@@ -13,6 +13,7 @@ from .runtime_build import (
 )
 from .step_observer import EmittingClassifyStepObserver
 from .steps import get_registered_classify_flow
+from .task_result import publish_fixed_classify_outputs
 
 
 def run_classification(
@@ -37,6 +38,8 @@ def run_classification(
         observer=EmittingClassifyStepObserver(),
     ).run(state, runtime)
     state = run_result.state
+    if bool(getattr(runtime, "write_fixed_outputs", False)):
+        publish_fixed_classify_outputs(config=config, run_result=run_result)
 
     return state.items, state.event_records, build_classify_step_result(
         config=config,
