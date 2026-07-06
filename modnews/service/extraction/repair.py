@@ -21,9 +21,7 @@ class RepairManager:
         return self.store.list_tasks()
 
     def get_task(self, task_id: str) -> dict[str, Any]:
-        task = self._load_task(task_id).to_dict()
-        task["log_tail"] = self.read_log(task_id)
-        return task
+        return self.store.get_task_dict(task_id)
 
     def delete_task(self, task_id: str) -> None:
         self.store.delete_task(task_id)
@@ -44,13 +42,6 @@ class RepairManager:
         task.updated_at = now()
         self._save_task(task)
         return task
-
-    def read_log(self, task_id: str, max_chars: int = 40000) -> str:
-        task = self._load_task(task_id)
-        if task.log_path.exists():
-            text = task.log_path.read_text(encoding="utf-8", errors="replace")
-            return text[-max_chars:]
-        return ""
 
     def create_task(
         self,

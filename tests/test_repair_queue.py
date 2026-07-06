@@ -41,6 +41,21 @@ class RepairQueueTest(unittest.TestCase):
             self.assertIsNone(result["task"])
             self.assertEqual(result["item"]["status"], "queued")
 
+    def test_repair_task_detail_reads_log_tail_via_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            created = client.repair_create({"source_id": "source-1", "reason": "test repair", "auto_start": False})
+            task_id = created["item"]["id"]
+            log_path = Path(created["item"]["log_path"])
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            log_path.write_text("header\nbody line 1\nbody line 2\n", encoding="utf-8")
+
+            task = client.repair_task(task_id)
+
+            self.assertEqual(task["id"], task_id)
+            self.assertIn("body line 2", task["log_tail"])
+
 
 if __name__ == "__main__":
     unittest.main()

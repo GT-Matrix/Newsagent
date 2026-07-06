@@ -70,6 +70,19 @@ class RepairTaskStore:
                 return RepairTask.from_dict(raw)
         raise KeyError(task_id)
 
+    def get_task_dict(
+        self,
+        task_id: str,
+        *,
+        include_log_tail: bool = True,
+        max_log_chars: int = 40000,
+    ) -> dict[str, Any]:
+        task = self.get_task(task_id)
+        payload = task.to_dict()
+        if include_log_tail:
+            payload["log_tail"] = self.read_log(task, max_chars=max_log_chars)
+        return payload
+
     def save_task(self, task: RepairTask) -> None:
         with self._lock:
             write_json(task.work_dir / "task.json", task.to_dict())
@@ -78,6 +91,13 @@ class RepairTaskStore:
         task = self.get_task(task_id)
         if task.work_dir.exists():
             shutil.rmtree(task.work_dir)
+
+    def read_log(self, task: RepairTask | str, *, max_chars: int = 40000) -> str:
+        current = self.get_task(task) if isinstance(task, str) else task
+        if current.log_path.exists():
+            text = current.log_path.read_text(encoding="utf-8", errors="replace")
+            return text[-max_chars:]
+        return ""
 
 
 def read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
