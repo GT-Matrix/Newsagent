@@ -30,6 +30,8 @@ class RunControlTest(unittest.TestCase):
             self.assertNotIn("classify.clustered_event_extraction", task_types)
             self.assertNotIn("report.generate", task_types)
             self.assertTrue(result["run"]["steps"])
+            self.assertTrue(result["run"]["pipeline_steps"])
+            self.assertEqual(result["run"]["pipeline_steps"][0]["step_id"], "pipeline_ingest")
             self.assertTrue(all(not step["step_id"].startswith("pipeline/") for step in result["run"]["steps"]))
 
     def test_pipeline_callbacks_register_followup_tasks_incrementally(self) -> None:
@@ -220,6 +222,8 @@ class RunControlTest(unittest.TestCase):
             callback_step = next(step for step in run["steps"] if step["step_id"] == "skip_blocked")
             self.assertEqual(callback_step["callback_events"][-1]["handler"], "on_task_blocked")
             self.assertEqual(callback_step["callback_events"][-1]["decisions"][-1]["action"], "skip_blocked_task")
+            pipeline_callback_step = next(step for step in run["pipeline_steps"] if step["step_id"] == "skip_blocked")
+            self.assertEqual(pipeline_callback_step["callback_events"][-1]["handler"], "on_task_blocked")
 
 
 if __name__ == "__main__":

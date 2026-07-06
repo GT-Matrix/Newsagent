@@ -8,13 +8,28 @@ from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.read_model_support import build_pipeline_step_views
+from modnews.service.pipeline.step import PipelineFollowupDescriptor, PipelineStepDescriptor
 
 
-def initialize_run_state(project_root: Path, run_id: str, tasks: list[TaskEvent]) -> dict[str, Any]:
+def initialize_run_state(
+    project_root: Path,
+    run_id: str,
+    tasks: list[TaskEvent],
+    *,
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
+) -> dict[str, Any]:
     record = RunRepository(project_root).get(run_id)
+    checkpoints = _load_checkpoints(project_root, run_id)
+    step_snapshots = _build_step_snapshots(tasks, checkpoints)
     updates = {
         "task_ids": [task.id for task in tasks],
-        "steps": _build_step_snapshots(tasks, _load_checkpoints(project_root, run_id)),
+        "steps": step_snapshots,
+        "pipeline_steps": _build_pipeline_step_snapshots(
+            step_snapshots,
+            descriptors=pipeline_descriptors or _restore_pipeline_descriptors(record.get("pipeline_steps")),
+            existing=record.get("pipeline_steps"),
+        ),
     }
     return RunRepository(project_root).update(run_id, **updates)
 
@@ -26,6 +41,7 @@ def sync_run_state(
     *,
     override_state: str | None = None,
     extra_updates: dict[str, Any] | None = None,
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
 ) -> dict[str, Any] | None:
     runs = RunRepository(project_root)
     try:
@@ -34,9 +50,15 @@ def sync_run_state(
         return None
     run_tasks = [item for item in queue.list() if item.pipeline_run_id == run_id]
     checkpoints = _load_checkpoints(project_root, run_id)
+    step_snapshots = _build_step_snapshots(run_tasks, checkpoints, existing=record.get("steps"))
     updates = {
         "state": override_state or _derive_run_state(run_tasks, fallback=str(record.get("state") or "queued")),
-        "steps": _build_step_snapshots(run_tasks, checkpoints, existing=record.get("steps")),
+        "steps": step_snapshots,
+        "pipeline_steps": _build_pipeline_step_snapshots(
+            step_snapshots,
+            descriptors=pipeline_descriptors or _restore_pipeline_descriptors(record.get("pipeline_steps")),
+            existing=record.get("pipeline_steps"),
+        ),
         "task_ids": [task.id for task in run_tasks] or list(record.get("task_ids", [])),
     }
     if extra_updates:
@@ -68,10 +90,12 @@ def append_step_callback_events(project_root: Path, run_id: str, callback_events
         history = list(step.get("callback_events", [])) if isinstance(step.get("callback_events"), list) else []
         history.append(callback)
         step["callback_events"] = history[-50:]
+    pipeline_steps = _merge_pipeline_callback_events(record.get("pipeline_steps"), callback_events)
     return runs.update(
         run_id,
         step_callback_events=merged_events,
         steps=sorted(step_map.values(), key=lambda item: str(item.get("step_id") or "")),
+        pipeline_steps=pipeline_steps,
     )
 
 
@@ -213,3 +237,79 @@ def _load_checkpoints(project_root: Path, run_id: str) -> list[dict[str, Any]]:
         for checkpoint in CheckpointRepository(project_root).list(run_id)
         if str(checkpoint.get("run_id") or run_id) == run_id
     ]
+
+
+def _build_pipeline_step_snapshots(
+    step_snapshots: list[dict[str, Any]],
+    *,
+    descriptors: list[PipelineStepDescriptor],
+    existing: Any = None,
+) -> list[dict[str, Any]]:
+    if not descriptors:
+        return list(existing) if isinstance(existing, list) else []
+    pipeline_steps = build_pipeline_step_views(descriptors, step_snapshots)
+    existing_by_step = {
+        str(item.get("step_id")): item
+        for item in existing
+        if isinstance(item, dict) and item.get("step_id")
+    } if isinstance(existing, list) else {}
+    for step in pipeline_steps:
+        previous = existing_by_step.get(str(step.get("step_id") or ""), {})
+        if step.get("callback_events"):
+            continue
+        if isinstance(previous.get("callback_events"), list):
+            step["callback_events"] = list(previous.get("callback_events", []))
+    return pipeline_steps
+
+
+def _restore_pipeline_descriptors(value: Any) -> list[PipelineStepDescriptor]:
+    if not isinstance(value, list):
+        return []
+    rows: list[PipelineStepDescriptor] = []
+    for item in value:
+        if not isinstance(item, dict) or not item.get("step_id"):
+            continue
+        followups = []
+        for followup in item.get("followups", []):
+            if not isinstance(followup, dict):
+                continue
+            followups.append(
+                PipelineFollowupDescriptor(
+                    trigger=str(followup.get("trigger") or ""),
+                    builder_id=str(followup.get("builder_id") or ""),
+                    task_type=str(followup["task_type"]) if followup.get("task_type") is not None else None,
+                    step_prefix=str(followup["step_prefix"]) if followup.get("step_prefix") is not None else None,
+                )
+            )
+        rows.append(
+            PipelineStepDescriptor(
+                step_id=str(item.get("step_id") or ""),
+                title=str(item.get("title") or item.get("step_id") or ""),
+                group=str(item.get("group") or "pipeline"),
+                kind=str(item.get("kind") or "root"),
+                description=str(item["description"]) if item.get("description") is not None else None,
+                depends_on=tuple(str(dep) for dep in item.get("depends_on", []) if dep),
+                callback_handlers=tuple(str(handler) for handler in item.get("callback_handlers", []) if handler),
+                followups=tuple(followups),
+                concrete_step_ids=tuple(str(step_id) for step_id in item.get("concrete_step_ids", []) if step_id),
+                concrete_step_prefixes=tuple(str(prefix) for prefix in item.get("concrete_step_prefixes", []) if prefix),
+            )
+        )
+    return rows
+
+
+def _merge_pipeline_callback_events(existing: Any, callback_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    step_map = {
+        str(step.get("step_id")): dict(step)
+        for step in existing
+        if isinstance(step, dict) and step.get("step_id")
+    } if isinstance(existing, list) else {}
+    for callback in callback_events:
+        step_id = str(callback.get("step_id") or "")
+        if not step_id:
+            continue
+        step = step_map.setdefault(step_id, {"step_id": step_id})
+        history = list(step.get("callback_events", [])) if isinstance(step.get("callback_events"), list) else []
+        history.append(callback)
+        step["callback_events"] = history[-50:]
+    return sorted(step_map.values(), key=lambda item: str(item.get("step_id") or ""))

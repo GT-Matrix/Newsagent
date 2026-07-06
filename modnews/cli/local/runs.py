@@ -13,6 +13,7 @@ class RunsLocalMixin:
     def run_start(self, payload: dict[str, Any]) -> dict[str, Any]:
         run_id = str(payload.get("run_id") or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-main")
         runs = RunRepository(self.project_root)
+        descriptors = self.container.pipeline_manager.describe_steps()
         runs.create(run_id, payload)
         request = {
             "project_root": str(self.project_root),
@@ -27,6 +28,7 @@ class RunsLocalMixin:
             self.project_root,
             run_id,
             [self.container.event_queue.get(task["id"]) for task in planned["registered_tasks"]],
+            pipeline_descriptors=descriptors,
         )
         runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
         if payload.get("background", True):
@@ -76,7 +78,13 @@ class RunsLocalMixin:
         state = "running" if remaining else record.get("state", "queued")
         if state in {"queued", "cancelled"}:
             state = "queued"
-        sync_run_state(self.project_root, self.container.event_queue, run_id, override_state=state)
+        sync_run_state(
+            self.project_root,
+            self.container.event_queue,
+            run_id,
+            override_state=state,
+            pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
+        )
         return {"ok": True, "run": runs.get(run_id), "before": before, "tasks": after}
 
     def run_cancel(self, run_id: str, reason: str = "cancelled by user") -> dict[str, Any]:
@@ -98,6 +106,7 @@ class RunsLocalMixin:
             run_id,
             override_state="cancelled",
             extra_updates={"cancel_reason": reason},
+            pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
         )
         return {"ok": True, "run": runs.get(run_id), "cancelled_tasks": cancelled, "skipped_tasks": skipped}
 
