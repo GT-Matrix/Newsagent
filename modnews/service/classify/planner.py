@@ -6,6 +6,10 @@ from pathlib import Path
 from modnews.core.task import TaskEvent
 
 
+def resolve_clustered_classify_run_id(run_id: str | None) -> str:
+    return run_id or f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+
+
 def build_clustered_event_extraction_task(
     *,
     project_root: Path,
@@ -63,7 +67,7 @@ def plan_clustered_classify_tasks(
     input_path: str | None,
     config: str | None = None,
 ) -> list[TaskEvent]:
-    task_run_id = run_id or f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    task_run_id = resolve_clustered_classify_run_id(run_id)
     extraction_task = build_clustered_event_extraction_task(
         project_root=project_root,
         run_id=task_run_id,

@@ -55,6 +55,31 @@ class ClassifyEntrypointTest(unittest.TestCase):
             self.assertEqual(response.get_json()["tasks"][1]["type"], "classify.clustered_event_merge")
             self.assertTrue(response.get_json()["run"]["steps"])
 
+    def test_manual_classify_followup_is_recorded_by_pipeline_step(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            client.container.event_queue.register_executor("classify.clustered_event_extraction", lambda _task: {"ok": True})
+            client.container.event_queue.register_executor("classify.clustered_event_merge", lambda _task: {"ok": True})
+            client.container.event_queue.register_executor("report.generate", lambda _task: {"ok": True})
+
+            result = run_classify(
+                None,
+                client,
+                argparse.Namespace(input="input.json", run_id="run-1"),
+            )
+
+            callback_steps = {
+                step["step_id"]: step
+                for step in result["run"]["steps"]
+                if step.get("callback_events")
+            }
+            self.assertIn("pipeline_classify", callback_steps)
+            classify_callback = callback_steps["pipeline_classify"]["callback_events"][-1]
+            self.assertEqual(classify_callback["event_task_type"], "classify.clustered_event_extraction")
+            self.assertEqual(classify_callback["decisions"][-1]["trigger"], "classify_extraction_completed")
+            self.assertEqual(classify_callback["decisions"][-1]["task_type"], "classify.clustered_event_merge")
+
 
 if __name__ == "__main__":
     unittest.main()

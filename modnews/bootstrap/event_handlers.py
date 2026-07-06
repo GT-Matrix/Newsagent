@@ -10,7 +10,6 @@ from modnews.service.classify.task_execution import (
     run_clustered_event_extraction_task,
     run_clustered_event_merge_task,
 )
-from modnews.service.classify.planner import build_clustered_event_merge_task
 from modnews.service.classify.batch_tasks import (
     run_clustered_event_extraction_batch_item,
     run_clustered_event_merge_batch_item,
@@ -34,7 +33,6 @@ from modnews.service.pipeline.manager import PipelineManager
 
 def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline_manager: PipelineManager) -> None:
     registry.register("task.completed", _auto_publish_checkpoint)
-    registry.register("task.completed", _auto_schedule_classify_followup(pipeline_manager.event_queue))
     registry.register("task.completed", pipeline_manager.on_task_completed)
     registry.register("task.failed", pipeline_manager.on_task_failed)
     registry.register("task.blocked", pipeline_manager.on_task_blocked)
@@ -125,44 +123,6 @@ def _auto_queue_blocked_web_source_repair(queue: EventQueue | None):
         return None
 
     return callback
-
-
-def _auto_schedule_classify_followup(queue: EventQueue | None):
-    def callback(event: dict[str, object]) -> dict[str, object] | None:
-        if queue is None:
-            return None
-        task = event.get("task")
-        if not isinstance(task, dict):
-            return None
-        if task.get("type") != "classify.clustered_event_extraction":
-            return None
-        run_id = str(task.get("pipeline_run_id") or "")
-        payload = task.get("payload", {}) if isinstance(task.get("payload"), dict) else {}
-        if not run_id:
-            return None
-        merge_id = f"classify-{run_id}-clustered-event-merge"
-        if any(existing.id == merge_id for existing in queue.list()):
-            return None
-        project_root = Path(str(payload.get("project_root") or Path.cwd())).resolve()
-        merge_task = build_clustered_event_merge_task(
-            project_root=project_root,
-            run_id=run_id,
-            input_path=payload.get("input_path") if isinstance(payload.get("input_path"), str) else None,
-            config=payload.get("config") if isinstance(payload.get("config"), str) else None,
-            depends_on=[str(task.get("id") or "")],
-        )
-        queue.register(merge_task)
-        return {
-            "classify_followup": {
-                "action": "register_task",
-                "task_id": merge_task.id,
-                "task_type": merge_task.type,
-                "depends_on": list(merge_task.depends_on),
-            }
-        }
-
-    return callback
-
 
 def _has_repair_queue_task(queue: EventQueue, repair_task_id: str) -> bool:
     return any(

@@ -5,7 +5,10 @@ from typing import Any
 
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
-from modnews.service.classify.planner import build_clustered_event_extraction_task, plan_clustered_classify_tasks
+from modnews.service.classify.planner import (
+    build_clustered_event_extraction_task,
+    resolve_clustered_classify_run_id,
+)
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
 
 
@@ -18,13 +21,7 @@ def run_classify_tasks(
     input_path: str | None,
     config: str | None = None,
 ) -> dict[str, Any]:
-    planned = plan_clustered_classify_tasks(
-        project_root=project_root,
-        run_id=run_id,
-        input_path=input_path,
-        config=config,
-    )
-    task_run_id = planned[0].pipeline_run_id if planned else (run_id or "classify")
+    task_run_id = resolve_clustered_classify_run_id(run_id)
     extraction_task = build_clustered_event_extraction_task(
         project_root=project_root,
         run_id=str(task_run_id),
