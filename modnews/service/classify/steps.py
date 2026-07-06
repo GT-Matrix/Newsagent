@@ -38,21 +38,6 @@ class DeclaredClassifyStep:
         return _complete_step_result(state, runtime, next_stage=self.spec.output_stage)
 
 
-class StartCheckpointStep(DeclaredClassifyStep):
-    def __init__(self) -> None:
-        self.spec = get_registered_classify_step_spec("start_checkpoint")
-
-
-class ClusteredEventExtractionStep(DeclaredClassifyStep):
-    def __init__(self) -> None:
-        self.spec = get_registered_classify_step_spec("clustered_event_extraction")
-
-
-class ClusteredEventMergeStep(DeclaredClassifyStep):
-    def __init__(self) -> None:
-        self.spec = get_registered_classify_step_spec("clustered_event_merge")
-
-
 @dataclass(frozen=True, slots=True)
 class RegisteredClassifyFlow:
     name: str
@@ -60,18 +45,6 @@ class RegisteredClassifyFlow:
 
     def build_steps(self) -> list[ClassifyStep]:
         return build_registered_classify_steps(*self.step_names)
-
-
-def build_full_classify_steps() -> list[ClassifyStep]:
-    return get_registered_classify_flow("full").build_steps()
-
-
-def build_extraction_task_steps() -> list[ClassifyStep]:
-    return get_registered_classify_flow("clustered_event_extraction_task").build_steps()
-
-
-def build_merge_task_steps() -> list[ClassifyStep]:
-    return get_registered_classify_flow("clustered_event_merge_task").build_steps()
 
 
 def build_registered_classify_steps(*step_names: str) -> list[ClassifyStep]:

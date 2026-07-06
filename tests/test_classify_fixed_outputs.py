@@ -15,17 +15,18 @@ from modnews.service.classify.retriever import EventVectorRetriever
 from modnews.service.classify.runner import ClassifyRuntime, ClassifyStepResult
 from modnews.service.classify.state import ClassifyState
 from modnews.service.classify.task_result import publish_fixed_classify_outputs
-from modnews.service.classify.steps import StartCheckpointStep
+from modnews.service.classify.steps import build_registered_classify_steps
 
 
 class ClassifyFixedOutputsTest(unittest.TestCase):
     def test_steps_no_longer_write_fixed_outputs_directly(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             runtime = self._runtime(Path(tmp), write_fixed_outputs=True)
+            step = build_registered_classify_steps("start_checkpoint")[0]
 
             with patch("modnews.service.classify.steps.build_checkpoint_meta") as checkpoint_meta:
                 checkpoint_meta.return_value = {"stage": "started"}
-                result = StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
+                result = step.run(ClassifyState(items=[], prepared=[]), runtime)
 
             checkpoint_meta.assert_called_once()
             self.assertIsInstance(result, ClassifyStepResult)
@@ -34,7 +35,8 @@ class ClassifyFixedOutputsTest(unittest.TestCase):
     def test_publish_fixed_outputs_uses_run_result_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             runtime = self._runtime(Path(tmp), write_fixed_outputs=True)
-            step_result = StartCheckpointStep().run(ClassifyState(items=[], prepared=[]), runtime)
+            step = build_registered_classify_steps("start_checkpoint")[0]
+            step_result = step.run(ClassifyState(items=[], prepared=[]), runtime)
             run_result = type("RunResult", (), {"state": step_result.state, "last_step_result": step_result})()
 
             with patch("modnews.service.classify.task_result.write_outputs") as write_outputs:
