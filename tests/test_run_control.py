@@ -9,7 +9,7 @@ from modnews.cli.local_client import LocalClient
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
-from modnews.service.pipeline.followups import FOLLOWUP_BUILDERS
+from modnews.service.pipeline.followups import FOLLOWUP_BUILDERS, REGISTERED_FOLLOWUP_BUILDER_BY_ID
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.service.pipeline.step import PipelineStepBase
 
@@ -122,6 +122,15 @@ class RunControlTest(unittest.TestCase):
             self.assertFalse(any(task.type == "report.generate" for task in client.container.event_queue.list()))
 
     def test_pipeline_followup_builders_are_registered_by_identifier(self) -> None:
+        self.assertEqual(
+            sorted(REGISTERED_FOLLOWUP_BUILDER_BY_ID),
+            [
+                "classify_extraction_after_combine",
+                "classify_merge_after_extraction",
+                "combine_ingest_for_run",
+                "report_after_classify_merge",
+            ],
+        )
         self.assertEqual(
             sorted(FOLLOWUP_BUILDERS),
             [

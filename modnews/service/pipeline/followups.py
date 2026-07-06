@@ -36,6 +36,12 @@ class FollowupRule:
         return True
 
 
+@dataclass(frozen=True, slots=True)
+class RegisteredFollowupBuilder:
+    builder_id: str
+    build: FollowupBuilder
+
+
 def register_followup_for_event(
     queue: EventQueue | None,
     event: dict[str, object],
@@ -47,8 +53,8 @@ def register_followup_for_event(
     for rule in rules:
         if not rule.matches(task):
             continue
-        builder = FOLLOWUP_BUILDERS[rule.builder_id]
-        followup = builder(queue, event, task)
+        builder = get_registered_followup_builder(rule.builder_id)
+        followup = builder.build(queue, event, task)
         if followup is None:
             return []
         return register_task(queue, followup, trigger=rule.trigger)
@@ -198,9 +204,35 @@ def build_report_followup(
     )
 
 
-FOLLOWUP_BUILDERS: dict[str, FollowupBuilder] = {
-    "combine_ingest_for_run": build_combine_ingest_followup,
-    "classify_extraction_after_combine": build_classify_extraction_followup,
-    "classify_merge_after_extraction": build_classify_merge_followup,
-    "report_after_classify_merge": build_report_followup,
+REGISTERED_FOLLOWUP_BUILDERS: tuple[RegisteredFollowupBuilder, ...] = (
+    RegisteredFollowupBuilder(
+        builder_id="combine_ingest_for_run",
+        build=build_combine_ingest_followup,
+    ),
+    RegisteredFollowupBuilder(
+        builder_id="classify_extraction_after_combine",
+        build=build_classify_extraction_followup,
+    ),
+    RegisteredFollowupBuilder(
+        builder_id="classify_merge_after_extraction",
+        build=build_classify_merge_followup,
+    ),
+    RegisteredFollowupBuilder(
+        builder_id="report_after_classify_merge",
+        build=build_report_followup,
+    ),
+)
+
+REGISTERED_FOLLOWUP_BUILDER_BY_ID: dict[str, RegisteredFollowupBuilder] = {
+    builder.builder_id: builder
+    for builder in REGISTERED_FOLLOWUP_BUILDERS
 }
+
+FOLLOWUP_BUILDERS: dict[str, FollowupBuilder] = {
+    builder.builder_id: builder.build
+    for builder in REGISTERED_FOLLOWUP_BUILDERS
+}
+
+
+def get_registered_followup_builder(builder_id: str) -> RegisteredFollowupBuilder:
+    return REGISTERED_FOLLOWUP_BUILDER_BY_ID[builder_id]
