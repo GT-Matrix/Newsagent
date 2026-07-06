@@ -105,6 +105,20 @@ def classification_enabled(config_path: str | None) -> bool:
     return bool(load_config(config_path).classification.enabled)
 
 
+def classification_enabled_for_run(project_root: str, run_id: str, config_path: str | None) -> bool:
+    if not classification_enabled(config_path):
+        return False
+    if not project_root or not run_id:
+        return False
+    record = RunRepository(Path(project_root)).get(run_id)
+    payload = record.get("payload")
+    if not isinstance(payload, dict):
+        return True
+    if bool(payload.get("disable_classification")):
+        return False
+    return True
+
+
 def report_enabled_for_run(project_root: str, run_id: str) -> bool:
     if not project_root or not run_id:
         return False
@@ -152,7 +166,7 @@ def build_classify_extraction_followup(
     if not run_id or not project_root:
         return None
     config_path = event_config_path(task)
-    if not classification_enabled(config_path):
+    if not classification_enabled_for_run(project_root, run_id, config_path):
         return None
     return build_classify_extraction_task(
         run_id=run_id,
@@ -172,7 +186,7 @@ def build_classify_merge_followup(
     if not run_id or not project_root:
         return None
     config_path = event_config_path(task)
-    if not classification_enabled(config_path):
+    if not classification_enabled_for_run(project_root, run_id, config_path):
         return None
     return build_classify_merge_task(
         run_id=run_id,
@@ -192,7 +206,7 @@ def build_report_followup(
     if not run_id or not project_root:
         return None
     config_path = event_config_path(task)
-    if not classification_enabled(config_path):
+    if not classification_enabled_for_run(project_root, run_id, config_path):
         return None
     if not report_enabled_for_run(project_root, run_id):
         return None

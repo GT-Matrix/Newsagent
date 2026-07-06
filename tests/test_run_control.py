@@ -121,6 +121,27 @@ class RunControlTest(unittest.TestCase):
 
             self.assertFalse(any(task.type == "report.generate" for task in client.container.event_queue.list()))
 
+    def test_pipeline_callbacks_skip_classify_followup_when_run_disables_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            RunRepository(project_root).create("run-1", {"disable_classification": True})
+
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="combine-1",
+                    type="pipeline.combine_ingest",
+                    pipeline_run_id="run-1",
+                    step_id="pipeline/combine_ingest",
+                    state="succeeded",
+                    payload={"project_root": tmp, "run_id": "run-1"},
+                )
+            )
+
+            client.container.pipeline_manager.on_task_completed({"task": client.container.event_queue.get("combine-1").to_dict(), "result": {}})
+
+            self.assertFalse(any(task.type == "classify.clustered_event_extraction" for task in client.container.event_queue.list()))
+
     def test_pipeline_followup_builders_are_registered_by_identifier(self) -> None:
         self.assertEqual(
             sorted(REGISTERED_FOLLOWUP_BUILDER_BY_ID),
