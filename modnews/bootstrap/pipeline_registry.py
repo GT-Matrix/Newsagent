@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from modnews.service.ingest.registry import default_ingest_registry
 from modnews.service.pipeline.manager import PipelineManager
-from modnews.service.pipeline.planner import (
+from modnews.service.pipeline.steps import (
     ClassifyPipelineStep,
     CombineIngestPipelineStep,
     IngestPipelineStep,
