@@ -7,6 +7,7 @@ from pathlib import Path
 from modnews.repository.runtime_config_repository import RuntimeConfigRepository
 from modnews.cli.local_client import LocalClient
 from modnews.repository.runtime_config_facade import RuntimeConfigFacade
+from modnews.repository.runtime_sources_facade import RuntimeSourcesFacade
 from modnews.repository.source_config import SourceConfigRepository, SourceConfigStore, source_config_store
 
 
@@ -45,6 +46,23 @@ class SourceConfigRepositoryTest(unittest.TestCase):
             self.assertEqual(diagnostics["summary"]["total"], 1)
             self.assertEqual(diagnostics["items"][0]["id"], "site-1")
             self.assertEqual(updated["steps"]["site_lists"]["limit_per_site"], 7)
+
+    def test_runtime_sources_facade_wraps_source_crud_operations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            facade = RuntimeSourcesFacade(project_root)
+
+            facade.upsert_rss("example", {"url": "https://example.com/feed", "name": "Example", "enabled": True})
+            facade.upsert_site("site-1", {"url": "https://example.com", "name": "Site", "extractor_id": "extractor-1", "enabled": True})
+            rss_rows = facade.list("rss")
+            site_rows = facade.list("site_lists")
+            disabled = facade.disable_site("site-1")
+            deleted = facade.delete_rss("example")
+
+            self.assertEqual({row["id"] for row in rss_rows}, {"example"})
+            self.assertEqual({row["id"] for row in site_rows}, {"site-1"})
+            self.assertFalse(disabled["sources"]["site_lists"]["site-1"]["enabled"])
+            self.assertEqual(deleted["sources"]["rss"], [])
 
     def test_sources_repository_extends_runtime_config_repository(self) -> None:
         self.assertTrue(issubclass(SourceConfigRepository, RuntimeConfigRepository))

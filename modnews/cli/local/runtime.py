@@ -8,7 +8,7 @@ from modnews.core.env import ensure_runtime_env
 from modnews.core.progress import BUS, sse
 from modnews.repository.outputs import OutputRepository
 from modnews.repository.runtime_config_facade import RuntimeConfigFacade
-from modnews.repository.source_config import source_config_repository
+from modnews.repository.runtime_sources_facade import RuntimeSourcesFacade
 
 
 class RuntimeLocalMixin:
@@ -115,37 +115,37 @@ class RuntimeLocalMixin:
         return self._runtime_config().restore_builtins()
 
     def rss_update(self, items: list[dict[str, Any]]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).update_rss(items)
+        return self._runtime_sources().update_rss(items)
 
     def rss_update_item(self, source_id: str, row: dict[str, Any]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).upsert_rss(source_id, row)
+        return self._runtime_sources().upsert_rss(source_id, row)
 
     def rss_delete_item(self, source_id: str) -> dict[str, Any]:
-        return source_config_repository(self.project_root).delete_rss(source_id)
+        return self._runtime_sources().delete_rss(source_id)
 
     def newsnow_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).update_newsnow(source_id, patch)
+        return self._runtime_sources().update_newsnow(source_id, patch)
 
     def site_list_update_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return source_config_repository(self.project_root).upsert_site(source_id, patch)
+        return self._runtime_sources().upsert_site(source_id, patch)
 
     def site_list_delete_item(self, source_id: str) -> dict[str, Any]:
-        return source_config_repository(self.project_root).delete_site(source_id)
+        return self._runtime_sources().delete_site(source_id)
 
     def config_set(self, key_path: str, value: Any) -> dict[str, Any]:
         return self._runtime_config().set_value(key_path, value)
 
     def sources_list(self, source_type: str | None = None) -> list[dict[str, Any]]:
-        return source_config_repository(self.project_root).list(source_type)
+        return self._runtime_sources().list(source_type)
 
     def sources_rss_add(self, source_id: str, url: str, name: str | None = None, content_type: str = "news") -> dict[str, Any]:
-        return source_config_repository(self.project_root).upsert_rss(
+        return self._runtime_sources().upsert_rss(
             source_id,
             {"id": source_id, "url": url, "name": name or source_id, "enabled": True, "content_type": content_type},
         )
 
     def sources_rss_disable(self, source_id: str) -> dict[str, Any]:
-        return source_config_repository(self.project_root).disable_rss(source_id)
+        return self._runtime_sources().disable_rss(source_id)
 
     def sources_site_add(
         self,
@@ -156,7 +156,7 @@ class RuntimeLocalMixin:
         extractor_id: str | None = None,
         content_type: str = "news",
     ) -> dict[str, Any]:
-        return source_config_repository(self.project_root).upsert_site(
+        return self._runtime_sources().upsert_site(
             source_id,
             {
                 "id": source_id,
@@ -172,7 +172,10 @@ class RuntimeLocalMixin:
         return RuntimeConfigFacade(self.project_root)
 
     def sources_site_disable(self, source_id: str) -> dict[str, Any]:
-        return source_config_repository(self.project_root).disable_site(source_id)
+        return self._runtime_sources().disable_site(source_id)
 
     def sources_site_delete(self, source_id: str) -> dict[str, Any]:
-        return source_config_repository(self.project_root).delete_site(source_id)
+        return self._runtime_sources().delete_site(source_id)
+
+    def _runtime_sources(self) -> RuntimeSourcesFacade:
+        return RuntimeSourcesFacade(self.project_root)
