@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
 
 from modnews.core.progress import emit
+from modnews.core.task import TaskEvent
 
 from .batch_profile import BatchTaskProfile, run_profiled_batch
 from .llm_client import LlmClient
@@ -61,6 +62,41 @@ def run_llm_batch_stage(
         batch_indexes=list(range(1, len(batches) + 1)),
         batch_count=len(batches),
     )
+
+
+def run_llm_batch_task(
+    *,
+    client: LlmClient,
+    stage: LlmBatchStage[T],
+    task: TaskEvent,
+    payload: T,
+    request_event_key: str | None = None,
+) -> dict:
+    batch_index, batch_count = task_batch_progress(task)
+    return _run_single_llm_batch(
+        client=client,
+        stage=stage,
+        batch=payload,
+        batch_index=batch_index,
+        batch_count=batch_count,
+        build_payload=lambda batch: batch,
+        request_event_key=request_event_key or stage.payload_key,
+    )
+
+
+def task_batch_progress(task: TaskEvent) -> tuple[int, int]:
+    batch = task.payload.get("batch")
+    if isinstance(batch, dict):
+        batch_index = batch.get("batch_index")
+        batch_count = batch.get("batch_count")
+        if isinstance(batch_index, int) and isinstance(batch_count, int):
+            return batch_index, batch_count
+    if isinstance(batch, list) and batch and isinstance(batch[0], dict):
+        batch_index = batch[0].get("batch_index")
+        batch_count = batch[0].get("batch_count")
+        if isinstance(batch_index, int) and isinstance(batch_count, int):
+            return batch_index, batch_count
+    return 1, 1
 
 
 def _run_single_llm_batch(
