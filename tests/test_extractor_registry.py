@@ -5,12 +5,39 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from modnews.cli.local_client import LocalClient
 from modnews.service.extraction.contract import ExtractorRunInput
 from modnews.service.extraction.metadata import ExtractorMetadata, metadata_comment
+from modnews.service.extraction.query_facade import ExtractionQueryFacade
+from modnews.service.extraction.repair_runtime_facade import RepairRuntimeFacade
 from modnews.service.extraction.registry import ExtractorRegistry
 
 
 class ExtractorRegistryTest(unittest.TestCase):
+    def test_query_facade_lists_and_shows_extractor_related_records(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            self._write_extractor(project_root, "extractor-1", status="enabled")
+            client = LocalClient(project_root)
+            client.sources_site_add("site-1", "https://example.com", extractor_id="extractor-1")
+            client.repair_create({"source_id": "extractor-1", "reason": "test repair", "auto_start": False})
+            facade = ExtractionQueryFacade(
+                project_root=project_root,
+                repair_runtime=RepairRuntimeFacade(
+                    project_root=project_root,
+                    queue=client.container.event_queue,
+                    queue_show=client.queue_show,
+                ),
+            )
+
+            rows = facade.list_extractors()
+            detail = facade.show_extractor("extractor-1", config=client.config_show())
+
+            self.assertEqual([row["metadata"]["id"] for row in rows], ["extractor-1"])
+            self.assertEqual(detail["record"]["metadata"]["id"], "extractor-1")
+            self.assertEqual(detail["bound_sources"][0]["id"], "site-1")
+            self.assertEqual(detail["repair_tasks"][0]["source_id"], "extractor-1")
+
     def test_get_and_list_read_scanned_extractor_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
