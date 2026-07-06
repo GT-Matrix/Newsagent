@@ -23,7 +23,6 @@ def finish_failure(job: WebJob, source: WebSource, failure: ExtractorFailure, *,
         task = repair_manager.create_task(
             source.extractor_id or source.id,
             reason=reason,
-            auto_start=bool(source.repair_policy.get("auto_start", True)),
             source_metadata=source.to_dict(),
         )
         job.repair_task_id = task.id

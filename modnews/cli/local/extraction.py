@@ -82,7 +82,6 @@ class ExtractionLocalMixin:
         task = RepairManager(self.project_root, registry_from_project(self.project_root)).create_task(
             str(payload["source_id"]),
             reason=str(payload.get("reason") or "manual repair request"),
-            auto_start=False,
         )
         queue_task = None
         if bool(payload.get("auto_start", True)):

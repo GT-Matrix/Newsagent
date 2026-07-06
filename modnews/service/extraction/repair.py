@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import shutil
-import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -25,7 +24,6 @@ class RepairManager:
         self.project_root = project_root
         self.registry = registry
         self.tasks_root = runtime_paths(project_root).agent_work_dir / "extractors"
-        self._lock = threading.Lock()
         self.store = RepairTaskStore(self.tasks_root)
 
     def list_tasks(self) -> list[dict[str, Any]]:
@@ -64,7 +62,6 @@ class RepairManager:
         self,
         source_id: str,
         reason: str,
-        auto_start: bool = True,
         source_metadata: dict[str, Any] | None = None,
     ) -> RepairTask:
         try:
@@ -103,9 +100,6 @@ class RepairManager:
             result_path=result_path,
         )
         self._save_task(task)
-        if auto_start:
-            thread = threading.Thread(target=self.run_task, args=(task_id,), daemon=True)
-            thread.start()
         return task
 
     def run_task(self, task_id: str) -> None:

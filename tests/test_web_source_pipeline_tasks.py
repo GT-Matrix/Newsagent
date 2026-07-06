@@ -194,7 +194,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             project_root = Path(tmp)
             client = LocalClient(project_root)
             repair_manager = RepairManager(project_root, registry_from_project(project_root))
-            repair_item = repair_manager.create_task("site-1", reason="auto repair", auto_start=False)
+            repair_item = repair_manager.create_task("site-1", reason="auto repair")
 
             def blocked(_task: TaskEvent) -> dict[str, object]:
                 raise TaskBlocked(

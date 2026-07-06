@@ -68,7 +68,7 @@ def normalize_config(data: dict[str, Any], *, now: str, rss_row) -> dict[str, An
         row.setdefault("content_type", "news")
         row.setdefault("extractor_id", source_id)
         row.setdefault("tags", [])
-        row.setdefault("repair_policy", {"enabled": True, "max_attempts_before_repair": 3, "auto_start": True})
+        row.setdefault("repair_policy", {"enabled": True, "max_attempts_before_repair": 3})
     return config
 
 
