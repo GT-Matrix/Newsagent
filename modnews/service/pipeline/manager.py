@@ -7,7 +7,6 @@ from typing import Any
 from modnews.core.event_queue import EventQueue
 from modnews.core.events import EventRouter
 from modnews.core.task import TaskEvent
-from modnews.service.pipeline.callbacks import patch_completed_outputs
 from modnews.service.pipeline.run_state import update_run_state
 
 
@@ -41,8 +40,8 @@ class PipelineManager:
 
     def on_task_completed(self, event: dict[str, Any]) -> None:
         if self.event_queue:
-            patch_completed_outputs(self.event_queue, event)
             update_run_state(self.event_queue, event)
+            self._notify_steps("on_task_completed", event)
         self._dispatch_next(event, failed=False)
 
     def on_task_failed(self, event: dict[str, Any]) -> None:
@@ -53,13 +52,7 @@ class PipelineManager:
     def on_task_blocked(self, event: dict[str, Any]) -> None:
         if self.event_queue:
             update_run_state(self.event_queue, event, blocked=True)
-        for step in self.steps:
-            handler = getattr(step, "on_task_blocked", None)
-            if callable(handler):
-                if len(inspect.signature(handler).parameters) >= 2:
-                    handler(event, self.event_queue)
-                else:
-                    handler(event)
+            self._notify_steps("on_task_blocked", event)
 
     def _dispatch_next(self, event: dict[str, Any], *, failed: bool) -> None:
         if failed:
@@ -69,3 +62,12 @@ class PipelineManager:
         for step in self.steps:
             for task in step.plan({}, completed_event=event):
                 self.event_queue.submit(task)
+
+    def _notify_steps(self, handler_name: str, event: dict[str, Any]) -> None:
+        for step in self.steps:
+            handler = getattr(step, handler_name, None)
+            if callable(handler):
+                if len(inspect.signature(handler).parameters) >= 2:
+                    handler(event, self.event_queue)
+                else:
+                    handler(event)

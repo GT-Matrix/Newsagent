@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from modnews.core.event_queue import EventQueue
 from modnews.core.config import apply_runtime_overrides, load_config
 from modnews.core.task import TaskEvent
 from modnews.service.ingest.planner import plan_ingest_tasks
@@ -131,6 +132,24 @@ class ClassifyPipelineStep:
         )
         return [extraction_task, merge_task]
 
+    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+        if queue is None:
+            return
+        task = event.get("task")
+        result = event.get("result")
+        if not isinstance(task, dict) or not isinstance(result, dict):
+            return
+        if task.get("type") != "pipeline.combine_ingest":
+            return
+        run_id = task.get("pipeline_run_id")
+        combined_path = result.get("combined_ingest_path")
+        if not run_id or not combined_path:
+            return
+        for queued_task in queue.list():
+            if queued_task.pipeline_run_id != run_id or not queued_task.type.startswith("classify."):
+                continue
+            queue.patch_payload(queued_task.id, {"input_path": str(combined_path)})
+
 
 @dataclass(slots=True)
 class ReportPipelineStep:
@@ -171,3 +190,21 @@ class ReportPipelineStep:
                 max_concurrency=1,
             )
         ]
+
+    def on_task_completed(self, event: dict[str, Any], queue: EventQueue | None) -> None:
+        if queue is None:
+            return
+        task = event.get("task")
+        result = event.get("result")
+        if not isinstance(task, dict) or not isinstance(result, dict):
+            return
+        if task.get("type") != "classify.clustered_event_merge":
+            return
+        run_id = task.get("pipeline_run_id")
+        checkpoint_path = result.get("checkpoint_path")
+        if not run_id or not checkpoint_path:
+            return
+        for queued_task in queue.list():
+            if queued_task.pipeline_run_id != run_id or queued_task.type != "report.generate":
+                continue
+            queue.patch_payload(queued_task.id, {"input_path": str(checkpoint_path)})
