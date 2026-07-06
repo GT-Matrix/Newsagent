@@ -36,6 +36,8 @@ class ReportEntrypointTest(unittest.TestCase):
             self.assertEqual(result["event_count"], 3)
             self.assertEqual(result["task"]["type"], "report.generate")
             self.assertEqual(result["run"]["steps"][0]["step_id"], "report/generate")
+            self.assertTrue(result["run"]["pipeline_steps"])
+            self.assertEqual(result["run"]["pipeline_steps"][-1]["step_id"], "pipeline_report")
 
     def test_api_report_generate_uses_report_queue_task(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -62,6 +64,7 @@ class ReportEntrypointTest(unittest.TestCase):
             self.assertEqual(response.get_json()["event_count"], 4)
             self.assertEqual(response.get_json()["task"]["type"], "report.generate")
             self.assertTrue(response.get_json()["run"]["steps"])
+            self.assertTrue(response.get_json()["run"]["pipeline_steps"])
 
 
 if __name__ == "__main__":

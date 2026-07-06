@@ -6,6 +6,7 @@ from typing import Any
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
+from modnews.service.pipeline.step import PipelineStepDescriptor
 
 
 def run_planned_tasks(
@@ -17,6 +18,7 @@ def run_planned_tasks(
     tasks: list[TaskEvent],
     create_payload: dict[str, Any],
     task_result_scope: str = "initial",
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
 ) -> dict[str, Any]:
     runs = RunRepository(project_root)
     try:
@@ -25,9 +27,9 @@ def run_planned_tasks(
         runs.create(run_id, create_payload)
     for task in tasks:
         queue.register(task)
-    initialize_run_state(project_root, run_id, _registered_tasks(queue, tasks))
+    initialize_run_state(project_root, run_id, _registered_tasks(queue, tasks), pipeline_descriptors=pipeline_descriptors)
     queue.drain_ready()
-    sync_run_state(project_root, queue, run_id)
+    sync_run_state(project_root, queue, run_id, pipeline_descriptors=pipeline_descriptors)
     task_payloads = _task_payloads(queue, queue_show, run_id, tasks, scope=task_result_scope)
     return {
         "ok": bool(task_payloads) and all(task.get("state") == "succeeded" for task in task_payloads),

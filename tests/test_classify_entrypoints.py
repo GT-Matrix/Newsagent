@@ -32,6 +32,8 @@ class ClassifyEntrypointTest(unittest.TestCase):
             self.assertEqual(result["tasks"][0]["step_id"], "classify/clustered_event_extraction")
             self.assertEqual(result["tasks"][1]["step_id"], "classify/clustered_event_merge")
             self.assertEqual(result["run"]["steps"][0]["step_id"], "classify/clustered_event_extraction")
+            self.assertTrue(result["run"]["pipeline_steps"])
+            self.assertEqual(result["run"]["pipeline_steps"][0]["step_id"], "pipeline_ingest")
 
     def test_api_classify_run_uses_clustered_stage_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -54,6 +56,7 @@ class ClassifyEntrypointTest(unittest.TestCase):
             self.assertEqual([task.type for task in captured], ["classify.clustered_event_extraction", "classify.clustered_event_merge"])
             self.assertEqual(response.get_json()["tasks"][1]["type"], "classify.clustered_event_merge")
             self.assertTrue(response.get_json()["run"]["steps"])
+            self.assertTrue(response.get_json()["run"]["pipeline_steps"])
 
     def test_manual_classify_followup_is_recorded_by_pipeline_step(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

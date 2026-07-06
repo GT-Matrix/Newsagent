@@ -185,6 +185,8 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual([task.type for task in captured], ["web_source.run", "web_source.run"])
             self.assertEqual([task["type"] for task in result["tasks"]], ["web_source.run", "web_source.run"])
             self.assertIn("ingest/site_lists/site-1", {step["step_id"] for step in result["run"]["steps"]})
+            self.assertTrue(result["run"]["pipeline_steps"])
+            self.assertEqual(result["run"]["pipeline_steps"][0]["step_id"], "pipeline_ingest")
 
     def test_cli_ingest_site_lists_supports_per_source_filter(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -29,4 +29,5 @@ def run_classify(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
         queue_show=client.queue_show,
         run_id=payload["run_id"],
         input_path=payload["input_path"],
+        pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
     )

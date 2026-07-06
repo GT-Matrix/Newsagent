@@ -36,4 +36,5 @@ def run_ingest(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
         step_id=args.step,
         run_id=args.run_id,
         options=options,
+        pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
     )

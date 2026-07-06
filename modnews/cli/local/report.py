@@ -16,4 +16,5 @@ class ReportLocalMixin:
             output_dir=str(payload["output_dir"]) if payload.get("output_dir") else None,
             date=payload.get("date"),
             config=str(payload["config"]) if payload.get("config") else None,
+            pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
         )

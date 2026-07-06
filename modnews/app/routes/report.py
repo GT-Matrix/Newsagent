@@ -24,5 +24,6 @@ def generate():
         date=payload.get("date"),
         config=payload.get("config"),
         run_id=payload.get("run_id"),
+        pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
     )
     return jsonify(result)

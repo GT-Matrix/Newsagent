@@ -31,5 +31,6 @@ def run_ingest_step():
             run_id=str(run_id),
             config_path=payload.get("config"),
             options=options,
+            pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
         )
     )

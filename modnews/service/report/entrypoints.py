@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from modnews.service.pipeline.step import PipelineStepDescriptor
 from modnews.service.report.planner import plan_report_tasks
 from modnews.service.task_entrypoints import run_planned_tasks
 
@@ -17,6 +18,7 @@ def run_report_tasks(
     output_dir: str | None = None,
     date: str | None = None,
     config: str | None = None,
+    pipeline_descriptors: list[PipelineStepDescriptor] | None = None,
 ) -> dict[str, Any]:
     tasks = plan_report_tasks(
         project_root=project_root,
@@ -40,6 +42,7 @@ def run_report_tasks(
             "date": date,
             "config": config,
         },
+        pipeline_descriptors=pipeline_descriptors,
     )
     queue_task = result["tasks"][0] if result["tasks"] else {}
     task_result = queue_task.get("result", {}) if isinstance(queue_task.get("result"), dict) else {}

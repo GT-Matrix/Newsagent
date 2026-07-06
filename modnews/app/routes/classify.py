@@ -20,5 +20,6 @@ def run_classify():
             run_id=payload.get("run_id"),
             input_path=payload.get("input_path") or payload.get("input"),
             config=payload.get("config"),
+            pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
         )
     )
