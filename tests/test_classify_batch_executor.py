@@ -80,6 +80,7 @@ class BatchExecutorTest(unittest.TestCase):
                     "task_name": "classify.embedding[1/1]",
                     "concurrency_key": "classify.embedding",
                     "max_concurrency": 3,
+                    "queue_task_type": None,
                     "item_index": 0,
                     "item_count": 1,
                     "batch_index": None,
@@ -113,6 +114,35 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual({task.max_concurrency for task in tasks}, {2})
         self.assertEqual([queue.result(task.id)["batch_result"] for task in tasks], ["A", "B"])
         self.assertIn("classify.batch_item", queue._executors)
+
+    def test_event_queue_backend_uses_fixed_queue_task_type_when_present(self) -> None:
+        queue = EventQueue()
+        backend = EventQueueBatchExecutionBackend(
+            queue,
+            run_id="run-1",
+            step_id="classify/embedding",
+            base_payload={"project_root": "/tmp/project", "config": "/tmp/project/config.json"},
+        )
+        queue.register_executor("classify.embedding", lambda task: {"batch_result": {"key": "x", "vector": [1.0]}})
+
+        result = run_profiled_batch(
+            lambda value: {"key": value["key"], "vector": [2.0]},
+            [{"key": "x", "text": "hello"}],
+            profile=type("Profile", (), {
+                "task_type": "classify.embedding",
+                "concurrency_key": "classify.embedding",
+                "queue_task_type": "classify.embedding",
+                "labels": {"stage": "clustered"},
+            })(),
+            max_workers=1,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [{"key": "x", "vector": [1.0]}])
+        task = queue.list()[0]
+        self.assertEqual(task.type, "classify.embedding")
+        self.assertEqual(task.payload["project_root"], "/tmp/project")
+        self.assertEqual(task.payload["item_payload"], {"key": "x", "text": "hello"})
 
     def test_default_backend_context_routes_batches_to_event_queue(self) -> None:
         queue = EventQueue()

@@ -26,6 +26,7 @@ class BatchExecutionMetadata:
     max_concurrency: int
     item_index: int
     item_count: int
+    queue_task_type: str | None = None
     batch_index: int | None = None
     batch_count: int | None = None
     labels: dict[str, str] = field(default_factory=dict)
@@ -71,25 +72,28 @@ class EventQueueBatchExecutionBackend:
         run_id: str | None = None,
         step_id: str | None = None,
         task_type_prefix: str = "classify.batch_item",
+        base_payload: dict[str, Any] | None = None,
         auto_drain: bool = True,
     ) -> None:
         self.queue = queue
         self.run_id = run_id
         self.step_id = step_id
         self.task_type_prefix = task_type_prefix
+        self.base_payload = dict(base_payload or {})
         self.auto_drain = auto_drain
 
     def run(self, fn: Callable[[T], R], items: list[BatchExecutionItem[T]]) -> list[R]:
         if not items:
             return []
 
-        self._ensure_executor()
+        self._ensure_executor(items)
         group_id = uuid4().hex
         try:
             task_ids: list[str] = []
             for item in items:
                 task = self._task_for_item(group_id, item)
-                register_batch_execution(task.id, fn, item.payload)
+                if item.metadata.queue_task_type is None:
+                    register_batch_execution(task.id, fn, item.payload)
                 task_ids.append(task.id)
                 self.queue.register(task)
 
@@ -110,26 +114,31 @@ class EventQueueBatchExecutionBackend:
             for task_id in task_ids if "task_ids" in locals() else []:
                 unregister_batch_execution(task_id)
 
-    def _ensure_executor(self) -> None:
-        if self.task_type_prefix not in self.queue._executors:
+    def _ensure_executor(self, items: list[BatchExecutionItem[T]]) -> None:
+        if any(item.metadata.queue_task_type is None for item in items) and self.task_type_prefix not in self.queue._executors:
             self.queue.register_executor(self.task_type_prefix, execute_registered_batch_item)
 
     def _task_id(self, group_id: str, item: BatchExecutionItem[object]) -> str:
         metadata = item.metadata
         index = metadata.batch_index if metadata.batch_index is not None else metadata.item_index + 1
-        return f"{self.task_type_prefix}:{group_id}:{index}"
+        prefix = metadata.queue_task_type or self.task_type_prefix
+        return f"{prefix}:{group_id}:{index}"
 
     def _task_for_item(self, group_id: str, item: BatchExecutionItem[object]) -> TaskEvent:
         metadata = item.metadata
+        payload = {
+            **self.base_payload,
+            "batch": describe_batch_items([item])[0],
+            "labels": metadata.labels,
+        }
+        if metadata.queue_task_type is not None:
+            payload["item_payload"] = item.payload
         return TaskEvent(
             id=self._task_id(group_id, item),
-            type=self.task_type_prefix,
+            type=metadata.queue_task_type or self.task_type_prefix,
             pipeline_run_id=self.run_id,
             step_id=self.step_id or metadata.labels.get("stage") or metadata.task_type,
-            payload={
-                "batch": describe_batch_items([item])[0],
-                "labels": metadata.labels,
-            },
+            payload=payload,
             concurrency_key=metadata.concurrency_key,
             max_concurrency=metadata.max_concurrency,
             checkpoint_policy="none",
@@ -161,6 +170,7 @@ def build_batch_items(
     task_type: str,
     concurrency_key: str,
     max_concurrency: int,
+    queue_task_type: str | None = None,
     batch_indexes: list[int | None] | None = None,
     batch_count: int | None = None,
     labels: dict[str, str] | None = None,
@@ -176,6 +186,7 @@ def build_batch_items(
                     task_type=task_type,
                     concurrency_key=concurrency_key,
                     max_concurrency=max(1, max_concurrency),
+                    queue_task_type=queue_task_type,
                     item_index=index,
                     item_count=item_count,
                     batch_index=batch_index,
@@ -194,6 +205,7 @@ def run_batch_parallel(
     max_workers: int,
     task_type: str = "classify.batch",
     concurrency_key: str | None = None,
+    queue_task_type: str | None = None,
     batch_indexes: list[int | None] | None = None,
     batch_count: int | None = None,
     labels: dict[str, str] | None = None,
@@ -204,6 +216,7 @@ def run_batch_parallel(
         task_type=task_type,
         concurrency_key=concurrency_key or task_type,
         max_concurrency=max_workers,
+        queue_task_type=queue_task_type,
         batch_indexes=batch_indexes,
         batch_count=batch_count,
         labels=labels,
@@ -226,6 +239,7 @@ def _coerce_items(
     task_type: str,
     concurrency_key: str,
     max_concurrency: int,
+    queue_task_type: str | None,
     batch_indexes: list[int | None] | None,
     batch_count: int | None,
     labels: dict[str, str] | None,
@@ -240,6 +254,7 @@ def _coerce_items(
         task_type=task_type,
         concurrency_key=concurrency_key,
         max_concurrency=max_concurrency,
+        queue_task_type=queue_task_type,
         batch_indexes=batch_indexes,
         batch_count=batch_count,
         labels=labels,
@@ -253,6 +268,7 @@ def describe_batch_items(items: list[BatchExecutionItem[object]]) -> list[dict[s
             "task_name": item.metadata.task_name(),
             "concurrency_key": item.metadata.concurrency_key,
             "max_concurrency": item.metadata.max_concurrency,
+            "queue_task_type": item.metadata.queue_task_type,
             "item_index": item.metadata.item_index,
             "item_count": item.metadata.item_count,
             "batch_index": item.metadata.batch_index,

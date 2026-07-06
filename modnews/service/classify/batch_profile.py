@@ -13,12 +13,14 @@ R = TypeVar("R")
 class BatchTaskProfile:
     task_type: str
     concurrency_key: str
+    queue_task_type: str | None = None
     labels: dict[str, str] = field(default_factory=dict)
 
 
 CLUSTERED_EMBEDDING_BATCH = BatchTaskProfile(
     task_type="classify.embedding",
     concurrency_key="classify.embedding",
+    queue_task_type="classify.embedding",
     labels={"stage": "clustered"},
 )
 
@@ -57,6 +59,7 @@ def run_profiled_batch(
         max_workers=max_workers,
         task_type=profile.task_type,
         concurrency_key=profile.concurrency_key,
+        queue_task_type=profile.queue_task_type,
         batch_indexes=batch_indexes,
         batch_count=batch_count,
         labels=profile.labels,

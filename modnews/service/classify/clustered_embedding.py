@@ -59,12 +59,14 @@ def embed_rows_parallel(
     workers = max(1, concurrency)
     if workers == 1:
         return [VectorRow(key, retriever.embed_text_for_clustering(text)) for key, text in rows]
-    return run_profiled_batch(
-        lambda row: VectorRow(row[0], retriever.embed_text_for_clustering(row[1])),
-        rows,
+    raw_rows = [{"key": key, "text": text} for key, text in rows]
+    results = run_profiled_batch(
+        lambda row: {"key": row["key"], "vector": retriever.embed_text_for_clustering(str(row["text"]))},
+        raw_rows,
         max_workers=workers,
         profile=CLUSTERED_EMBEDDING_BATCH,
     )
+    return [VectorRow(row["key"], row["vector"]) for row in results]
 
 
 def greedy_vector_groups(rows: list[VectorRow], batch_size: int) -> list[list[VectorRow]]:
