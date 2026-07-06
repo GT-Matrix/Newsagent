@@ -3,19 +3,16 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import sqlite3
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import requests
 
 from modnews.core.config import EmbeddingConfig
 from modnews.core.models import EventRecord, NewsItem
 from modnews.core.progress import emit, new_request_id, simulate_cached_latency
-
-_VECTOR_CACHE_LOCK = threading.Lock()
+from modnews.repository.vector_cache import VectorCacheRepository
 
 
 @dataclass(slots=True)
@@ -24,6 +21,7 @@ class EventVectorRetriever:
     session: requests.Session
     _memory_cache: dict[str, list[float]] = field(default_factory=dict)
     _memory_lock: threading.Lock = field(default_factory=threading.Lock)
+    _cache_repo: VectorCacheRepository | None = field(default=None, init=False, repr=False)
 
     def embed_text_for_clustering(self, text: str) -> list[float]:
         return self._embed_text(text)
@@ -126,7 +124,7 @@ class EventVectorRetriever:
         vector = payload["data"][0]["embedding"]
         with self._memory_lock:
             self._memory_cache[memory_key] = vector
-        self._write_cache(text, vector)
+        self._write_cache(memory_key, text, vector)
         emit(
             "embedding_request_done",
             request_id=request_id,
@@ -141,50 +139,20 @@ class EventVectorRetriever:
         return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
 
     def _read_cache(self, text: str) -> list[float] | None:
-        if not self.config.cache_path:
-            return None
-        key = self._cache_key(text)
-        with _VECTOR_CACHE_LOCK:
-            self._ensure_cache()
-            with sqlite3.connect(self.config.cache_path) as conn:
-                row = conn.execute("SELECT vector_json FROM vector_cache WHERE cache_key = ?", (key,)).fetchone()
-        return json.loads(row[0]) if row else None
+        return self._cache_repository().get(self._cache_key(text))
 
-    def _write_cache(self, text: str, vector: list[float]) -> None:
-        if not self.config.cache_path:
-            return
-        key = self._cache_key(text)
-        with _VECTOR_CACHE_LOCK:
-            self._ensure_cache()
-            with sqlite3.connect(self.config.cache_path) as conn:
-                conn.execute(
-                    """
-                    INSERT OR REPLACE INTO vector_cache (cache_key, model, text_hash, vector_json)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        key,
-                        self.config.model,
-                        hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                        json.dumps(vector, ensure_ascii=False),
-                    ),
-                )
+    def _write_cache(self, cache_key: str, text: str, vector: list[float]) -> None:
+        self._cache_repository().put(
+            cache_key,
+            model=self.config.model,
+            text_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            vector=vector,
+        )
 
-    def _ensure_cache(self) -> None:
-        assert self.config.cache_path is not None
-        Path(self.config.cache_path).parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self.config.cache_path) as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS vector_cache (
-                    cache_key TEXT PRIMARY KEY,
-                    model TEXT NOT NULL,
-                    text_hash TEXT NOT NULL,
-                    vector_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
+    def _cache_repository(self) -> VectorCacheRepository:
+        if self._cache_repo is None:
+            self._cache_repo = VectorCacheRepository(self.config.cache_path)
+        return self._cache_repo
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
