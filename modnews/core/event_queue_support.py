@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from .task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
@@ -9,6 +9,15 @@ from .task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 
 def now() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def parse_ts(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def snapshot_tasks(tasks: dict[str, TaskEvent]) -> dict[str, TaskEvent]:
@@ -30,6 +39,11 @@ def dependency_blocked_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> s
 
 
 def waiting_reason(task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
+    retry_at = parse_ts(task.next_attempt_at)
+    if retry_at is not None:
+        current = parse_ts(now())
+        if current is not None and retry_at > current:
+            return f"waiting until retry window {task.next_attempt_at}"
     for dependency_id in task.depends_on:
         dependency = tasks.get(dependency_id)
         if dependency is None:
@@ -86,12 +100,13 @@ def mark_task_waiting(
 ) -> None:
     task.state = "waiting"
     task.status_reason = reason
-    results[task.id] = {"waiting_reason": reason}
+    results[task.id] = {**results.get(task.id, {}), "waiting_reason": reason}
 
 
 def mark_task_running(task: TaskEvent) -> None:
     task.state = "running"
     task.status_reason = None
+    task.next_attempt_at = None
     task.attempt += 1
     task.started_at = now()
 
@@ -111,14 +126,21 @@ def mark_task_retry_scheduled(
     results: dict[str, dict[str, Any]],
     error: str,
 ) -> None:
+    delay_seconds = max(0, task.retry_backoff_seconds)
     task.finished_at = now()
     task.state = "queued"
+    task.next_attempt_at = None
+    if delay_seconds > 0:
+        retry_at = datetime.now().astimezone() + timedelta(seconds=delay_seconds)
+        task.next_attempt_at = retry_at.isoformat(timespec="seconds")
     task.status_reason = f"retry scheduled after attempt {task.attempt}"
     results[task.id] = {
         "error": error,
         "attempt": task.attempt,
         "max_attempts": task.max_attempts,
         "retry_scheduled": True,
+        "retry_delay_seconds": delay_seconds,
+        "next_attempt_at": task.next_attempt_at,
     }
 
 
@@ -129,6 +151,7 @@ def mark_task_failed(
 ) -> None:
     task.state = "failed"
     task.status_reason = error
+    task.next_attempt_at = None
     task.finished_at = now()
     results[task.id] = {
         "error": error,
@@ -143,6 +166,7 @@ def mark_task_cancelled(
     reason: str,
 ) -> None:
     task.state = "cancelled"
+    task.next_attempt_at = None
     task.finished_at = now()
     results[task.id] = {"cancel_reason": reason}
 
@@ -154,6 +178,7 @@ def mark_task_skipped(
 ) -> None:
     task.state = "skipped"
     task.status_reason = reason
+    task.next_attempt_at = None
     task.finished_at = now()
     results[task.id] = {"skip_reason": reason}
 
@@ -161,6 +186,7 @@ def mark_task_skipped(
 def reset_task_for_retry(task: TaskEvent, results: dict[str, dict[str, Any]]) -> None:
     task.state = "queued"
     task.status_reason = None
+    task.next_attempt_at = None
     task.started_at = None
     task.finished_at = None
     task.attempt = 0
@@ -186,6 +212,7 @@ def unblock_released_tasks(
         for dependent in unblocked:
             dependent.state = "queued"
             dependent.status_reason = None
+            dependent.next_attempt_at = None
             dependent.finished_at = None
             results.pop(dependent.id, None)
             released.append(dependent)

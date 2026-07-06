@@ -31,9 +31,11 @@ class TaskEvent:
     priority: int = 100
     recovery_policy: str = "requeue_running"
     max_attempts: int = 1
+    retry_backoff_seconds: int = 0
     attempt: int = 0
     state: str = "queued"
     status_reason: str | None = None
+    next_attempt_at: str | None = None
     created_at: str | None = None
     started_at: str | None = None
     finished_at: str | None = None
@@ -56,9 +58,11 @@ class TaskEvent:
             priority=int(raw.get("priority") or 100),
             recovery_policy=str(raw.get("recovery_policy") or "requeue_running"),
             max_attempts=int(raw.get("max_attempts") or 1),
+            retry_backoff_seconds=int(raw.get("retry_backoff_seconds") or 0),
             attempt=int(raw.get("attempt") or 0),
             state=str(raw.get("state") or "queued"),
             status_reason=str(raw["status_reason"]) if raw.get("status_reason") is not None else None,
+            next_attempt_at=str(raw["next_attempt_at"]) if raw.get("next_attempt_at") is not None else None,
             created_at=str(raw["created_at"]) if raw.get("created_at") is not None else None,
             started_at=str(raw["started_at"]) if raw.get("started_at") is not None else None,
             finished_at=str(raw["finished_at"]) if raw.get("finished_at") is not None else None,

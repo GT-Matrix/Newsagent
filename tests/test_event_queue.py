@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import unittest
 import tempfile
 from pathlib import Path
@@ -133,6 +134,63 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(task.state, "succeeded")
         self.assertEqual(task.attempt, 2)
         self.assertEqual(queue.result("flaky-1")["value"], "ok")
+
+    def test_retry_schedule_waits_until_backoff_window(self) -> None:
+        queue = EventQueue()
+
+        def flaky(_task: TaskEvent) -> dict[str, object]:
+            raise RuntimeError("temporary failure")
+
+        queue.register_executor("diagnostic.flaky", flaky)
+
+        task = queue.submit(TaskEvent(id="flaky-1", type="diagnostic.flaky", max_attempts=2, retry_backoff_seconds=30))
+
+        self.assertEqual(task.state, "waiting")
+        self.assertEqual(queue.result("flaky-1")["retry_delay_seconds"], 30)
+        self.assertIsNotNone(task.next_attempt_at)
+        self.assertEqual(queue.waiting_reason(task), f"waiting until retry window {task.next_attempt_at}")
+        self.assertIsNone(queue._next_ready())  # type: ignore[union-attr]
+
+    def test_manual_retry_clears_scheduled_retry_window(self) -> None:
+        queue = EventQueue()
+        future_retry = (datetime.now().astimezone() + timedelta(minutes=5)).isoformat(timespec="seconds")
+        queue.register(
+            TaskEvent(
+                id="task-1",
+                type="diagnostic.echo",
+                state="blocked",
+                attempt=1,
+                next_attempt_at=future_retry,
+            )
+        )
+
+        retried = queue.retry("task-1")
+
+        self.assertEqual(retried.state, "queued")
+        self.assertIsNone(retried.next_attempt_at)
+        self.assertIsNone(retried.status_reason)
+
+    def test_snapshot_preserves_retry_window_metadata(self) -> None:
+        queue = EventQueue()
+        next_attempt_at = (datetime.now().astimezone() + timedelta(seconds=45)).isoformat(timespec="seconds")
+        queue.register(
+            TaskEvent(
+                id="task-1",
+                type="diagnostic.echo",
+                state="queued",
+                retry_backoff_seconds=45,
+                next_attempt_at=next_attempt_at,
+                status_reason="retry scheduled after attempt 1",
+            )
+        )
+
+        restored = EventQueue()
+        restored.load_snapshot(queue.snapshot())
+
+        task = restored.get("task-1")
+        self.assertEqual(task.retry_backoff_seconds, 45)
+        self.assertEqual(task.next_attempt_at, next_attempt_at)
+        self.assertEqual(restored.waiting_reason(task), f"waiting until retry window {next_attempt_at}")
 
     def test_skipped_dependency_allows_dependent_task_to_run(self) -> None:
         queue = EventQueue()
