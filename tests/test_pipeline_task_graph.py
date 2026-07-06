@@ -30,6 +30,10 @@ from modnews.service.pipeline.task_read_model_meta import (
     REGISTERED_TASK_READ_MODEL_META_BY_ID,
     resolve_task_read_model_meta,
 )
+from modnews.service.pipeline.task_summary import (
+    REGISTERED_TASK_SUMMARY_BY_ID,
+    resolve_task_summary,
+)
 from modnews.service.pipeline.task_registry import REGISTERED_PIPELINE_TASK_BY_TYPE
 from modnews.service.pipeline.task_builder import build_report_generate_task
 from modnews.service.report.planner import plan_report_tasks
@@ -232,6 +236,23 @@ class PipelineTaskGraphTest(unittest.TestCase):
         self.assertEqual(resolve_task_read_model_meta(report_task).id, "report.generate")
         self.assertEqual(resolve_task_read_model_meta(combine_task).id, "pipeline.combine_ingest")
         self.assertIsNone(resolve_task_read_model_meta(fallback_task))
+
+    def test_task_summary_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_TASK_SUMMARY_BY_ID),
+            ["report.generate", "web_source.run"],
+        )
+        self.assertEqual(REGISTERED_TASK_SUMMARY_BY_ID["report.generate"].builder_id, "report")
+        self.assertEqual(REGISTERED_TASK_SUMMARY_BY_ID["web_source.run"].builder_id, "web_source")
+
+    def test_task_summary_registry_resolves_specific_matches(self) -> None:
+        report_task = TaskEvent(id="report-1", type="report.generate")
+        web_task = TaskEvent(id="web-1", type="web_source.run")
+        fallback_task = TaskEvent(id="diag-1", type="diagnostic.echo")
+
+        self.assertEqual(resolve_task_summary(report_task).id, "report.generate")
+        self.assertEqual(resolve_task_summary(web_task).id, "web_source.run")
+        self.assertIsNone(resolve_task_summary(fallback_task))
 
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

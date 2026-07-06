@@ -11,6 +11,7 @@ from modnews.service.pipeline.step import PipelineStepDescriptor
 from modnews.service.pipeline.task_domain_view import resolve_task_domain_view
 from modnews.service.pipeline.task_presentation import default_task_title, resolve_task_presentation
 from modnews.service.pipeline.task_read_model_meta import resolve_task_read_model_meta
+from modnews.service.pipeline.task_summary import resolve_task_summary
 
 
 def build_step_views(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -547,23 +548,42 @@ def task_display_summary(
         return str(result.get("cancel_reason"))
     if task.state == "skipped" and result.get("skip_reason"):
         return str(result.get("skip_reason"))
-    if task.type == "report.generate" and isinstance(result.get("stats"), dict):
-        stats = result["stats"]
-        selected = stats.get("selected_count")
-        if selected is not None:
-            return f"selected_count={selected}"
-    if task.type == "web_source.run":
-        job = result.get("job")
-        if isinstance(job, dict):
-            job_id = job.get("id")
-            job_state = job.get("state")
-            if job_id or job_state:
-                return f"job={job_id or 'unknown'} state={job_state or 'unknown'}"
+    summary = resolve_task_summary(task)
+    if summary is not None:
+        message = SUMMARY_BUILDERS[summary.builder_id](task, result)
+        if message:
+            return message
     if checkpoint_path:
         return checkpoint_path
     if task.state == "succeeded":
         return "completed"
     return task.state
+
+
+def _build_report_summary(_task: TaskEvent, result: dict[str, Any]) -> str | None:
+    if not isinstance(result.get("stats"), dict):
+        return None
+    selected = result["stats"].get("selected_count")
+    if selected is None:
+        return None
+    return f"selected_count={selected}"
+
+
+def _build_web_source_summary(_task: TaskEvent, result: dict[str, Any]) -> str | None:
+    job = result.get("job")
+    if not isinstance(job, dict):
+        return None
+    job_id = job.get("id")
+    job_state = job.get("state")
+    if job_id or job_state:
+        return f"job={job_id or 'unknown'} state={job_state or 'unknown'}"
+    return None
+
+
+SUMMARY_BUILDERS = {
+    "report": _build_report_summary,
+    "web_source": _build_web_source_summary,
+}
 
 
 def build_attempt_history(logs: list[dict[str, Any]]) -> list[dict[str, Any]]:
