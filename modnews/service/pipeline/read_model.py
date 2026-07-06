@@ -66,6 +66,7 @@ def build_task_list_item(project_root: Path, queue: EventQueue, task: TaskEvent)
     payload["dependent_count"] = len(queue.dependents_of(task.id))
     payload["child_count"] = len(queue.children_of(task.id))
     payload["task_group_size"] = len(queue.group_members(task.task_group_id)) if task.task_group_id else 0
+    payload["task_group_summary"] = queue.group_summary(task.task_group_id) if task.task_group_id else None
     payload["domain_view"] = build_domain_view(task, result, checkpoints)
     return payload
 
@@ -91,6 +92,7 @@ def build_task_detail(project_root: Path, queue: EventQueue, task_id: str) -> di
         task_summary(queue, member, include_result=False)
         for member in queue.group_members(task.task_group_id)
     ] if task.task_group_id else []
+    task_payload["task_group_summary"] = queue.group_summary(task.task_group_id) if task.task_group_id else None
     task_payload["domain_view"] = build_domain_view(task, result, checkpoints)
     return task_payload
 

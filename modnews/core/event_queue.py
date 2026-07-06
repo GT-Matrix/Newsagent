@@ -276,6 +276,27 @@ class EventQueue:
         with self._lock:
             return [task for task in self._tasks.values() if task.task_group_id == task_group_id]
 
+    def group_summary(self, task_group_id: str) -> dict[str, Any]:
+        members = self.group_members(task_group_id)
+        by_state = self._group_state_counts(members)
+        return {
+            "task_group_id": task_group_id,
+            "size": len(members),
+            "by_state": by_state,
+            "active": sum(by_state.get(state, 0) for state in ("queued", "waiting", "running")),
+            "terminal": sum(by_state.get(state, 0) for state in TERMINAL_STATES),
+            "succeeded": by_state.get("succeeded", 0),
+            "failed": by_state.get("failed", 0) + by_state.get("cancelled", 0),
+            "blocked": by_state.get("blocked", 0),
+            "member_ids": [task.id for task in members],
+        }
+
+    def _group_state_counts(self, members: list[TaskEvent]) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for task in members:
+            counts[task.state] = counts.get(task.state, 0) + 1
+        return dict(sorted(counts.items()))
+
     def status(self) -> dict[str, int]:
         with self._lock:
             return status_counts(self._tasks)

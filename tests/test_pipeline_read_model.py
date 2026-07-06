@@ -111,6 +111,7 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["dependent_count"], 1)
             self.assertEqual(task["child_count"], 0)
             self.assertEqual(task["task_group_size"], 0)
+            self.assertIsNone(task["task_group_summary"])
             self.assertEqual(task["domain_view"]["kind"], "report")
             self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(task["priority"], 20)
@@ -271,6 +272,7 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual([item["id"] for item in result["dependents"]], ["task-2"])
             self.assertEqual(result["children"], [])
             self.assertEqual(result["task_group_members"], [])
+            self.assertIsNone(result["task_group_summary"])
             self.assertEqual(result["checkpoints"][0]["task_id"], "task-1")
             self.assertEqual(result["checkpoints"][0]["output_artifacts"][0]["name"], "items")
             self.assertTrue(any(artifact_info["path"] == str(artifact.resolve()) for artifact_info in result["artifacts"]))
@@ -332,6 +334,20 @@ class PipelineReadModelTest(unittest.TestCase):
 
             self.assertEqual(listed, ["child-1", "child-2"])
             self.assertEqual(next(item for item in result["task_group_members"] if item["id"] == "child-1")["task_group_id"], "group-1")
+            self.assertEqual(
+                result["task_group_summary"],
+                {
+                    "task_group_id": "group-1",
+                    "size": 2,
+                    "by_state": {"queued": 2},
+                    "active": 2,
+                    "terminal": 0,
+                    "succeeded": 0,
+                    "failed": 0,
+                    "blocked": 0,
+                    "member_ids": ["child-1", "child-2"],
+                },
+            )
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
