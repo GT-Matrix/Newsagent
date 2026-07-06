@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from modnews.bootstrap.service_registry import configure_services
+from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
 
 
 class BootstrapTaskExecutorTest(unittest.TestCase):
@@ -18,8 +19,7 @@ class BootstrapTaskExecutorTest(unittest.TestCase):
         self.assertIn("classify.embedding", container.event_queue._executors)
         self.assertIn("classify.clustered_event_extraction.batch", container.event_queue._executors)
         self.assertIn("classify.clustered_event_merge.batch", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_extraction", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_merge", container.event_queue._executors)
+        self.assertTrue(set(REGISTERED_CLASSIFY_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
 
 
 if __name__ == "__main__":

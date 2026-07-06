@@ -5,10 +5,7 @@ from pathlib import Path
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
-from modnews.service.classify.task_execution import (
-    run_clustered_event_extraction_task,
-    run_clustered_event_merge_task,
-)
+from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
 from modnews.service.classify.batch_tasks import (
     BATCH_TASK_EXECUTORS,
 )
@@ -39,11 +36,8 @@ def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
     for task_type, executor in BATCH_TASK_EXECUTORS.items():
         queue.register_executor(task_type, executor)
-    queue.register_executor(
-        "classify.clustered_event_extraction",
-        _with_classify_batch_queue(queue, run_clustered_event_extraction_task),
-    )
-    queue.register_executor("classify.clustered_event_merge", _with_classify_batch_queue(queue, run_clustered_event_merge_task))
+    for task_type, executor in REGISTERED_CLASSIFY_TASK_EXECUTORS.items():
+        queue.register_executor(task_type, _with_classify_batch_queue(queue, executor))
     queue.register_executor("ingest.run_step", run_ingest_step_task)
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("extractor.repair.codex", run_codex_repair_task)

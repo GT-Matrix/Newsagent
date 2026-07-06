@@ -6,7 +6,7 @@ from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
 
 from .run_result import build_classify_step_result
-from .task_registry import get_registered_classify_task
+from .task_registry import REGISTERED_CLASSIFY_TASKS, get_registered_classify_task
 from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
 from .runner import ClassifyStepRunner
 from .steps import build_full_classify_steps
@@ -37,6 +37,12 @@ def run_clustered_event_extraction_task(task: TaskEvent) -> dict[str, object]:
 
 def run_clustered_event_merge_task(task: TaskEvent) -> dict[str, object]:
     return execute_classify_task(task)
+
+
+REGISTERED_CLASSIFY_TASK_EXECUTORS: dict[str, object] = {
+    spec.task_type: execute_classify_task
+    for spec in REGISTERED_CLASSIFY_TASKS
+}
 
 
 def run_classification(

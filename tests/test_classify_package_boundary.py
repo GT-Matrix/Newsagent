@@ -17,6 +17,7 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
         module = importlib.import_module("modnews.service.classify.task_execution")
         self.assertTrue(hasattr(module, "run_clustered_event_extraction_task"))
         self.assertTrue(hasattr(module, "run_clustered_event_merge_task"))
+        self.assertTrue(hasattr(module, "REGISTERED_CLASSIFY_TASK_EXECUTORS"))
 
 
 if __name__ == "__main__":
