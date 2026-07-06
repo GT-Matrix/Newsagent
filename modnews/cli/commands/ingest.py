@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from modnews.cli.api_client import ApiClient
-from modnews.core.task import TaskEvent
+from modnews.service.ingest.planner import plan_ingest_tasks
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
@@ -21,15 +21,13 @@ def run_ingest(_ctx: Any, client: Any, args: argparse.Namespace) -> Any:
     payload = {"step_id": args.step, "run_id": args.run_id}
     if isinstance(client, ApiClient):
         return client.post("/api/ingest/run", payload)
-    task_id = f"ingest-{args.step}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    task = TaskEvent(
-        id=task_id,
-        type="ingest.run_step",
-        pipeline_run_id=args.run_id,
-        step_id=f"ingest/{args.step}",
-        payload={"project_root": str(client.project_root), **payload},
-        concurrency_key=f"ingest:{args.step}",
-        max_concurrency=1,
+    tasks = plan_ingest_tasks(
+        project_root=Path(client.project_root),
+        step_id=args.step,
+        run_id=args.run_id,
     )
-    client.container.event_queue.submit(task)
-    return client.queue_show(task_id)
+    for task in tasks:
+        client.container.event_queue.register(task)
+    client.container.event_queue.drain_ready()
+    task_payloads = [client.queue_show(task.id) for task in tasks]
+    return {"ok": all(task.get("state") == "succeeded" for task in task_payloads), "tasks": task_payloads}

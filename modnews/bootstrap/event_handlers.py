@@ -14,6 +14,7 @@ from modnews.service.ingest.tasks import run_ingest_step_task
 from modnews.service.extraction.tasks import run_web_source_task
 from modnews.service.extraction.repair_tasks import run_codex_repair_task
 from modnews.service.pipeline.tasks import combine_ingest_task
+from modnews.service.report.tasks import run_report_generate_task
 from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.outputs import OutputRepository
 from modnews.service.pipeline.manager import PipelineManager
@@ -37,6 +38,7 @@ def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("web_source.run", run_web_source_task)
     queue.register_executor("extractor.repair.codex", run_codex_repair_task)
     queue.register_executor("pipeline.combine_ingest", combine_ingest_task)
+    queue.register_executor("report.generate", run_report_generate_task)
 
 
 def _echo(task: TaskEvent) -> dict[str, object]:

@@ -29,7 +29,8 @@ class PipelineManager:
         run_id = str(request.get("run_id") or "local")
         tasks: list[TaskEvent] = []
         for step in self.steps:
-            tasks.extend(step.plan({"run_id": run_id, "request": request}))
+            next_tasks = step.plan({"run_id": run_id, "request": request, "tasks": tasks})
+            tasks.extend(next_tasks)
         if self.event_queue:
             for task in tasks:
                 if submit:

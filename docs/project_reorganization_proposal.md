@@ -405,7 +405,7 @@ def configure_services(container):
 - `EventQueue` 已支持 `depends_on` 依赖等待、`concurrency_key`/`max_concurrency` 并发槽、完成/失败/业务阻断事件回调、`queue drain` 手动推进和 ready/waiting/blocked 状态查询。`waiting` 表示依赖或并发槽尚不可用；`blocked` 保留给依赖终止、CAPTCHA、权限、缺 extractor、需要人工修复等不会自动继续的业务阻断。
 - CLI/API 已支持 `queue cancel <task_id>` / `POST /api/queue/<task_id>/cancel`，可取消尚未执行的 queued/waiting/blocked task；running task 当前只记录无法取消原因。`queue retry <task_id>` / `POST /api/queue/<task_id>/retry` 可把 failed/cancelled/blocked task 重置为 queued 并重新推进；`queue skip <task_id>` / `POST /api/queue/<task_id>/skip` 可把确认可忽略的 blocked/queued/waiting task 标记为 skipped，并自动释放依赖它的下游任务；`TaskEvent.max_attempts` 已支持执行失败后的队列内自动重试。
 - 已新增 `TaskLogRepository`，`EventQueue` 会把 task registered/started/waiting/completed/failed/blocked/cancelled/retry 等状态变化写入 `var/process/task_logs/<task_id>.jsonl`；`queue show`/`GET /api/queue/<task_id>` 已返回 `logs`，前端可按 `task.type` 使用统一日志入口做差异化展示。
-- 默认 pipeline run 已注册任务图：RSS/NewsNow 走 `ingest.run_step`，managed site source 会展开成多个 `web_source.run`，之后统一进入 `pipeline.combine_ingest` -> `classify.clustered_event_extraction` -> `classify.clustered_event_merge`；任务依赖由 `EventQueue` 推进。公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。`PipelineManager.on_task_blocked` 会把 blocked 回调转发给已注册 step，step 可据此安全跳过可选任务或注册替代任务。
+- 默认 pipeline run 已改成多个独立注册 step 组装：`IngestPipelineStep` 负责注册 RSS/NewsNow/managed web source 任务，`CombineIngestPipelineStep` 负责收口 ingest 输出，`ClassifyPipelineStep` 负责注册 clustered extraction/merge，`ReportPipelineStep` 负责注册统一 `report.generate` 任务；任务依赖由 `EventQueue` 推进。公开 `run start` CLI/API 不再提供旧同步端到端 runner fallback。`PipelineManager.on_task_blocked` 会把 blocked 回调转发给已注册 step，step 可据此安全跳过可选任务或注册替代任务。
 - ingest 单步已支持 `ingest.run_step` task，可通过 CLI/API 单独运行并写入 run checkpoint。
 - classify 已支持 `classify.clustered_event_extraction` 和 `classify.clustered_event_merge` 两个阶段 task；公开 classify CLI/API 入口会注册同一套两阶段任务图，队列中不再注册 `classify.run_legacy` 或整段 `classify.clustered_pipeline` 任务类型。
 - managed web source 单源运行已通过 `web_source.run` task 执行，默认 pipeline 的 `site_lists` 也会按 source 展开成同类任务；`skipped_unrepairable`、`repair_queued`、`repairing` 等不可直接继续状态会映射为统一 `TaskBlocked`/`task.blocked`。
@@ -427,7 +427,7 @@ def configure_services(container):
 - 旧同步 pipeline runner 已删除；内置 RSS/NewsNow seed 数据已迁入 `modnews/data/`。公开 run 入口和队列 executor 只保留任务图路径，不再暴露 legacy fallback。
 - 顶层 `modnews` 包已停止导出旧同步 `run_pipeline`；`modnews.service.pipeline.compat`/`legacy` 兼容导入路径已删除，避免把旧 runner 误认为新主入口。
 - `modnews_pipeline/` 兼容包已删除，wheel 只打包 `modnews`；安装后的主入口统一为 `modnews`、`modnews-server`、`modnews-report`，旧命令名 `newsagent-report` 仅作为指向同一 `modnews` report entry 的兼容别名保留。
-- report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；源码内 `src/` report 兼容转发层已删除。
+- report 生成主实现已迁入 `modnews/service/report/pipeline.py`，并接入 `modnews report generate`、`modnews-report` 和 `newsagent-report` 入口；同时新增统一队列 task `report.generate`，默认 pipeline run 会在 classify merge 成功后自动注册并执行 report。源码内 `src/` report 兼容转发层已删除。
 - report 配置默认值、数据模型、utils、规则表、IO helper、evidence/editor/reporter 和分类/评分/摘要/核验 stages 已迁入 `modnews/service/report/`，report 子模块已改用新路径。
 - `OutputRepository` 已支持从 checkpoint `output_refs` 发布固定输出，CLI/API 可执行 `checkpoints publish`；关键 task 返回 `auto_publish_checkpoint` 时，`CompletionCallbackRegistry` 会在 `task.completed` 回调中自动发布固定输出。
 - WebUI Progress 页已展示 runs、queue、checkpoints。
@@ -439,7 +439,7 @@ def configure_services(container):
 - managed site source 虽然已经从 pipeline planner 中展开为 `web_source.run` 任务并写统一 ingest checkpoint，但手动 `ingest run site_lists` 仍复用聚合式 `SiteListsStep` / `WebExtractionOrchestrator.run_pipeline_step()`，后续可以继续对齐到同一套 per-source task 规划。
 - 任务执行期间的 progress/LLM 事件已通过当前 task 上下文写入 `TaskLogRepository`，`queue show` 可看到 `progress.llm_request_*` 等日志；Codex repair task 已把 `codex.jsonl` 路径、尾部摘要和字节数写入 task result，并通过 `progress.codex_repair_log` 进入 task logs；web extraction 的 `WebJobStore.append(...)` 事件也会以 `progress.web_job_event` 写入当前 task logs。
 - standalone classify 的固定路径 `classification_progress.json` 仍作为显式低层调用的 resume 兼容文件保留；任务图流程只使用 run checkpoint artifact，不把固定输出作为内部状态源。
-- report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 不再发布 `src` 包，源码内 `src/` report 兼容转发层已删除。
+- report 层已有 `modnews/service/report` facade、新 CLI 入口、主 pipeline 实现、统一 `report.generate` task、配置默认值、模型、utils、规则表、IO helper、evidence、editor、reporter 和 stages；wheel 不再发布 `src` 包，源码内 `src/` report 兼容转发层已删除。
 - 固定输出已支持手动从 checkpoint 发布，也已支持关键 task 成功回调自动发布；后续要继续减少固定输出作为内部状态源的使用。
 
 ## Managed Extractors

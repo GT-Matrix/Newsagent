@@ -22,6 +22,23 @@ class RunControlTest(unittest.TestCase):
             self.assertIn("tasks", result)
             self.assertNotIn("task", result)
             self.assertIn("pipeline-", result["tasks"][-1]["id"])
+            task_types = [task["type"] for task in result["tasks"]]
+            self.assertEqual(task_types[-1], "pipeline.combine_ingest")
+            self.assertIn("ingest.run_step", task_types)
+            self.assertNotIn("classify.clustered_event_extraction", task_types)
+            self.assertNotIn("report.generate", task_types)
+
+    def test_run_start_registers_classify_and_report_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            result = client.run_start({"background": True})
+
+            task_types = [task["type"] for task in result["tasks"]]
+            self.assertIn("classify.clustered_event_extraction", task_types)
+            self.assertIn("classify.clustered_event_merge", task_types)
+            self.assertIn("report.generate", task_types)
+            self.assertLess(task_types.index("classify.clustered_event_merge"), task_types.index("report.generate"))
 
     def test_run_cancel_marks_queued_tasks_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

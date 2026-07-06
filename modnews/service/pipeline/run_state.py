@@ -20,7 +20,7 @@ def update_run_state(queue: EventQueue, event: dict[str, Any], *, failed: bool =
         return
     updates: dict[str, Any] = {"state": "blocked" if blocked else "failed" if failed else "running"}
     if isinstance(result, dict):
-        for key in ("checkpoint_path", "combined_ingest_path", "stats"):
+        for key in ("checkpoint_path", "combined_ingest_path", "report_output_dir", "stats"):
             if key in result:
                 updates[key] = result[key]
         if "error" in result:

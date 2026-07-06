@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request
 
 from modnews.app.context import local_client
-from modnews.core.task import TaskEvent
+from modnews.service.ingest.planner import plan_ingest_tasks
 
 bp = Blueprint("ingest", __name__)
 
@@ -17,16 +17,14 @@ def run_ingest_step():
     if step_id not in {"rss", "newsnow", "site_lists"}:
         return jsonify({"ok": False, "error": "invalid step_id"}), 400
     client = local_client()
-    task_id = f"ingest-{step_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    task = TaskEvent(
-        id=task_id,
-        type="ingest.run_step",
-        pipeline_run_id=payload.get("run_id"),
-        step_id=f"ingest/{step_id}",
-        payload={"project_root": str(client.project_root), **payload, "step_id": step_id},
-        concurrency_key=f"ingest:{step_id}",
-        max_concurrency=1,
+    run_id = payload.get("run_id") or f"ingest-{step_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    tasks = plan_ingest_tasks(
+        project_root=client.project_root,
+        step_id=step_id,
+        run_id=str(run_id),
     )
-    client.container.event_queue.submit(task)
-    task_payload = client.queue_show(task_id)
-    return jsonify({"ok": task_payload.get("state") == "succeeded", "task": task_payload})
+    for task in tasks:
+        client.container.event_queue.register(task)
+    client.container.event_queue.drain_ready()
+    task_payloads = [client.queue_show(task.id) for task in tasks]
+    return jsonify({"ok": all(task.get("state") == "succeeded" for task in task_payloads), "tasks": task_payloads})
