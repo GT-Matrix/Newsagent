@@ -5,7 +5,7 @@ from modnews.core.progress import emit
 from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
 from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .clustered_embedding import cluster_prepared_items
-from .events import assign_item_to_event
+from .event_membership import assign_item_to_event
 from .prompts import clustered_event_extraction_system_prompt
 from .types import DiscardedRecord, EventState, PreparedItem
 from .utils import (

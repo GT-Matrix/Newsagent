@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .checkpoint import build_checkpoint_meta, write_outputs
-from .clustered import extract_events_from_title_clusters, merge_event_clusters
+from .clustered_extract import extract_events_from_title_clusters
+from .clustered_merge import merge_event_clusters
 from .runner import ClassifyRuntime
 from .state import ClassifyState
 
