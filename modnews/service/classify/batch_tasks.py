@@ -10,7 +10,6 @@ from .batch_stage import run_llm_batch_task
 from .clustered_extract import CLUSTERED_EXTRACTION_STAGE
 from .clustered_merge import CLUSTERED_MERGE_STAGE
 from .llm_client import LlmClient
-from .relevance import RELEVANCE_STAGE
 from .retriever import EventVectorRetriever
 
 
@@ -28,20 +27,6 @@ def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
             "vector": retriever.embed_text_for_clustering(text),
         }
     }
-
-
-def run_relevance_batch_item(task: TaskEvent) -> dict[str, object]:
-    client = _build_llm_client(task)
-    item_payload = task.payload.get("item_payload")
-    items = item_payload if isinstance(item_payload, list) else []
-    response = run_llm_batch_task(
-        client=client,
-        stage=RELEVANCE_STAGE,
-        task=task,
-        payload=items,
-    )
-    return {"batch_result": response}
-
 
 def run_clustered_event_extraction_batch_item(task: TaskEvent) -> dict[str, object]:
     client = _build_llm_client(task)

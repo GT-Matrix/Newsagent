@@ -14,7 +14,6 @@ from modnews.service.classify.batch_tasks import (
     run_clustered_event_extraction_batch_item,
     run_clustered_event_merge_batch_item,
     run_embedding_batch_item,
-    run_relevance_batch_item,
 )
 from modnews.service.classify.batch_executor import (
     EventQueueBatchExecutionBackend,
@@ -42,7 +41,6 @@ def register_completion_callbacks(registry: CompletionCallbackRegistry, pipeline
 def register_task_executors(queue: EventQueue) -> None:
     queue.register_executor("diagnostic.echo", _echo)
     queue.register_executor("classify.embedding", run_embedding_batch_item)
-    queue.register_executor("classify.batch_relevance", run_relevance_batch_item)
     queue.register_executor("classify.clustered_event_extraction.batch", run_clustered_event_extraction_batch_item)
     queue.register_executor("classify.clustered_event_merge.batch", run_clustered_event_merge_batch_item)
     queue.register_executor(
