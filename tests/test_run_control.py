@@ -9,6 +9,7 @@ from modnews.cli.local_client import LocalClient
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.followups import FOLLOWUP_BUILDERS
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.service.pipeline.step import PipelineStepBase
 
@@ -86,6 +87,17 @@ class RunControlTest(unittest.TestCase):
 
             report = client.container.event_queue.get("report-run-1-generate")
             self.assertEqual(report.depends_on, ["classify-run-1-clustered-event-merge"])
+
+    def test_pipeline_followup_builders_are_registered_by_identifier(self) -> None:
+        self.assertEqual(
+            sorted(FOLLOWUP_BUILDERS),
+            [
+                "classify_extraction_after_combine",
+                "classify_merge_after_extraction",
+                "combine_ingest_for_run",
+                "report_after_classify_merge",
+            ],
+        )
 
     def test_run_cancel_marks_queued_tasks_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
