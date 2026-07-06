@@ -60,14 +60,6 @@ def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
     }
 
 
-def run_clustered_event_extraction_batch_item(task: TaskEvent) -> dict[str, object]:
-    return run_registered_llm_batch_item(task)
-
-
-def run_clustered_event_merge_batch_item(task: TaskEvent) -> dict[str, object]:
-    return run_registered_llm_batch_item(task)
-
-
 def run_registered_llm_batch_item(task: TaskEvent) -> dict[str, object]:
     spec = get_registered_llm_batch_stage(task.type)
     return _run_llm_batch_stage_task(
@@ -107,7 +99,7 @@ REGISTERED_BATCH_TASKS: tuple[RegisteredBatchTask, ...] = (
     ),
     RegisteredBatchTask(
         profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
-        executor=run_clustered_event_extraction_batch_item,
+        executor=run_registered_llm_batch_item,
         llm_stage=RegisteredLlmBatchStage(
             stage=CLUSTERED_EXTRACTION_STAGE,
             payload_loader=lambda payload: payload if isinstance(payload, list) else [],
@@ -115,7 +107,7 @@ REGISTERED_BATCH_TASKS: tuple[RegisteredBatchTask, ...] = (
     ),
     RegisteredBatchTask(
         profile=CLUSTERED_EVENT_MERGE_BATCH,
-        executor=run_clustered_event_merge_batch_item,
+        executor=run_registered_llm_batch_item,
         llm_stage=RegisteredLlmBatchStage(
             stage=CLUSTERED_MERGE_STAGE,
             payload_loader=lambda payload: payload if isinstance(payload, list) else [],

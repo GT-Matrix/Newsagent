@@ -11,7 +11,7 @@ from modnews.service.classify.batch_task_registry import (
     REGISTERED_BATCH_TASK_BY_TYPE,
     REGISTERED_BATCH_TASKS,
     REGISTERED_LLM_BATCH_STAGE_BY_TASK_TYPE,
-    run_clustered_event_extraction_batch_item,
+    run_registered_llm_batch_item,
 )
 from modnews.service.classify.task_registry import REGISTERED_CLASSIFY_TASK_BY_TYPE
 
@@ -105,7 +105,7 @@ class ClassifyBatchTaskTest(unittest.TestCase):
         payload = json.loads(client.calls[0]["messages"][1]["content"])  # type: ignore[index]
         self.assertEqual(payload, {"items": [{"value": 1}, {"value": 2}]})
 
-    def test_clustered_extraction_batch_task_reuses_stage_helper(self) -> None:
+    def test_registered_llm_batch_task_reuses_stage_helper(self) -> None:
         task = TaskEvent(
             id="task-1",
             type="classify.clustered_event_extraction.batch",
@@ -118,7 +118,7 @@ class ClassifyBatchTaskTest(unittest.TestCase):
         with patch("modnews.service.classify.batch_task_registry._build_llm_client", return_value=_FakeClient()):
             with patch("modnews.service.classify.batch_task_registry.run_llm_batch_task") as helper:
                 helper.return_value = {"items": [{"index": 0, "status": "candidate"}]}
-                result = run_clustered_event_extraction_batch_item(task)
+                result = run_registered_llm_batch_item(task)
 
         self.assertEqual(result, {"batch_result": {"items": [{"index": 0, "status": "candidate"}]}})
         helper.assert_called_once()
@@ -140,7 +140,7 @@ class ClassifyBatchTaskTest(unittest.TestCase):
 
         self.assertEqual(spec.profile.task_type, spec.task_type)
         self.assertEqual(spec.profile.queue_task_type, spec.task_type)
-        self.assertIs(spec.executor, run_clustered_event_extraction_batch_item)
+        self.assertIs(spec.executor, run_registered_llm_batch_item)
         self.assertIsNotNone(spec.llm_stage)
         self.assertEqual(spec.llm_stage.task_type, spec.task_type)
 

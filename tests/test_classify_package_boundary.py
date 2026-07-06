@@ -29,6 +29,8 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
 
         self.assertTrue(getattr(batch_tasks, "COMPATIBILITY_SHIM", False))
         self.assertTrue(getattr(llm_batch_registry, "COMPATIBILITY_SHIM", False))
+        self.assertIs(batch_tasks.run_clustered_event_extraction_batch_item, batch_tasks.run_registered_llm_batch_item)
+        self.assertIs(batch_tasks.run_clustered_event_merge_batch_item, batch_tasks.run_registered_llm_batch_item)
 
 
 if __name__ == "__main__":

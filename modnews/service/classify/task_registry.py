@@ -21,6 +21,10 @@ class RegisteredClassifyTask:
     default_input_path: str | None = None
     default_write_fixed_outputs: bool = False
 
+    @property
+    def step_names(self) -> tuple[str, ...]:
+        return get_registered_classify_flow(self.flow_name).step_names
+
     def build_steps(self):
         return get_registered_classify_flow(self.flow_name).build_steps()
 
