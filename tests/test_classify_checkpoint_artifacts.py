@@ -12,6 +12,7 @@ from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResul
 from modnews.service.classify.state_codec import decode_resume_state
 from modnews.service.classify.state import ClassifyState
 from modnews.service.classify.task_checkpoint import write_classify_task_checkpoint
+from modnews.service.classify.task_result import build_classify_task_snapshot
 from modnews.service.classify.types import DiscardedRecord
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
@@ -171,6 +172,27 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
             self.assertEqual(checkpoint_payload["stats"]["total_candidates"], 9)
             self.assertEqual(progress_payload["meta"]["processed_candidates"], 7)
             self.assertEqual(progress_payload["meta"]["total_candidates"], 9)
+
+    def test_task_snapshot_prefers_explicit_step_meta_and_stats(self) -> None:
+        item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
+        run_result = ClassifyRunResult(
+            state=ClassifyState(items=[item], prepared=[]),
+            last_step_result=ClassifyStepResult(
+                state=ClassifyState(items=[item], prepared=[]),
+                next_stage="completed",
+                checkpoint_meta={"stage": "completed", "processed_candidates": 7, "total_candidates": 9},
+                stats={"item_count": 1, "event_count": 0, "discarded_count": 0, "processed_candidates": 7, "total_candidates": 9},
+            ),
+        )
+
+        snapshot = build_classify_task_snapshot(
+            step_id="classify/clustered_event_merge",
+            run_result=run_result,
+        )
+
+        self.assertEqual(snapshot.step_id, "classify/clustered_event_merge")
+        self.assertEqual(snapshot.checkpoint_meta["processed_candidates"], 7)
+        self.assertEqual(snapshot.stats["total_candidates"], 9)
 
     def test_resume_state_decode_isolated_from_checkpoint_io(self) -> None:
         item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
