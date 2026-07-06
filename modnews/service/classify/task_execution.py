@@ -5,50 +5,37 @@ from modnews.core.task import TaskEvent
 from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
 
+from .task_registry import get_registered_classify_task
 from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
 from .runner import ClassifyStepRunner
-from .runner import ClassifyStep
-from .steps import build_extraction_task_steps, build_full_classify_steps, build_merge_task_steps
 from .task_checkpoint import write_classify_task_checkpoint
 from .task_runtime import prepare_clustered_task_runtime
 
 
 def execute_classify_task(
     task: TaskEvent,
-    *,
-    step_id: str,
-    steps: list[ClassifyStep],
-    auto_publish: bool = False,
 ) -> dict[str, object]:
+    spec = get_registered_classify_task(task.type)
     task_runtime = prepare_clustered_task_runtime(task)
-    run_result = ClassifyStepRunner(steps).run(task_runtime.state, task_runtime.runtime)
+    run_result = ClassifyStepRunner(spec.build_steps()).run(task_runtime.state, task_runtime.runtime)
     return write_classify_task_checkpoint(
         task_runtime.project_root,
         task_runtime.run_id,
         task,
-        step_id,
+        spec.step_id,
         task_runtime.input_path,
         run_result,
         task_runtime.runtime.config,
-        auto_publish=auto_publish,
+        auto_publish=spec.auto_publish,
     )
 
 
 def run_clustered_event_extraction_task(task: TaskEvent) -> dict[str, object]:
-    return execute_classify_task(
-        task,
-        step_id="classify/clustered_event_extraction",
-        steps=build_extraction_task_steps(),
-    )
+    return execute_classify_task(task)
 
 
 def run_clustered_event_merge_task(task: TaskEvent) -> dict[str, object]:
-    return execute_classify_task(
-        task,
-        step_id="classify/clustered_event_merge",
-        steps=build_merge_task_steps(),
-        auto_publish=True,
-    )
+    return execute_classify_task(task)
 
 
 def run_classification(
