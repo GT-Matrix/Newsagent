@@ -52,10 +52,18 @@ def build_classify_runtime_for_context(
     return ClassifyRuntime(
         ctx=ctx,
         config=config,
-        client=LlmClient(config.llm, ctx.session),
-        retriever=EventVectorRetriever(config.embedding, ctx.session),
+        client=build_classify_llm_client_for_context(ctx, config),
+        retriever=build_classify_retriever_for_context(ctx, config),
         write_fixed_outputs=write_fixed_outputs,
     )
+
+
+def build_classify_llm_client_for_context(ctx: PipelineContext, config: ClassificationConfig) -> LlmClient:
+    return LlmClient(config.llm, ctx.session)
+
+
+def build_classify_retriever_for_context(ctx: PipelineContext, config: ClassificationConfig) -> EventVectorRetriever:
+    return EventVectorRetriever(config.embedding, ctx.session)
 
 
 def resolve_classify_state_input(

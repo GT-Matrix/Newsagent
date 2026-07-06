@@ -14,9 +14,11 @@ from .batch_profile import (
 from .batch_stage import LlmBatchStage, run_llm_batch_task
 from .clustered_extract import CLUSTERED_EXTRACTION_STAGE
 from .clustered_merge import CLUSTERED_MERGE_STAGE
-from .llm_client import LlmClient
-from .runtime_build import resolve_classify_task_environment
-from .retriever import EventVectorRetriever
+from .runtime_build import (
+    build_classify_llm_client_for_context,
+    build_classify_retriever_for_context,
+    resolve_classify_task_environment,
+)
 
 T = TypeVar("T")
 
@@ -44,7 +46,7 @@ class RegisteredBatchTask:
 
 def run_embedding_batch_item(task: TaskEvent) -> dict[str, object]:
     env = resolve_classify_task_environment(task)
-    retriever = EventVectorRetriever(env.config.classification.embedding, env.ctx.session)
+    retriever = build_classify_retriever_for_context(env.ctx, env.config.classification)
     item_payload = task.payload.get("item_payload") if isinstance(task.payload.get("item_payload"), dict) else {}
     key = item_payload.get("key")
     text = str(item_payload.get("text") or "")
@@ -71,7 +73,8 @@ def _run_llm_batch_stage_task(
     stage: LlmBatchStage[T],
     payload_loader: Callable[[object], T],
 ) -> dict[str, object]:
-    client = _build_llm_client(task)
+    env = resolve_classify_task_environment(task)
+    client = build_classify_llm_client_for_context(env.ctx, env.config.classification)
     response = run_llm_batch_task(
         client=client,
         stage=stage,
@@ -79,11 +82,6 @@ def _run_llm_batch_stage_task(
         payload=payload_loader(task.payload.get("item_payload")),
     )
     return {"batch_result": response}
-
-
-def _build_llm_client(task: TaskEvent) -> LlmClient:
-    env = resolve_classify_task_environment(task)
-    return LlmClient(env.config.classification.llm, env.ctx.session)
 
 
 REGISTERED_BATCH_TASKS: tuple[RegisteredBatchTask, ...] = (

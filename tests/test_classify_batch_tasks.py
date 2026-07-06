@@ -115,7 +115,7 @@ class ClassifyBatchTaskTest(unittest.TestCase):
             },
         )
 
-        with patch("modnews.service.classify.batch_task_registry._build_llm_client", return_value=_FakeClient()):
+        with patch("modnews.service.classify.batch_task_registry.build_classify_llm_client_for_context", return_value=_FakeClient()):
             with patch("modnews.service.classify.batch_task_registry.run_llm_batch_task") as helper:
                 helper.return_value = {"items": [{"index": 0, "status": "candidate"}]}
                 result = run_registered_llm_batch_item(task)
