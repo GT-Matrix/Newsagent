@@ -9,6 +9,7 @@ from modnews.core.task import TaskEvent
 from modnews.service.extraction.repair_queue_runtime import (
     ensure_repair_queue_task,
     handle_blocked_web_source_event,
+    submit_repair_queue_task_detail,
 )
 
 
@@ -76,6 +77,30 @@ class RepairQueueRuntimeTest(unittest.TestCase):
                 [action["action"] for action in patch["repair_queue_actions"]],
                 ["submit_repair_queue_task", "skip_blocked_task"],
             )
+
+    def test_submit_repair_queue_task_detail_returns_queue_item(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            queue = EventQueue()
+            queue.register_executor("extractor.repair.codex", lambda task: {"repair_task_id": task.payload["repair_task_id"]})
+
+            def queue_show(task_id: str) -> dict[str, object]:
+                task = queue.get(task_id)
+                return {"id": task.id, "type": task.type, "state": task.state}
+
+            result = submit_repair_queue_task_detail(
+                queue,
+                queue_show=queue_show,
+                project_root=project_root,
+                repair_task_id="repair-1",
+                source_id="site-1",
+                run_id="run-1",
+            )
+
+            self.assertTrue(result["created"])
+            self.assertEqual(result["queue_task_id"], result["task"]["id"])
+            self.assertEqual(result["task"]["type"], "extractor.repair.codex")
+            self.assertEqual(result["task"]["state"], "succeeded")
 
 
 if __name__ == "__main__":

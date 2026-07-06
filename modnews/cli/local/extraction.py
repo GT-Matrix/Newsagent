@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from modnews.service.extraction.repair_manager import RepairManager
-from modnews.service.extraction.repair_queue_runtime import ensure_repair_queue_task
+from modnews.service.extraction.repair_queue_runtime import submit_repair_queue_task_detail
 from modnews.service.extraction.registry import registry_from_project
 from modnews.repository.web_jobs import WebJobStore
 
@@ -102,10 +102,11 @@ class ExtractionLocalMixin:
         return {"ok": True}
 
     def _submit_repair_task(self, repair_task_id: str, source_id: str) -> dict[str, Any]:
-        decision = ensure_repair_queue_task(
+        submission = submit_repair_queue_task_detail(
             self.container.event_queue,
+            queue_show=self.queue_show,
             project_root=self.project_root,
             repair_task_id=repair_task_id,
             source_id=source_id,
         )
-        return self.queue_show(str(decision["queue_task_id"]))
+        return submission["task"]

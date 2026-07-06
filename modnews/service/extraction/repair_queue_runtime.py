@@ -63,6 +63,31 @@ def ensure_repair_queue_task(
     }
 
 
+def submit_repair_queue_task_detail(
+    queue: EventQueue,
+    *,
+    queue_show,
+    project_root: Path,
+    repair_task_id: str,
+    source_id: str,
+    run_id: str | None = None,
+    task_id: str | None = None,
+) -> dict[str, Any]:
+    decision = ensure_repair_queue_task(
+        queue,
+        project_root=project_root,
+        repair_task_id=repair_task_id,
+        source_id=source_id,
+        run_id=run_id,
+        task_id=task_id,
+    )
+    task_detail = queue_show(str(decision["queue_task_id"]))
+    return {
+        **decision,
+        "task": task_detail,
+    }
+
+
 def safely_skip_blocked_task(queue: EventQueue, task_id: str, *, reason: str) -> dict[str, Any]:
     current = queue.get(task_id)
     if current.state == "blocked":
