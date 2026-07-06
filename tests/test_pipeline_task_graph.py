@@ -12,12 +12,24 @@ from modnews.service.classify.planner import (
     build_clustered_event_merge_task,
 )
 from modnews.service.pipeline.checkpoint import CheckpointManager
+from modnews.service.pipeline.steps import REGISTERED_PIPELINE_STEP_SPEC_BY_ID
 from modnews.service.pipeline.task_builder import build_report_generate_task
 from modnews.service.report.planner import plan_report_tasks
 from modnews.service.report.tasks import _resolve_report_input
 
 
 class PipelineTaskGraphTest(unittest.TestCase):
+    def test_pipeline_step_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_PIPELINE_STEP_SPEC_BY_ID),
+            ["pipeline_ingest", "pipeline_combine_ingest", "pipeline_classify", "pipeline_report"],
+        )
+        self.assertEqual(REGISTERED_PIPELINE_STEP_SPEC_BY_ID["pipeline_ingest"].planner_id, "ingest_root")
+        self.assertEqual(
+            REGISTERED_PIPELINE_STEP_SPEC_BY_ID["pipeline_classify"].concrete_step_ids,
+            ("classify/clustered_event_extraction", "classify/clustered_event_merge"),
+        )
+
     def test_pipeline_registry_registers_split_steps(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             container = configure_services(Path(tmp))
