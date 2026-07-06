@@ -6,7 +6,7 @@ from typing import Any
 from modnews.service.extraction.metadata import replace_metadata_comment
 from modnews.service.extraction.registry import ExtractorRecord
 from modnews.service.extraction.repair_store import read_json, write_json
-from modnews.service.extraction.repair_support import infer_name_from_task, infer_url_from_task, now
+from modnews.service.extraction.repair_templates import infer_name_from_task, infer_url_from_task, now
 
 
 def apply_promoted_metadata(

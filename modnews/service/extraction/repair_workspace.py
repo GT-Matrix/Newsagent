@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from modnews.service.extraction.registry import ExtractorRegistry
-from modnews.service.extraction.repair_support import write_bootstrap_extractor
+from modnews.service.extraction.repair_templates import write_bootstrap_extractor
 
 
 @dataclass(frozen=True, slots=True)

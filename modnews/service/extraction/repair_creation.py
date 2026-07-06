@@ -5,7 +5,7 @@ from typing import Any
 
 from modnews.service.extraction.registry import ExtractorRegistry
 from modnews.service.extraction.repair_store import RepairTask
-from modnews.service.extraction.repair_support import (
+from modnews.service.extraction.repair_templates import (
     now,
     write_contract_schema,
     write_final_schema,
