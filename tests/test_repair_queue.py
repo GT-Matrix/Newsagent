@@ -7,11 +7,36 @@ from unittest.mock import patch
 
 from modnews.cli.local_client import LocalClient
 from modnews.core.task import TaskBlocked
+from modnews.service.extraction.repair_runtime_facade import RepairRuntimeFacade
 from modnews.service.extraction.repair_store import RepairTaskStore
 from modnews.service.extraction.repair_task_result import build_repair_task_result
 
 
 class RepairQueueTest(unittest.TestCase):
+    def test_repair_runtime_facade_create_task_reuses_queue_runtime_submission(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            facade = RepairRuntimeFacade(
+                project_root=client.project_root,
+                queue=client.container.event_queue,
+                queue_show=client.queue_show,
+            )
+
+            def write_log(self, task_id: str) -> None:
+                task = self._load_task(task_id)
+                task.log_path.write_text("codex line 1\ncodex line 2\n", encoding="utf-8")
+                task.status = "succeeded"
+                task.error = None
+                self._save_task(task)
+
+            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task", new=write_log):
+                result = facade.create_task({"source_id": "source-1", "reason": "test repair"})
+
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["task"]["type"], "extractor.repair.codex")
+            self.assertEqual(result["task"]["state"], "succeeded")
+            self.assertEqual(result["item"]["source_id"], "source-1")
+
     def test_repair_create_runs_codex_repair_through_event_queue(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))

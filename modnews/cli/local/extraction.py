@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modnews.service.extraction.repair_manager import RepairManager
-from modnews.service.extraction.repair_queue_runtime import submit_repair_queue_task_detail
+from modnews.service.extraction.repair_runtime_facade import RepairRuntimeFacade
 from modnews.service.extraction.registry import registry_from_project
 from modnews.repository.web_jobs import WebJobStore
 
@@ -73,40 +72,26 @@ class ExtractionLocalMixin:
         return {"ok": result.get("state") == "succeeded", "task": result, "item": job}
 
     def repair_tasks(self) -> list[dict[str, Any]]:
-        return RepairManager(self.project_root, registry_from_project(self.project_root)).list_tasks()
+        return self._repair_runtime().list_tasks()
 
     def repair_task(self, task_id: str) -> dict[str, Any]:
-        return RepairManager(self.project_root, registry_from_project(self.project_root)).get_task(task_id)
+        return self._repair_runtime().get_task(task_id)
 
     def repair_create(self, payload: dict[str, Any]) -> dict[str, Any]:
-        task = RepairManager(self.project_root, registry_from_project(self.project_root)).create_task(
-            str(payload["source_id"]),
-            reason=str(payload.get("reason") or "manual repair request"),
-        )
-        queue_task = None
-        if bool(payload.get("auto_start", True)):
-            queue_task = self._submit_repair_task(task.id, task.source_id)
-        return {"ok": True, "item": task.to_dict(), "task": queue_task}
+        return self._repair_runtime().create_task(payload)
 
     def repair_retry(self, task_id: str) -> dict[str, Any]:
-        task = RepairManager(self.project_root, registry_from_project(self.project_root)).retry_task(task_id)
-        queue_task = self._submit_repair_task(task.id, task.source_id)
-        return {"ok": True, "item": task.to_dict(), "task": queue_task}
+        return self._repair_runtime().retry_task(task_id)
 
     def repair_promote(self, task_id: str) -> dict[str, Any]:
-        task = RepairManager(self.project_root, registry_from_project(self.project_root)).promote_task(task_id)
-        return {"ok": True, "item": task.to_dict()}
+        return self._repair_runtime().promote_task(task_id)
 
     def repair_delete(self, task_id: str) -> dict[str, Any]:
-        RepairManager(self.project_root, registry_from_project(self.project_root)).delete_task(task_id)
-        return {"ok": True}
+        return self._repair_runtime().delete_task(task_id)
 
-    def _submit_repair_task(self, repair_task_id: str, source_id: str) -> dict[str, Any]:
-        submission = submit_repair_queue_task_detail(
-            self.container.event_queue,
-            queue_show=self.queue_show,
+    def _repair_runtime(self) -> RepairRuntimeFacade:
+        return RepairRuntimeFacade(
             project_root=self.project_root,
-            repair_task_id=repair_task_id,
-            source_id=source_id,
+            queue=self.container.event_queue,
+            queue_show=self.queue_show,
         )
-        return submission["task"]
