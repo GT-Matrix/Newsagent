@@ -743,6 +743,11 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             stats = latest_checkpoint.get("stats")
             if isinstance(stats, dict):
                 checkpoint_meta = stats
+        payload = task.payload if isinstance(task.payload, dict) else {}
+        item_payload = payload.get("item_payload")
+        batch_payload = payload.get("batch") if isinstance(payload.get("batch"), dict) else {}
+        labels = payload.get("labels") if isinstance(payload.get("labels"), dict) else {}
+        batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else {}
         return {
             "kind": "classify",
             "step_id": task.step_id,
@@ -755,7 +760,15 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "resume_hint": resume_hint,
             "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
             "stats": checkpoint_meta,
-            "batch_result": result.get("batch_result"),
+            "parent_task_id": task.parent_task_id or payload.get("parent_task_id"),
+            "parent_task_type": payload.get("parent_task_type"),
+            "task_group_id": task.task_group_id or payload.get("task_group_id"),
+            "labels": labels,
+            "batch": batch_payload,
+            "item_payload_kind": item_payload_kind(item_payload),
+            "item_payload_size": item_payload_size(item_payload),
+            "batch_result": batch_result,
+            "batch_result_keys": sorted(batch_result) if batch_result else [],
         }
     if task.type == "report.generate":
         latest_checkpoint = checkpoints[-1] if checkpoints else {}
@@ -840,3 +853,21 @@ def publish_targets_for_task(task: TaskEvent, checkpoint: dict[str, Any]) -> lis
             }
         )
     return targets
+
+
+def item_payload_kind(payload: Any) -> str | None:
+    if isinstance(payload, dict):
+        return "dict"
+    if isinstance(payload, list):
+        return "list"
+    if payload is None:
+        return None
+    return type(payload).__name__
+
+
+def item_payload_size(payload: Any) -> int | None:
+    if isinstance(payload, dict):
+        return len(payload)
+    if isinstance(payload, list):
+        return len(payload)
+    return None

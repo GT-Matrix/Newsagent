@@ -580,6 +580,100 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(result["domain_view"]["publish_targets"][0]["target_key"], "combined_news")
             self.assertEqual(result["domain_view"]["artifacts"][0]["name"], "items")
 
+    def test_queue_show_exposes_classify_embedding_batch_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="classify.embedding:group-1:1",
+                type="classify.embedding",
+                pipeline_run_id="run-1",
+                step_id="classify/clustered_event_extraction",
+                parent_task_id="classify-parent-1",
+                task_group_id="group-1",
+                payload={
+                    "project_root": tmp,
+                    "run_id": "run-1",
+                    "parent_task_id": "classify-parent-1",
+                    "parent_task_type": "classify.clustered_event_extraction",
+                    "task_group_id": "group-1",
+                    "labels": {"stage": "clustered"},
+                    "batch": {
+                        "task_type": "classify.embedding",
+                        "task_name": "classify.embedding[1/2]",
+                        "concurrency_key": "classify.embedding",
+                        "max_concurrency": 2,
+                        "queue_task_type": "classify.embedding",
+                        "item_index": 0,
+                        "item_count": 2,
+                    },
+                    "item_payload": {"key": "evt_1", "text": "hello"},
+                },
+            )
+            client.container.event_queue.register(task)
+            client.container.event_queue._results[task.id] = {  # type: ignore[attr-defined]
+                "batch_result": {"key": "evt_1", "vector": [1.0, 2.0]},
+            }
+
+            result = client.queue_show(task.id)
+
+            self.assertEqual(result["domain_view"]["kind"], "classify")
+            self.assertEqual(result["domain_view"]["parent_task_id"], "classify-parent-1")
+            self.assertEqual(result["domain_view"]["parent_task_type"], "classify.clustered_event_extraction")
+            self.assertEqual(result["domain_view"]["task_group_id"], "group-1")
+            self.assertEqual(result["domain_view"]["labels"], {"stage": "clustered"})
+            self.assertEqual(result["domain_view"]["batch"]["task_name"], "classify.embedding[1/2]")
+            self.assertEqual(result["domain_view"]["item_payload_kind"], "dict")
+            self.assertEqual(result["domain_view"]["item_payload_size"], 2)
+            self.assertEqual(result["domain_view"]["batch_result_keys"], ["key", "vector"])
+
+    def test_queue_show_exposes_classify_relevance_batch_domain_view_details(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            task = TaskEvent(
+                id="classify.batch_relevance:group-1:1",
+                type="classify.batch_relevance",
+                pipeline_run_id="run-1",
+                step_id="classify/relevance",
+                parent_task_id="classify-parent-2",
+                task_group_id="group-1",
+                payload={
+                    "project_root": tmp,
+                    "run_id": "run-1",
+                    "parent_task_id": "classify-parent-2",
+                    "parent_task_type": "classify.clustered_event_extraction",
+                    "task_group_id": "group-1",
+                    "labels": {"stage": "relevance"},
+                    "batch": {
+                        "task_type": "classify.batch_relevance",
+                        "task_name": "classify.batch_relevance[1/2]",
+                        "concurrency_key": "classify.llm",
+                        "max_concurrency": 2,
+                        "queue_task_type": "classify.batch_relevance",
+                        "item_index": 0,
+                        "item_count": 2,
+                        "batch_index": 1,
+                        "batch_count": 2,
+                    },
+                    "item_payload": [{"index": 0, "title": "hello"}],
+                },
+            )
+            client.container.event_queue.register(task)
+            client.container.event_queue._results[task.id] = {  # type: ignore[attr-defined]
+                "batch_result": {"items": [{"index": 0, "status": "candidate"}]},
+            }
+
+            result = client.queue_show(task.id)
+
+            self.assertEqual(result["domain_view"]["kind"], "classify")
+            self.assertEqual(result["domain_view"]["labels"], {"stage": "relevance"})
+            self.assertEqual(result["domain_view"]["batch"]["batch_index"], 1)
+            self.assertEqual(result["domain_view"]["batch"]["batch_count"], 2)
+            self.assertEqual(result["domain_view"]["item_payload_kind"], "list")
+            self.assertEqual(result["domain_view"]["item_payload_size"], 1)
+            self.assertEqual(result["domain_view"]["batch_result_keys"], ["items"])
+
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
