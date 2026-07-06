@@ -18,6 +18,10 @@ from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASK_BY_TYPE
 from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.pipeline.read_model_support import task_detail_kind, task_log_kind, task_title
 from modnews.service.pipeline.steps import REGISTERED_PIPELINE_STEP_SPEC_BY_ID
+from modnews.service.pipeline.task_domain_view import (
+    REGISTERED_TASK_DOMAIN_VIEW_BY_ID,
+    resolve_task_domain_view,
+)
 from modnews.service.pipeline.task_presentation import (
     REGISTERED_TASK_PRESENTATION_BY_ID,
     resolve_task_presentation,
@@ -156,6 +160,32 @@ class PipelineTaskGraphTest(unittest.TestCase):
         self.assertEqual(task_title(web_task), "Run web source site-1")
         self.assertEqual(task_log_kind(web_task), "web_job")
         self.assertEqual(task_detail_kind(web_task), "web_source_task")
+
+    def test_task_domain_view_specs_are_registered_from_single_source(self) -> None:
+        self.assertEqual(
+            list(REGISTERED_TASK_DOMAIN_VIEW_BY_ID),
+            [
+                "web_source.run",
+                "extractor.repair.codex",
+                "classify.task",
+                "report.generate",
+                "pipeline.combine_ingest",
+                "ingest.task",
+            ],
+        )
+        self.assertEqual(REGISTERED_TASK_DOMAIN_VIEW_BY_ID["classify.task"].builder_id, "classify")
+        self.assertEqual(REGISTERED_TASK_DOMAIN_VIEW_BY_ID["report.generate"].builder_id, "report")
+
+    def test_task_domain_view_registry_resolves_specific_and_prefix_matches(self) -> None:
+        classify_task = TaskEvent(id="classify-1", type="classify.clustered_event_merge.batch")
+        report_task = TaskEvent(id="report-1", type="report.generate")
+        ingest_task = TaskEvent(id="ingest-1", type="ingest.run_step")
+        fallback_task = TaskEvent(id="diag-1", type="diagnostic.echo")
+
+        self.assertEqual(resolve_task_domain_view(classify_task).id, "classify.task")
+        self.assertEqual(resolve_task_domain_view(report_task).id, "report.generate")
+        self.assertEqual(resolve_task_domain_view(ingest_task).id, "ingest.task")
+        self.assertIsNone(resolve_task_domain_view(fallback_task))
 
     def test_report_input_placeholder_resolves_latest_classify_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

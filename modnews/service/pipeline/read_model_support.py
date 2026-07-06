@@ -8,6 +8,7 @@ from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.step import PipelineStepDescriptor
+from modnews.service.pipeline.task_domain_view import resolve_task_domain_view
 from modnews.service.pipeline.task_presentation import default_task_title, resolve_task_presentation
 
 
@@ -667,119 +668,172 @@ def task_logs(project_root: Path, task_id: str) -> list[dict[str, Any]]:
 
 
 def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list[dict[str, Any]]) -> dict[str, Any]:
-    if task.type == "web_source.run":
-        latest_checkpoint = checkpoints[-1] if checkpoints else {}
-        return {
-            "kind": "web_source",
-            "source_id": task.payload.get("source_id"),
-            "job": result.get("job"),
-            "repair_task_id": result.get("repair_task_id"),
-            "checkpoint_path": related_checkpoint_path(result, checkpoints),
-            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
-            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
-        }
-    if task.type == "extractor.repair.codex":
-        repair_task = result.get("repair_task") if isinstance(result.get("repair_task"), dict) else {}
-        return {
-            "kind": "repair_codex",
-            "source_id": repair_task.get("source_id") or task.payload.get("source_id"),
-            "repair_task_id": task.payload.get("repair_task_id"),
-            "repair_task": repair_task,
-            "codex_log_path": result.get("codex_log_path"),
-        }
-    if task.type.startswith("classify."):
-        latest_checkpoint = checkpoints[-1] if checkpoints else {}
-        resume_hint = latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None
-        checkpoint_meta = {}
-        if isinstance(latest_checkpoint, dict):
-            stats = latest_checkpoint.get("stats")
-            if isinstance(stats, dict):
-                checkpoint_meta = stats
-        payload = task.payload if isinstance(task.payload, dict) else {}
-        item_payload = payload.get("item_payload")
-        batch_payload = payload.get("batch") if isinstance(payload.get("batch"), dict) else {}
-        labels = payload.get("labels") if isinstance(payload.get("labels"), dict) else {}
-        batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else {}
-        parent_task_type = payload.get("parent_task_type")
-        return {
-            "kind": "classify",
-            "classify_task_kind": classify_task_kind(task),
-            "batch_task_type": task.type if ".batch" in task.type or task.type == "classify.embedding" or task.type == "classify.batch_relevance" else None,
-            "queue_task_type": str(batch_payload.get("queue_task_type") or task.type),
-            "step_id": task.step_id,
-            "run_id": task.pipeline_run_id,
-            "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
-            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
-            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
-            "resume_hint": resume_hint,
-            "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
-            "parent_stage": classify_parent_stage(task, parent_task_type),
-            "stats": checkpoint_meta,
-            "parent_task_id": task.parent_task_id or payload.get("parent_task_id"),
-            "parent_task_type": parent_task_type,
-            "task_group_id": task.task_group_id or payload.get("task_group_id"),
-            "concurrency_key": task.concurrency_key or batch_payload.get("concurrency_key"),
-            "max_concurrency": classify_max_concurrency(task, batch_payload),
-            "labels": labels,
-            "batch": batch_payload,
-            "batch_index": classify_int_field(batch_payload, "batch_index"),
-            "batch_count": classify_int_field(batch_payload, "batch_count"),
-            "item_index": classify_int_field(batch_payload, "item_index"),
-            "item_count": classify_int_field(batch_payload, "item_count"),
-            "item_payload_kind": item_payload_kind(item_payload),
-            "item_payload_size": item_payload_size(item_payload),
-            "batch_result": batch_result,
-            "batch_result_keys": sorted(batch_result) if batch_result else [],
-        }
-    if task.type == "report.generate":
-        latest_checkpoint = checkpoints[-1] if checkpoints else {}
-        return {
-            "kind": "report",
-            "run_id": task.pipeline_run_id,
-            "checkpoint_path": related_checkpoint_path(result, checkpoints),
-            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
-            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
-            "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
-            "report_output_dir": result.get("report_output_dir"),
-            "stats": result.get("stats"),
-        }
-    if task.type == "pipeline.combine_ingest":
-        latest_checkpoint = checkpoints[-1] if checkpoints else {}
-        return {
-            "kind": "pipeline_combine_ingest",
-            "run_id": task.pipeline_run_id,
-            "combined_ingest_path": result.get("combined_ingest_path"),
-            "checkpoint_path": related_checkpoint_path(result, checkpoints),
-            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
-            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
-            "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
-        }
-    if task.type.startswith("ingest.") or task.type == "web_source.run":
-        latest_checkpoint = checkpoints[-1] if checkpoints else {}
-        return {
-            "kind": "ingest",
-            "step_id": task.step_id,
-            "run_id": task.pipeline_run_id,
-            "checkpoint_path": related_checkpoint_path(result, checkpoints),
-            "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
-            "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
-            "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
-        }
+    domain_view = resolve_task_domain_view(task)
+    if domain_view is None:
+        return _build_default_domain_view(task)
+    return DOMAIN_VIEW_BUILDERS[domain_view.builder_id](task, result, checkpoints)
+
+
+def _build_web_source_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    latest_checkpoint = checkpoints[-1] if checkpoints else {}
+    return {
+        "kind": "web_source",
+        "source_id": task.payload.get("source_id"),
+        "job": result.get("job"),
+        "repair_task_id": result.get("repair_task_id"),
+        "checkpoint_path": related_checkpoint_path(result, checkpoints),
+        "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+        "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
+    }
+
+
+def _build_repair_codex_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    _checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    repair_task = result.get("repair_task") if isinstance(result.get("repair_task"), dict) else {}
+    return {
+        "kind": "repair_codex",
+        "source_id": repair_task.get("source_id") or task.payload.get("source_id"),
+        "repair_task_id": task.payload.get("repair_task_id"),
+        "repair_task": repair_task,
+        "codex_log_path": result.get("codex_log_path"),
+    }
+
+
+def _build_classify_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    latest_checkpoint = checkpoints[-1] if checkpoints else {}
+    resume_hint = latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None
+    checkpoint_meta = {}
+    if isinstance(latest_checkpoint, dict):
+        stats = latest_checkpoint.get("stats")
+        if isinstance(stats, dict):
+            checkpoint_meta = stats
+    payload = task.payload if isinstance(task.payload, dict) else {}
+    item_payload = payload.get("item_payload")
+    batch_payload = payload.get("batch") if isinstance(payload.get("batch"), dict) else {}
+    labels = payload.get("labels") if isinstance(payload.get("labels"), dict) else {}
+    batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else {}
+    parent_task_type = payload.get("parent_task_type")
+    return {
+        "kind": "classify",
+        "classify_task_kind": classify_task_kind(task),
+        "batch_task_type": task.type if ".batch" in task.type or task.type == "classify.embedding" or task.type == "classify.batch_relevance" else None,
+        "queue_task_type": str(batch_payload.get("queue_task_type") or task.type),
+        "step_id": task.step_id,
+        "run_id": task.pipeline_run_id,
+        "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
+        "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+        "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
+        "resume_hint": resume_hint,
+        "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
+        "parent_stage": classify_parent_stage(task, parent_task_type),
+        "stats": checkpoint_meta,
+        "parent_task_id": task.parent_task_id or payload.get("parent_task_id"),
+        "parent_task_type": parent_task_type,
+        "task_group_id": task.task_group_id or payload.get("task_group_id"),
+        "concurrency_key": task.concurrency_key or batch_payload.get("concurrency_key"),
+        "max_concurrency": classify_max_concurrency(task, batch_payload),
+        "labels": labels,
+        "batch": batch_payload,
+        "batch_index": classify_int_field(batch_payload, "batch_index"),
+        "batch_count": classify_int_field(batch_payload, "batch_count"),
+        "item_index": classify_int_field(batch_payload, "item_index"),
+        "item_count": classify_int_field(batch_payload, "item_count"),
+        "item_payload_kind": item_payload_kind(item_payload),
+        "item_payload_size": item_payload_size(item_payload),
+        "batch_result": batch_result,
+        "batch_result_keys": sorted(batch_result) if batch_result else [],
+    }
+
+
+def _build_report_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    latest_checkpoint = checkpoints[-1] if checkpoints else {}
+    return {
+        "kind": "report",
+        "run_id": task.pipeline_run_id,
+        "checkpoint_path": related_checkpoint_path(result, checkpoints),
+        "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+        "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
+        "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
+        "report_output_dir": result.get("report_output_dir"),
+        "stats": result.get("stats"),
+    }
+
+
+def _build_pipeline_combine_ingest_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    latest_checkpoint = checkpoints[-1] if checkpoints else {}
+    return {
+        "kind": "pipeline_combine_ingest",
+        "run_id": task.pipeline_run_id,
+        "combined_ingest_path": result.get("combined_ingest_path"),
+        "checkpoint_path": related_checkpoint_path(result, checkpoints),
+        "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+        "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
+        "resume_hint": latest_checkpoint.get("resume_hint") if isinstance(latest_checkpoint, dict) else None,
+    }
+
+
+def _build_ingest_domain_view(
+    task: TaskEvent,
+    result: dict[str, Any],
+    checkpoints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    latest_checkpoint = checkpoints[-1] if checkpoints else {}
+    return {
+        "kind": "ingest",
+        "step_id": task.step_id,
+        "run_id": task.pipeline_run_id,
+        "checkpoint_path": related_checkpoint_path(result, checkpoints),
+        "input_refs": latest_checkpoint.get("input_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "output_refs": latest_checkpoint.get("output_refs", {}) if isinstance(latest_checkpoint, dict) else {},
+        "artifacts": checkpoint_artifacts(latest_checkpoint if isinstance(latest_checkpoint, dict) else None),
+        "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
+    }
+
+
+def _build_default_domain_view(task: TaskEvent) -> dict[str, Any]:
     return {
         "kind": "task",
         "type": task.type,
         "run_id": task.pipeline_run_id,
         "step_id": task.step_id,
     }
+
+
+DOMAIN_VIEW_BUILDERS = {
+    "web_source": _build_web_source_domain_view,
+    "repair_codex": _build_repair_codex_domain_view,
+    "classify": _build_classify_domain_view,
+    "report": _build_report_domain_view,
+    "pipeline_combine_ingest": _build_pipeline_combine_ingest_domain_view,
+    "ingest": _build_ingest_domain_view,
+}
 
 
 def publish_targets_for_task(task: TaskEvent, checkpoint: dict[str, Any]) -> list[dict[str, Any]]:
