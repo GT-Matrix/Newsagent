@@ -1,24 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
 
 from .checkpoint import build_checkpoint_meta, write_outputs
 from .clustered_extract import extract_events_from_title_clusters
 from .clustered_merge import merge_event_clusters
-from .runner import ClassifyRuntime, ClassifyStepResult
+from .runner import ClassifyRuntime, ClassifyStep, ClassifyStepResult
 from .state import ClassifyState
-
-
-class ClassifyStepDefinition(Protocol):
-    name: str
-    output_stage: str
-
-    def should_run(self, state: ClassifyState) -> bool:
-        ...
-
-    def run(self, state: ClassifyState, runtime: ClassifyRuntime) -> ClassifyStepResult:
-        ...
 
 
 @dataclass(slots=True)
@@ -83,7 +71,7 @@ class ClusteredEventMergeStep:
         return result
 
 
-def build_full_classify_steps() -> list[ClassifyStepDefinition]:
+def build_full_classify_steps() -> list[ClassifyStep]:
     return [
         StartCheckpointStep(),
         ClusteredEventExtractionStep(),
@@ -91,14 +79,14 @@ def build_full_classify_steps() -> list[ClassifyStepDefinition]:
     ]
 
 
-def build_extraction_task_steps() -> list[ClassifyStepDefinition]:
+def build_extraction_task_steps() -> list[ClassifyStep]:
     return [
         StartCheckpointStep(),
         ClusteredEventExtractionStep(),
     ]
 
 
-def build_merge_task_steps() -> list[ClassifyStepDefinition]:
+def build_merge_task_steps() -> list[ClassifyStep]:
     return [ClusteredEventMergeStep()]
 
 
