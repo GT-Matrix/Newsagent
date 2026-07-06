@@ -3,13 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews.core.task import TaskEvent
-from modnews.repository.runs import RunRepository
 from modnews.service.classify.planner import (
     build_clustered_event_extraction_task,
     resolve_clustered_classify_run_id,
 )
-from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
+from modnews.service.task_entrypoints import run_planned_tasks
 
 
 def run_classify_tasks(
@@ -28,31 +26,12 @@ def run_classify_tasks(
         input_path=input_path,
         config=config,
     )
-    runs = RunRepository(project_root)
-    try:
-        runs.get(str(task_run_id))
-    except KeyError:
-        runs.create(str(task_run_id), {"source": "manual_classify_entrypoint", "input_path": input_path, "config": config})
-    queue.register(extraction_task)
-    initialize_run_state(project_root, str(task_run_id), [_registered_task(queue, extraction_task)])
-    queue.drain_ready()
-    sync_run_state(project_root, queue, str(task_run_id))
-    task_payloads = _run_tasks(queue, queue_show, str(task_run_id))
-    return {
-        "ok": bool(task_payloads) and all(task.get("state") == "succeeded" for task in task_payloads),
-        "run_id": str(task_run_id),
-        "tasks": task_payloads,
-        "run": runs.get(str(task_run_id)),
-    }
-
-
-def _registered_task(queue: Any, task: TaskEvent) -> TaskEvent:
-    return queue.get(task.id)
-
-
-def _run_tasks(queue: Any, queue_show: Any, run_id: str) -> list[dict[str, Any]]:
-    return [
-        queue_show(task.id)
-        for task in queue.list()
-        if task.pipeline_run_id == run_id
-    ]
+    return run_planned_tasks(
+        project_root=project_root,
+        queue=queue,
+        queue_show=queue_show,
+        run_id=str(task_run_id),
+        tasks=[extraction_task],
+        create_payload={"source": "manual_classify_entrypoint", "input_path": input_path, "config": config},
+        task_result_scope="run",
+    )
