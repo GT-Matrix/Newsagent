@@ -5,13 +5,16 @@ from typing import Any
 
 from modnews.core.models import NewsItem, StepResult
 from modnews.core.context import PipelineContext
-from modnews.service.extraction.registry import registry_from_project
-from modnews.service.extraction.repair import RepairManager
-from modnews.service.extraction.repair_policy import classify_exception, should_auto_repair
-from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
-from modnews.service.extraction.web_runner import run_extractor, write_json
 from modnews.repository.source_config import source_config_store
 from modnews.repository.web_jobs import WebJobStore
+from modnews.service.extraction.job_runtime import finish_failure
+from modnews.service.extraction.registry import registry_from_project
+from modnews.service.extraction.repair import RepairManager
+from modnews.service.extraction.repair_policy import classify_exception
+from modnews.service.extraction.source_selection import enabled_sources as resolve_enabled_sources
+from modnews.service.extraction.source_selection import load_job_items
+from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
+from modnews.service.extraction.web_runner import run_extractor, write_json
 
 
 class WebExtractionOrchestrator:
@@ -39,25 +42,7 @@ class WebExtractionOrchestrator:
             job_ids.append(job.id)
             if job.error:
                 errors.append(f"{source.id}: {job.error}")
-            if job.output_path:
-                import json
-
-                try:
-                    rows = json.loads(Path(job.output_path).read_text(encoding="utf-8"))
-                except Exception:
-                    rows = []
-                for row in rows if isinstance(rows, list) else []:
-                    if not isinstance(row, dict):
-                        continue
-                    all_items.append(
-                        NewsItem(
-                            platform=str(row.get("platform") or source.id),
-                            title=str(row.get("title") or ""),
-                            url=str(row.get("url") or ""),
-                            pubtime=row.get("pubtime"),
-                            scrape_date=str(row.get("scrape_date") or ctx.scrape_date),
-                        )
-                    )
+            all_items.extend(load_job_items(job.output_path, default_scrape_date=ctx.scrape_date, source_id=source.id))
 
         output_path = ctx.work_dir / "site_lists_items.json"
         raw_path = ctx.work_dir / "site_lists_raw.json"
@@ -74,18 +59,7 @@ class WebExtractionOrchestrator:
         )
 
     def enabled_sources(self, config: dict[str, Any], requested_sites: list[str] | None = None) -> list[WebSource]:
-        raw_sources = config.get("sources", {}).get("site_lists", {})
-        requested = set(requested_sites or [])
-        sources: list[WebSource] = []
-        for source_id, raw in raw_sources.items():
-            if not isinstance(raw, dict):
-                continue
-            if requested and source_id not in requested:
-                continue
-            source = WebSource.from_config(source_id, raw)
-            if source.enabled:
-                sources.append(source)
-        return sources
+        return resolve_enabled_sources(config, requested_sites=requested_sites)
 
     def run_source(self, source: WebSource, *, scrape_date: str, limit: int) -> WebJob:
         max_attempts = int(source.repair_policy.get("max_attempts_before_repair", 3))
@@ -93,7 +67,7 @@ class WebExtractionOrchestrator:
         self.store.append(job.id, "scrape_queued", source_id=source.id, extractor_id=source.extractor_id)
         if not source.extractor_id:
             failure = ExtractorFailure("missing_extractor", f"{source.id} has no extractor_id")
-            return self._finish_failure(job, source, failure)
+            return finish_failure(job, source, failure, store=self.store, repair_manager=self.repair_manager)
 
         last_failure: ExtractorFailure | None = None
         for attempt in range(1, max_attempts + 1):
@@ -127,35 +101,10 @@ class WebExtractionOrchestrator:
                 if not last_failure.retryable:
                     break
 
-        return self._finish_failure(job, source, last_failure or ExtractorFailure("unknown", "unknown failure"))
-
-    def _finish_failure(self, job: WebJob, source: WebSource, failure: ExtractorFailure) -> WebJob:
-        job.error_type = failure.error_type
-        job.error = failure.message
-        if failure.unrepairable:
-            job.state = "skipped_unrepairable"
-            self.store.save(job)
-            self.store.append(job.id, "repair_skipped", reason=failure.error_type, message=failure.message)
-            return job
-        if should_auto_repair(source, failure, job.attempts):
-            job.state = "repair_queued"
-            self.store.save(job)
-            reason = (
-                f"Automatic repair for web extraction job {job.id}. "
-                f"Failure type: {failure.error_type}. Error: {failure.message}"
-            )
-            task = self.repair_manager.create_task(
-                source.extractor_id or source.id,
-                reason=reason,
-                auto_start=bool(source.repair_policy.get("auto_start", True)),
-                source_metadata=source.to_dict(),
-            )
-            job.repair_task_id = task.id
-            job.state = "repairing"
-            self.store.save(job)
-            self.store.append(job.id, "repair_started", task_id=task.id, source_id=source.id)
-            return job
-        job.state = "failed"
-        self.store.save(job)
-        self.store.append(job.id, "job_failed", error_type=failure.error_type, message=failure.message)
-        return job
+        return finish_failure(
+            job,
+            source,
+            last_failure or ExtractorFailure("unknown", "unknown failure"),
+            store=self.store,
+            repair_manager=self.repair_manager,
+        )
