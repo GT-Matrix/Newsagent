@@ -31,6 +31,7 @@ class ClassifyEntrypointTest(unittest.TestCase):
             self.assertEqual([task.type for task in captured], ["classify.clustered_event_extraction", "classify.clustered_event_merge"])
             self.assertEqual(result["tasks"][0]["step_id"], "classify/clustered_event_extraction")
             self.assertEqual(result["tasks"][1]["step_id"], "classify/clustered_event_merge")
+            self.assertEqual(result["run"]["steps"][0]["step_id"], "classify/clustered_event_extraction")
 
     def test_api_classify_run_uses_clustered_stage_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -52,6 +53,7 @@ class ClassifyEntrypointTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual([task.type for task in captured], ["classify.clustered_event_extraction", "classify.clustered_event_merge"])
             self.assertEqual(response.get_json()["tasks"][1]["type"], "classify.clustered_event_merge")
+            self.assertTrue(response.get_json()["run"]["steps"])
 
 
 if __name__ == "__main__":
