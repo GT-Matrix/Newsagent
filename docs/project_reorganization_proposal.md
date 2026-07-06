@@ -4,6 +4,8 @@
 
 ## 当前判断
 
+补充说明：前端联动重构现状和后续约束已单独整理在 [docs/frontend_console_alignment.md](/Users/zyf/Code/Projects/modnews/docs/frontend_console_alignment.md)。
+
 项目原本有三条主线混在一起：
 
 1. `modnews_pipeline/`：旧主入口，负责 ingest、classify、WebUI API、managed extractor、repair、job store、runtime config。
