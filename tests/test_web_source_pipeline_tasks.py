@@ -15,10 +15,46 @@ from modnews.repository.source_config import SourceConfigRepository
 from modnews.service.extraction.repair import RepairManager
 from modnews.service.extraction.registry import registry_from_project
 from modnews.service.extraction.web_contract import WebJob
+from modnews.service.ingest.planner import plan_ingest_tasks
 from modnews.service.extraction.tasks import run_web_source_task
 
 
 class WebSourcePipelineTasksTest(unittest.TestCase):
+    def test_plan_ingest_tasks_delegates_site_lists_expansion_to_step(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            repo = SourceConfigRepository(project_root)
+            repo.upsert_site(
+                "site-1",
+                {
+                    "url": "https://example.com/1",
+                    "name": "Site 1",
+                    "extractor_id": "extractor-1",
+                    "enabled": True,
+                },
+            )
+            repo.upsert_site(
+                "site-2",
+                {
+                    "url": "https://example.com/2",
+                    "name": "Site 2",
+                    "extractor_id": "extractor-2",
+                    "enabled": True,
+                },
+            )
+
+            tasks = plan_ingest_tasks(
+                project_root=project_root,
+                step_id="site_lists",
+                run_id="run-1",
+                options={"sites": ["site-2"], "limit_per_site": 7, "max_concurrency": 2},
+            )
+
+            self.assertEqual([task.type for task in tasks], ["web_source.run"])
+            self.assertEqual(tasks[0].payload["source_id"], "site-2")
+            self.assertEqual(tasks[0].payload["limit"], 7)
+            self.assertEqual(tasks[0].step_id, "ingest/site_lists/site-2")
+
     def test_run_start_expands_site_lists_into_web_source_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
