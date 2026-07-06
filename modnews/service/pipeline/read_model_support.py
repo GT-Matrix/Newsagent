@@ -748,10 +748,12 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
         batch_payload = payload.get("batch") if isinstance(payload.get("batch"), dict) else {}
         labels = payload.get("labels") if isinstance(payload.get("labels"), dict) else {}
         batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else {}
+        parent_task_type = payload.get("parent_task_type")
         return {
             "kind": "classify",
             "classify_task_kind": classify_task_kind(task),
             "batch_task_type": task.type if ".batch" in task.type or task.type == "classify.embedding" or task.type == "classify.batch_relevance" else None,
+            "queue_task_type": str(batch_payload.get("queue_task_type") or task.type),
             "step_id": task.step_id,
             "run_id": task.pipeline_run_id,
             "checkpoint_path": latest_checkpoint.get("path") if isinstance(latest_checkpoint, dict) else result.get("checkpoint_path"),
@@ -761,12 +763,19 @@ def build_domain_view(task: TaskEvent, result: dict[str, Any], checkpoints: list
             "publish_targets": publish_targets_for_task(task, latest_checkpoint if isinstance(latest_checkpoint, dict) else {}),
             "resume_hint": resume_hint,
             "stage": str(task.step_id or "").split("/")[-1] if task.step_id else None,
+            "parent_stage": classify_parent_stage(task, parent_task_type),
             "stats": checkpoint_meta,
             "parent_task_id": task.parent_task_id or payload.get("parent_task_id"),
-            "parent_task_type": payload.get("parent_task_type"),
+            "parent_task_type": parent_task_type,
             "task_group_id": task.task_group_id or payload.get("task_group_id"),
+            "concurrency_key": task.concurrency_key or batch_payload.get("concurrency_key"),
+            "max_concurrency": classify_max_concurrency(task, batch_payload),
             "labels": labels,
             "batch": batch_payload,
+            "batch_index": classify_int_field(batch_payload, "batch_index"),
+            "batch_count": classify_int_field(batch_payload, "batch_count"),
+            "item_index": classify_int_field(batch_payload, "item_index"),
+            "item_count": classify_int_field(batch_payload, "item_count"),
             "item_payload_kind": item_payload_kind(item_payload),
             "item_payload_size": item_payload_size(item_payload),
             "batch_result": batch_result,
@@ -889,3 +898,22 @@ def classify_task_kind(task: TaskEvent) -> str:
     if task.type == "classify.clustered_event_merge":
         return "clustered_event_merge"
     return "classify_task"
+
+
+def classify_int_field(batch_payload: dict[str, Any], key: str) -> int | None:
+    value = batch_payload.get(key)
+    return value if isinstance(value, int) else None
+
+
+def classify_max_concurrency(task: TaskEvent, batch_payload: dict[str, Any]) -> int | None:
+    if isinstance(task.max_concurrency, int):
+        return task.max_concurrency
+    return classify_int_field(batch_payload, "max_concurrency")
+
+
+def classify_parent_stage(task: TaskEvent, parent_task_type: Any) -> str | None:
+    if isinstance(parent_task_type, str) and parent_task_type.startswith("classify."):
+        return parent_task_type.removeprefix("classify.")
+    if task.parent_task_id and task.step_id:
+        return str(task.step_id).split("/")[-1]
+    return None
