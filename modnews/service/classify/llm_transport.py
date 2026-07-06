@@ -7,6 +7,11 @@ import requests
 
 from modnews.core.config import LlmConfig
 from modnews.core.progress import emit
+from .llm_transport_codec import (
+    build_chat_completion_body,
+    decode_stream_response_lines,
+    extract_message_content,
+)
 
 
 class LlmTransport:
@@ -43,13 +48,12 @@ class LlmTransport:
         raise last_error
 
     def _request_content(self, url: str, messages: list[dict[str, str]], request_id: str, attempt: int) -> str:
-        body = {
-            "model": self.config.model,
-            "messages": messages,
-            "temperature": self.config.temperature,
-            "response_format": {"type": "json_object"},
-            "stream": True,
-        }
+        body = build_chat_completion_body(
+            model=self.config.model,
+            messages=messages,
+            temperature=self.config.temperature,
+            stream=True,
+        )
         response = self.session.post(
             url,
             headers={"Authorization": f"Bearer {self.config.api_key}"},
@@ -59,60 +63,64 @@ class LlmTransport:
         )
         if response.status_code >= 400:
             return self._request_content_without_stream(url, messages)
-        chunks: list[str] = []
-        non_stream_lines: list[str] = []
-        saw_stream = False
+        raw_lines: list[str] = []
         for raw_line in response.iter_lines(decode_unicode=False):
             if not raw_line:
                 continue
             line = raw_line.decode("utf-8", errors="replace").strip()
-            if not line.startswith("data:"):
-                non_stream_lines.append(line)
-                continue
-            data = line[5:].strip()
-            if data == "[DONE]":
-                break
-            saw_stream = True
-            try:
-                payload = json.loads(data)
-            except json.JSONDecodeError:
-                return self._request_content_without_stream(url, messages)
-            choices = payload.get("choices") or []
-            if not choices:
-                continue
-            delta = choices[0].get("delta", {}).get("content")
-            if delta:
-                chunks.append(delta)
-                emit("llm_stream_delta", request_id=request_id, attempt=attempt, delta=delta)
+            raw_lines.append(line)
+        try:
+            saw_stream, payload = decode_stream_response_lines(raw_lines)
+        except json.JSONDecodeError:
+            return self._request_content_without_stream(url, messages)
         if saw_stream:
-            content = "".join(chunks)
+            content = payload or ""
+            if payload:
+                for chunk in _iter_stream_chunks(raw_lines):
+                    emit("llm_stream_delta", request_id=request_id, attempt=attempt, delta=chunk)
             if not content.strip():
                 raise ValueError("LLM stream returned no content")
             return content
-        payload = json.loads("\n".join(non_stream_lines))
-        choices = payload.get("choices") or []
-        if not choices:
-            raise ValueError(f"LLM returned empty choices: {payload}")
-        return choices[0]["message"]["content"]
+        if not payload:
+            raise ValueError("LLM returned empty response body")
+        return extract_message_content(json.loads(payload))
 
     def _request_content_without_stream(self, url: str, messages: list[dict[str, str]]) -> str:
         response = self.session.post(
             url,
             headers={"Authorization": f"Bearer {self.config.api_key}"},
-            json={
-                "model": self.config.model,
-                "messages": messages,
-                "temperature": self.config.temperature,
-                "response_format": {"type": "json_object"},
-            },
+            json=build_chat_completion_body(
+                model=self.config.model,
+                messages=messages,
+                temperature=self.config.temperature,
+                stream=False,
+            ),
             timeout=self.config.timeout_seconds,
         )
         response.raise_for_status()
         payload = response.json()
+        return extract_message_content(payload)
+
+
+def _iter_stream_chunks(lines: list[str]) -> list[str]:
+    chunks: list[str] = []
+    for line in lines:
+        if not line.startswith("data:"):
+            continue
+        data = line[5:].strip()
+        if data == "[DONE]":
+            break
+        try:
+            payload = json.loads(data)
+        except json.JSONDecodeError:
+            return []
         choices = payload.get("choices") or []
         if not choices:
-            raise ValueError(f"LLM returned empty choices: {payload}")
-        return choices[0]["message"]["content"]
+            continue
+        delta = choices[0].get("delta", {}).get("content")
+        if delta:
+            chunks.append(str(delta))
+    return chunks
 
 
 def retry_delay_seconds(exc: Exception, attempt: int) -> float:
