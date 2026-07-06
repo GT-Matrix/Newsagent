@@ -12,6 +12,7 @@ from modnews.service.classify.batch_executor import (
     describe_batch_items,
     run_batch_parallel,
 )
+from modnews.service.classify.batch_profile import RELEVANCE_BATCH, run_profiled_batch
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -129,6 +130,27 @@ class BatchExecutorTest(unittest.TestCase):
         self.assertEqual(result, [11, 12])
         self.assertEqual(len(queue.list()), 2)
         self.assertEqual({task.type.rsplit(".", 1)[0] for task in queue.list()}, {"classify.batch_item"})
+
+    def test_profiled_batch_reuses_standard_task_metadata(self) -> None:
+        backend = RecordingBackend()
+
+        result = run_profiled_batch(
+            lambda value: value + 1,
+            [1, 2],
+            profile=RELEVANCE_BATCH,
+            max_workers=3,
+            batch_indexes=[1, 2],
+            batch_count=2,
+            backend=backend,
+        )
+
+        self.assertEqual(result, [2, 3])
+        self.assertEqual([item.metadata.task_name() for item in backend.seen], [
+            "classify.batch_relevance[1/2]",
+            "classify.batch_relevance[2/2]",
+        ])
+        self.assertEqual(backend.seen[0].metadata.concurrency_key, "classify.llm")
+        self.assertEqual(backend.seen[0].metadata.labels, {"stage": "relevance"})
 
 
 if __name__ == "__main__":

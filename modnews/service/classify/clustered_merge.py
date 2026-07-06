@@ -4,7 +4,7 @@ import json
 
 from modnews.core.progress import emit
 
-from .batch_executor import run_batch_parallel
+from .batch_profile import CLUSTERED_EVENT_MERGE_BATCH, run_profiled_batch
 from .clustered_embedding import cluster_events
 from .utils import clean_list, clean_string, event_payload, parse_datetime
 
@@ -30,8 +30,6 @@ def merge_event_clusters(
             for batch_index, batch in enumerate(batches, start=1)
         ],
         max_workers=config.batch_concurrency,
-        task_type="classify.clustered_event_merge.batch",
-        labels={"stage": "clustered_event_merge"},
     )
 
     by_id = {state.record.event_id: state for state in events}
@@ -68,16 +66,14 @@ def merge_event_clusters(
     return merged_count
 
 
-def _run_parallel(fn, args_list, *, max_workers: int, task_type: str, labels: dict[str, str]) -> list[dict]:
-    return run_batch_parallel(
+def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
+    return run_profiled_batch(
         fn,
         args_list,
         max_workers=max_workers,
-        task_type=task_type,
-        concurrency_key="classify.llm",
+        profile=CLUSTERED_EVENT_MERGE_BATCH,
         batch_indexes=list(range(1, len(args_list) + 1)),
         batch_count=len(args_list),
-        labels=labels,
     )
 
 

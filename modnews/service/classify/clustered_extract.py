@@ -4,7 +4,7 @@ import json
 
 from modnews.core.progress import emit
 
-from .batch_executor import run_batch_parallel
+from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH, run_profiled_batch
 from .clustered_embedding import cluster_prepared_items
 from .events import assign_item_to_event
 from .prompts import clustered_event_extraction_system_prompt
@@ -43,8 +43,6 @@ def extract_events_from_title_clusters(
             for batch_index, batch in enumerate(batches, start=1)
         ],
         max_workers=config.batch_concurrency,
-        task_type="classify.clustered_event_extraction.batch",
-        labels={"stage": "clustered_event_extraction"},
     )
 
     events: list[EventState] = []
@@ -127,16 +125,14 @@ def extract_events_from_title_clusters(
     return events
 
 
-def _run_parallel(fn, args_list, *, max_workers: int, task_type: str, labels: dict[str, str]) -> list[dict]:
-    return run_batch_parallel(
+def _run_parallel(fn, args_list, *, max_workers: int) -> list[dict]:
+    return run_profiled_batch(
         fn,
         args_list,
         max_workers=max_workers,
-        task_type=task_type,
-        concurrency_key="classify.llm",
+        profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
         batch_indexes=list(range(1, len(args_list) + 1)),
         batch_count=len(args_list),
-        labels=labels,
     )
 
 

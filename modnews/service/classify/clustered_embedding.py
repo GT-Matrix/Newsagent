@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from modnews.core.progress import emit
 
-from .batch_executor import run_batch_parallel
+from .batch_profile import CLUSTERED_EMBEDDING_BATCH, run_profiled_batch
 from .retriever import EventVectorRetriever, cosine_similarity
 from .types import EventState, PreparedItem
 
@@ -59,13 +59,11 @@ def embed_rows_parallel(
     workers = max(1, concurrency)
     if workers == 1:
         return [VectorRow(key, retriever.embed_text_for_clustering(text)) for key, text in rows]
-    return run_batch_parallel(
+    return run_profiled_batch(
         lambda row: VectorRow(row[0], retriever.embed_text_for_clustering(row[1])),
         rows,
         max_workers=workers,
-        task_type="classify.embedding",
-        concurrency_key="classify.embedding",
-        labels={"stage": "clustered"},
+        profile=CLUSTERED_EMBEDDING_BATCH,
     )
 
 
