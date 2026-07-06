@@ -3,10 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews.service.classify.planner import (
-    build_clustered_event_extraction_task,
-    resolve_clustered_classify_run_id,
-)
+from modnews.service.classify.planner import build_clustered_event_extraction_task
+from modnews.service.classify.task_registry import resolve_clustered_classify_run_id
 from modnews.service.pipeline.step import PipelineStepDescriptor
 from modnews.service.task_entrypoints import run_planned_tasks
 
