@@ -25,7 +25,7 @@ def execute_classify_task(
         step_id,
         task_runtime.input_path,
         state,
-        task_runtime.runtime,
+        task_runtime.runtime.config,
         auto_publish=auto_publish,
     )
 

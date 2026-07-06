@@ -5,8 +5,8 @@ from modnews.core.context import PipelineContext
 from modnews.core.models import EventRecord, NewsItem, StepResult
 
 from .runner import ClassifyRuntime, ClassifyStepRunner
+from .runtime_build import build_classify_runtime_for_context, build_classify_state_from_items
 from .steps import build_full_classify_steps
-from .task_runtime import build_classify_runtime_for_context, build_classify_state_from_items
 
 
 def run_classification(

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from modnews.core.config import ClassificationConfig
 from modnews.core.task import TaskEvent
 from modnews.service.pipeline.checkpoint import CheckpointManager
 
 from .checkpoint import build_checkpoint_meta, write_outputs, write_run_output_artifacts
 from .io import append_run_checkpoint
-from .runner import ClassifyRuntime
 from .state import ClassifyState
 
 
@@ -18,7 +18,7 @@ def write_classify_task_checkpoint(
     step_id: str,
     input_path: Path,
     state: ClassifyState,
-    runtime: ClassifyRuntime,
+    config: ClassificationConfig,
     *,
     auto_publish: bool = False,
 ) -> dict[str, object]:
@@ -34,7 +34,7 @@ def write_classify_task_checkpoint(
     )
     output_refs = write_run_output_artifacts(checkpoint, run_id, step_id, task.id, state.items, state.event_records, state.discarded, meta)
     if bool(task.payload.get("write_fixed_outputs")):
-        write_outputs(runtime.config, state.items, state.event_records, state.discarded, meta)
+        write_outputs(config, state.items, state.event_records, state.discarded, meta)
     checkpoint_payload = {
         "run_id": run_id,
         "step_id": step_id,
