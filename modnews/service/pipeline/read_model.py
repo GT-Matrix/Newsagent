@@ -58,6 +58,8 @@ def build_task_list_item(project_root: Path, queue: EventQueue, task: TaskEvent)
     checkpoints = _task_checkpoints(project_root, task)
     result = queue.result(task.id)
     payload = task_summary(queue, task, include_result=False)
+    payload["error"] = result.get("error")
+    payload["restored_from"] = result.get("restored_from")
     payload["checkpoint_count"] = len(checkpoints)
     payload["latest_checkpoint"] = checkpoints[-1] if checkpoints else None
     payload["artifact_count"] = len(collect_artifacts(result, checkpoints))

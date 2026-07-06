@@ -11,6 +11,18 @@ from modnews.core.task import TaskEvent
 
 
 class QueueControlTest(unittest.TestCase):
+    def test_queue_status_includes_snapshot_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="task-1", type="diagnostic.echo"))
+
+            result = client.queue_status()
+
+            self.assertIn("snapshot", result)
+            self.assertEqual(result["snapshot"]["version"], 1)
+            self.assertEqual(result["snapshot"]["task_count"], 1)
+            self.assertIsNotNone(result["snapshot"]["saved_at"])
+
     def test_queue_cancel_marks_task_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))

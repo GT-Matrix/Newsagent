@@ -8,10 +8,17 @@ from modnews.service.pipeline.read_model import build_task_detail, build_task_li
 
 class QueueLocalMixin:
     def queue_status(self) -> dict[str, Any]:
+        snapshot = self.container.queue_state().load()
         return {
             "counts": self.container.event_queue.status(),
             "ready": [task.id for task in self.container.event_queue.ready()],
             "completion_callbacks": self.container.completion_callbacks.list(),
+            "snapshot": {
+                "version": int(snapshot.get("version") or 1),
+                "saved_at": snapshot.get("saved_at"),
+                "task_count": len(snapshot.get("tasks") or []),
+                "result_count": len(snapshot.get("results") or {}),
+            },
         }
 
     def queue_list(self, states: set[str] | None = None) -> list[dict[str, Any]]:

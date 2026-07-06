@@ -57,6 +57,8 @@ class PipelineReadModelTest(unittest.TestCase):
                     type="report.generate",
                     pipeline_run_id="run-1",
                     step_id="pipeline/report",
+                    priority=20,
+                    recovery_policy="fail_running",
                     payload={"project_root": tmp},
                 )
             )
@@ -86,6 +88,36 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["dependent_count"], 1)
             self.assertEqual(task["domain_view"]["kind"], "report")
             self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
+            self.assertEqual(task["priority"], 20)
+            self.assertEqual(task["recovery_policy"], "fail_running")
+
+    def test_queue_list_exposes_restored_task_error_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.event_queue.load_snapshot(
+                {
+                    "version": 1,
+                    "saved_at": "2026-07-06T10:00:00+08:00",
+                    "tasks": [
+                        TaskEvent(
+                            id="task-1",
+                            type="diagnostic.echo",
+                            pipeline_run_id="run-1",
+                            step_id="pipeline/report",
+                            state="running",
+                        ).to_dict()
+                    ],
+                    "results": {"task-1": {"error": "previous failure"}},
+                }
+            )
+
+            result = client.queue_list()
+            task = next(item for item in result if item["id"] == "task-1")
+
+            self.assertEqual(task["state"], "queued")
+            self.assertEqual(task["restored_from"], "running")
+            self.assertEqual(task["error"], "previous failure")
 
     def test_run_status_returns_step_graph_and_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

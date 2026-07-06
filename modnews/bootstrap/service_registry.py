@@ -40,6 +40,9 @@ class ServiceContainer:
     def runs(self) -> RunRepository:
         return RunRepository(self.project_root)
 
+    def queue_state(self) -> QueueStateRepository:
+        return QueueStateRepository(self.project_root)
+
     def web_jobs(self) -> WebJobRepository:
         return WebJobRepository(self.project_root)
 
