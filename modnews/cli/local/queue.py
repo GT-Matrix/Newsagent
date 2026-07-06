@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from modnews.core.task import TaskEvent
-from modnews.service.pipeline.read_model import build_task_detail
+from modnews.service.pipeline.read_model import build_task_detail, build_task_list_item
 
 
 class QueueLocalMixin:
@@ -15,7 +15,7 @@ class QueueLocalMixin:
         }
 
     def queue_list(self, states: set[str] | None = None) -> list[dict[str, Any]]:
-        return [self._task_payload(task) for task in self.container.event_queue.list(states)]
+        return [build_task_list_item(self.project_root, self.container.event_queue, task) for task in self.container.event_queue.list(states)]
 
     def queue_show(self, task_id: str) -> dict[str, Any]:
         return build_task_detail(self.project_root, self.container.event_queue, task_id)
@@ -42,14 +42,3 @@ class QueueLocalMixin:
     def queue_skip(self, task_id: str, reason: str = "skipped by user") -> dict[str, Any]:
         task = self.container.event_queue.skip(task_id, reason=reason)
         return {"ok": task.state == "skipped", "task": self.queue_show(task_id)}
-
-    def _task_payload(self, task: TaskEvent) -> dict[str, Any]:
-        payload = task.to_dict()
-        waiting_reason = self.container.event_queue.waiting_reason(task)
-        blocked_reason = self.container.event_queue.blocked_reason(task)
-        if waiting_reason:
-            payload["waiting_reason"] = waiting_reason
-        if blocked_reason:
-            payload["blocked_reason"] = blocked_reason
-        payload["ready"] = waiting_reason is None and task.state in {"queued", "waiting"}
-        return payload

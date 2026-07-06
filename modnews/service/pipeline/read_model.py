@@ -10,6 +10,27 @@ from modnews.repository.checkpoints import CheckpointRepository
 from modnews.repository.runs import RunRepository
 
 
+def build_run_list_item(project_root: Path, queue: EventQueue, run_record: dict[str, Any]) -> dict[str, Any]:
+    run = dict(run_record)
+    run_id = str(run.get("run_id") or "")
+    checkpoints_repo = CheckpointRepository(project_root)
+    tasks = [task for task in queue.list() if task.pipeline_run_id == run_id]
+    checkpoints = _normalize_checkpoints(
+        checkpoint
+        for checkpoint in checkpoints_repo.list(run_id)
+        if str(checkpoint.get("run_id") or run_id) == run_id
+    )
+    steps = _merge_steps(_build_step_views(tasks, checkpoints), _normalize_steps(run.get("steps")))
+    run["steps_summary"] = _status_summary(step.get("status") for step in steps)
+    run["task_summary"] = _status_summary(task.state for task in tasks)
+    run["active_task_ids"] = [task.id for task in tasks if task.state in {"queued", "waiting", "running"}]
+    run["blocked_task_ids"] = [task.id for task in tasks if task.state == "blocked"]
+    run["failed_task_ids"] = [task.id for task in tasks if task.state in {"failed", "cancelled"}]
+    run["latest_checkpoint"] = checkpoints[-1] if checkpoints else None
+    run["artifact_count"] = len(_collect_artifacts(run, checkpoints))
+    return run
+
+
 def build_run_detail(project_root: Path, queue: EventQueue, run_id: str) -> dict[str, Any]:
     runs = RunRepository(project_root)
     checkpoints_repo = CheckpointRepository(project_root)
@@ -34,6 +55,23 @@ def build_run_detail(project_root: Path, queue: EventQueue, run_id: str) -> dict
             if isinstance(task_id, str) and task_id not in {task.id for task in tasks}
         ],
     }
+
+
+def build_task_list_item(project_root: Path, queue: EventQueue, task: TaskEvent) -> dict[str, Any]:
+    checkpoints_repo = CheckpointRepository(project_root)
+    checkpoints = _normalize_checkpoints(
+        checkpoint
+        for checkpoint in checkpoints_repo.list(task.pipeline_run_id)
+        if checkpoint.get("task_id") == task.id
+    )
+    result = queue.result(task.id)
+    payload = _task_summary(queue, task, include_result=False)
+    payload["checkpoint_count"] = len(checkpoints)
+    payload["latest_checkpoint"] = checkpoints[-1] if checkpoints else None
+    payload["artifact_count"] = len(_collect_artifacts(result, checkpoints))
+    payload["dependent_count"] = len(queue.dependents_of(task.id))
+    payload["domain_view"] = _build_domain_view(task, result, checkpoints)
+    return payload
 
 
 def build_task_detail(project_root: Path, queue: EventQueue, task_id: str) -> dict[str, Any]:
@@ -236,6 +274,25 @@ def _checkpoint_artifacts(checkpoint: dict[str, Any] | None) -> list[dict[str, A
     if not checkpoint:
         return []
     return list(checkpoint.get("output_artifacts", []))
+
+
+def _status_summary(statuses: Any) -> dict[str, Any]:
+    counts: dict[str, int] = defaultdict(int)
+    total = 0
+    for value in statuses:
+        if not value:
+            continue
+        counts[str(value)] += 1
+        total += 1
+    return {
+        "total": total,
+        "by_status": dict(sorted(counts.items())),
+        "active": sum(counts.get(state, 0) for state in ("queued", "waiting", "running")),
+        "terminal": sum(counts.get(state, 0) for state in TERMINAL_STATES),
+        "blocked": counts.get("blocked", 0),
+        "failed": counts.get("failed", 0) + counts.get("cancelled", 0),
+        "succeeded": counts.get("succeeded", 0),
+    }
 
 
 def _path_info(value: object, *, treat_as_dir: bool = False) -> dict[str, Any]:

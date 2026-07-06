@@ -5,7 +5,7 @@ from typing import Any
 
 from modnews.repository.runs import RunRepository
 from modnews.core.progress import BUS, emit
-from modnews.service.pipeline.read_model import build_run_detail
+from modnews.service.pipeline.read_model import build_run_detail, build_run_list_item
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
 
 
@@ -45,7 +45,10 @@ class RunsLocalMixin:
         return {"ok": ok, "run": run_record, "tasks": tasks}
 
     def run_list(self) -> list[dict[str, Any]]:
-        return RunRepository(self.project_root).list()
+        return [
+            build_run_list_item(self.project_root, self.container.event_queue, record)
+            for record in RunRepository(self.project_root).list()
+        ]
 
     def run_status(self, run_id: str | None = None) -> dict[str, Any]:
         if run_id:

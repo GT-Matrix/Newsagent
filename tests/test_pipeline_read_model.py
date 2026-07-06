@@ -9,6 +9,84 @@ from modnews.core.task import TaskEvent
 
 
 class PipelineReadModelTest(unittest.TestCase):
+    def test_run_list_returns_frontend_ready_summaries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.runs().create("run-1", {"source": "test"})
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    step_id="ingest/rss",
+                    state="blocked",
+                )
+            )
+            artifact = client.container.checkpoints().write_artifact("run-1", "ingest/rss", "task-1", "items.json", [{"title": "A"}])
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "ingest/rss",
+                "task-1",
+                {
+                    "status": "blocked",
+                    "output_refs": {"items": str(artifact)},
+                },
+            )
+            client.container.runs().append_checkpoint("run-1", checkpoint)
+
+            result = client.run_list()
+
+            self.assertEqual(result[0]["run_id"], "run-1")
+            self.assertEqual(result[0]["task_summary"]["blocked"], 1)
+            self.assertEqual(result[0]["steps_summary"]["by_status"]["blocked"], 1)
+            self.assertEqual(result[0]["latest_checkpoint"]["task_id"], "task-1")
+            self.assertEqual(result[0]["artifact_count"], 1)
+
+    def test_queue_list_returns_frontend_ready_task_summaries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+            client.container.event_queue.register_executor(
+                "report.generate",
+                lambda _task: {"checkpoint_path": "runtime/checkpoints/run-1/report/checkpoint.json", "stats": {"selected_count": 1}},
+            )
+            client.container.event_queue.submit(
+                TaskEvent(
+                    id="task-1",
+                    type="report.generate",
+                    pipeline_run_id="run-1",
+                    step_id="pipeline/report",
+                    payload={"project_root": tmp},
+                )
+            )
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-2",
+                    type="diagnostic.echo",
+                    pipeline_run_id="run-1",
+                    step_id="pipeline/followup",
+                    depends_on=["task-1"],
+                )
+            )
+            checkpoint = client.container.checkpoints().write(
+                "run-1",
+                "pipeline/report",
+                "task-1",
+                {
+                    "status": "succeeded",
+                },
+            )
+            client.container.runs().append_checkpoint("run-1", checkpoint)
+
+            result = client.queue_list()
+            task = next(item for item in result if item["id"] == "task-1")
+
+            self.assertEqual(task["checkpoint_count"], 1)
+            self.assertEqual(task["dependent_count"], 1)
+            self.assertEqual(task["domain_view"]["kind"], "report")
+            self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
+
     def test_run_status_returns_step_graph_and_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
