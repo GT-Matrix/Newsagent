@@ -115,6 +115,15 @@ class PipelineReadModelTest(unittest.TestCase):
             self.assertEqual(task["task_group_size"], 0)
             self.assertIsNone(task["task_group_summary"])
             self.assertEqual(task["domain_view"]["kind"], "report")
+            self.assertEqual(task["title"], "Generate report")
+            self.assertEqual(task["log_kind"], "report")
+            self.assertEqual(task["detail_kind"], "report_task")
+            self.assertEqual(task["related_run_id"], "run-1")
+            self.assertEqual(task["related_step_id"], "pipeline/report")
+            self.assertIsNone(task["related_source_id"])
+            self.assertEqual(task["retry_state"]["status"], "attempted")
+            self.assertFalse(task["blocked_state"]["blocked"])
+            self.assertEqual(task["summary"], "selected_count=1")
             self.assertEqual(task["latest_checkpoint"]["task_id"], "task-1")
             self.assertEqual(task["priority"], 20)
             self.assertEqual(task["recovery_policy"], "fail_running")
@@ -279,6 +288,12 @@ class PipelineReadModelTest(unittest.TestCase):
             result = client.queue_show("task-1")
 
             self.assertEqual(result["domain_view"]["kind"], "task")
+            self.assertEqual(result["title"], "diagnostic.echo")
+            self.assertEqual(result["log_kind"], "task")
+            self.assertEqual(result["detail_kind"], "task")
+            self.assertEqual(result["retry_state"]["max_attempts"], 1)
+            self.assertFalse(result["blocked_state"]["blocked"])
+            self.assertGreaterEqual(len(result["attempt_history"]), 0)
             self.assertEqual([item["id"] for item in result["dependents"]], ["task-2"])
             self.assertEqual(result["children"], [])
             self.assertEqual(result["task_group_members"], [])
@@ -358,6 +373,24 @@ class PipelineReadModelTest(unittest.TestCase):
                     "member_ids": ["child-1", "child-2"],
                 },
             )
+
+    def test_queue_show_exposes_attempt_history_and_related_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            client = LocalClient(project_root)
+
+            result = client.queue_echo("task-logs-1", {"message": "hello"})
+
+            self.assertEqual(result["title"], "diagnostic.echo")
+            self.assertEqual(result["summary"], "completed")
+            self.assertEqual(result["log_kind"], "task")
+            self.assertEqual(result["detail_kind"], "task")
+            self.assertEqual(result["related_artifacts"], [])
+            self.assertIsNone(result["related_checkpoint_path"])
+            history_types = [item["type"] for item in result["attempt_history"]]
+            self.assertIn("task.registered", history_types)
+            self.assertIn("task.started", history_types)
+            self.assertIn("task.completed", history_types)
 
     def test_run_status_exposes_step_callback_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

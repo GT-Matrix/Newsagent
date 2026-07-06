@@ -136,6 +136,9 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
     blocked_reason = queue.blocked_reason(task)
     blocked_details = queue.blocked_details(task)
     result = queue.result(task.id)
+    checkpoints = []
+    domain_view = build_domain_view(task, result, checkpoints)
+    related_artifacts = collect_artifacts(result, checkpoints)
     if waiting_reason:
         payload["waiting_reason"] = waiting_reason
     if waiting_details:
@@ -151,6 +154,24 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
     if result.get("next_attempt_at") is not None:
         payload["scheduled_next_attempt_at"] = result.get("next_attempt_at")
     payload["ready"] = waiting_details is None and task.state in {"queued", "waiting"}
+    payload["title"] = task_title(task)
+    payload["summary"] = task_display_summary(
+        task,
+        result,
+        blocked_reason=blocked_reason,
+        waiting_reason=waiting_reason,
+        checkpoint_path=None,
+    )
+    payload["log_kind"] = task_log_kind(task)
+    payload["detail_kind"] = task_detail_kind(task)
+    payload["retry_state"] = build_retry_state(task, result)
+    payload["blocked_state"] = build_blocked_state(task, blocked_reason, blocked_details)
+    payload["related_run_id"] = task.pipeline_run_id
+    payload["related_step_id"] = task.step_id
+    payload["related_source_id"] = related_source_id(task, result)
+    payload["related_checkpoint_path"] = related_checkpoint_path(result, checkpoints)
+    payload["related_artifacts"] = related_artifacts
+    payload["domain_view"] = domain_view
     if include_result:
         payload["result"] = result
     return payload
@@ -293,6 +314,212 @@ def collect_callbacks(result: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(publish, dict):
         callbacks.append({"type": "publish", "payload": publish})
     return callbacks
+
+
+def task_title(task: TaskEvent) -> str:
+    if task.type == "pipeline.combine_ingest":
+        return "Combine ingest outputs"
+    if task.type == "report.generate":
+        return "Generate report"
+    if task.type == "web_source.run":
+        source_id = str(task.payload.get("source_id") or "")
+        return f"Run web source {source_id}" if source_id else "Run web source"
+    if task.type == "extractor.repair.codex":
+        source_id = str(task.payload.get("source_id") or "")
+        return f"Run extractor repair {source_id}" if source_id else "Run extractor repair"
+    if task.type == "classify.clustered_event_extraction":
+        return "Classify clustered event extraction"
+    if task.type == "classify.clustered_event_merge":
+        return "Classify clustered event merge"
+    if task.type == "classify.embedding":
+        return _batch_title("Classify embedding batch", task)
+    if task.type == "classify.batch_relevance":
+        return _batch_title("Classify relevance batch", task)
+    if task.type.endswith(".batch"):
+        return _batch_title(task.type, task)
+    if task.type.startswith("ingest."):
+        return f"Run ingest task {task.type.removeprefix('ingest.')}"
+    if task.type.startswith("classify."):
+        return f"Run classify task {task.type.removeprefix('classify.')}"
+    return task.type
+
+
+def task_log_kind(task: TaskEvent) -> str:
+    if task.type == "extractor.repair.codex":
+        return "codex"
+    if task.type == "web_source.run":
+        return "web_job"
+    if task.type.startswith("classify."):
+        return "classify"
+    if task.type == "report.generate":
+        return "report"
+    return "task"
+
+
+def task_detail_kind(task: TaskEvent) -> str:
+    if task.type == "extractor.repair.codex":
+        return "repair_task"
+    if task.type == "web_source.run":
+        return "web_source_task"
+    if task.type.startswith("classify."):
+        return "classify_task"
+    if task.type == "report.generate":
+        return "report_task"
+    if task.type.startswith("ingest.") or task.type == "pipeline.combine_ingest":
+        return "ingest_task"
+    return "task"
+
+
+def build_retry_state(task: TaskEvent, result: dict[str, Any]) -> dict[str, Any]:
+    attempts_used = max(int(task.attempt or 0), 0)
+    max_attempts = max(int(task.max_attempts or 1), 1)
+    next_attempt_at = result.get("next_attempt_at") or task.next_attempt_at
+    retry_scheduled = bool(result.get("retry_scheduled"))
+    if retry_scheduled or task.state == "waiting":
+        status = "scheduled"
+    elif task.state == "running" and max_attempts > 1:
+        status = "running"
+    elif attempts_used > 0 or task.state in {"failed", "cancelled", "blocked"}:
+        status = "attempted"
+    else:
+        status = "idle"
+    return {
+        "status": status,
+        "attempt": attempts_used,
+        "max_attempts": max_attempts,
+        "remaining_attempts": max(max_attempts - attempts_used, 0),
+        "retry_backoff_seconds": int(task.retry_backoff_seconds or 0),
+        "retry_delay_seconds": result.get("retry_delay_seconds"),
+        "next_attempt_at": next_attempt_at,
+        "scheduled": retry_scheduled,
+    }
+
+
+def build_blocked_state(
+    task: TaskEvent,
+    blocked_reason: str | None,
+    blocked_details: dict[str, Any] | None,
+) -> dict[str, Any]:
+    kind = None
+    if isinstance(blocked_details, dict):
+        kind = blocked_details.get("kind")
+    safe_to_skip = bool(kind in {"dependency", "business"})
+    return {
+        "blocked": task.state == "blocked" or bool(blocked_reason),
+        "reason": blocked_reason,
+        "details": blocked_details,
+        "kind": kind,
+        "safe_to_skip": safe_to_skip,
+    }
+
+
+def related_source_id(task: TaskEvent, result: dict[str, Any]) -> str | None:
+    source_id = task.payload.get("source_id")
+    if isinstance(source_id, str) and source_id:
+        return source_id
+    job = result.get("job")
+    if isinstance(job, dict):
+        job_source_id = job.get("source_id")
+        if isinstance(job_source_id, str) and job_source_id:
+            return job_source_id
+    repair_task = result.get("repair_task")
+    if isinstance(repair_task, dict):
+        repair_source_id = repair_task.get("source_id")
+        if isinstance(repair_source_id, str) and repair_source_id:
+            return repair_source_id
+    return None
+
+
+def related_checkpoint_path(result: dict[str, Any], checkpoints: list[dict[str, Any]]) -> str | None:
+    if checkpoints:
+        latest = checkpoints[-1].get("path")
+        if isinstance(latest, str) and latest:
+            return latest
+    checkpoint_path = result.get("checkpoint_path")
+    if isinstance(checkpoint_path, str) and checkpoint_path:
+        return checkpoint_path
+    return None
+
+
+def task_display_summary(
+    task: TaskEvent,
+    result: dict[str, Any],
+    *,
+    blocked_reason: str | None,
+    waiting_reason: str | None,
+    checkpoint_path: str | None,
+) -> str:
+    if task.state == "blocked" and blocked_reason:
+        return blocked_reason
+    if task.state == "waiting" and waiting_reason:
+        return waiting_reason
+    if task.state == "failed" and result.get("error"):
+        return str(result.get("error"))
+    if task.state == "cancelled" and result.get("cancel_reason"):
+        return str(result.get("cancel_reason"))
+    if task.state == "skipped" and result.get("skip_reason"):
+        return str(result.get("skip_reason"))
+    if task.type == "report.generate" and isinstance(result.get("stats"), dict):
+        stats = result["stats"]
+        selected = stats.get("selected_count")
+        if selected is not None:
+            return f"selected_count={selected}"
+    if task.type == "web_source.run":
+        job = result.get("job")
+        if isinstance(job, dict):
+            job_id = job.get("id")
+            job_state = job.get("state")
+            if job_id or job_state:
+                return f"job={job_id or 'unknown'} state={job_state or 'unknown'}"
+    if checkpoint_path:
+        return checkpoint_path
+    if task.state == "succeeded":
+        return "completed"
+    return task.state
+
+
+def build_attempt_history(logs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    interesting_types = {
+        "task.registered",
+        "task.started",
+        "task.waiting",
+        "task.retry_scheduled",
+        "task.retry_requested",
+        "task.completed",
+        "task.failed",
+        "task.blocked",
+        "task.cancelled",
+        "task.skipped",
+        "task.unblocked",
+    }
+    for entry in logs:
+        if not isinstance(entry, dict):
+            continue
+        event_type = str(entry.get("type") or "")
+        if event_type not in interesting_types:
+            continue
+        rows.append(
+            {
+                "ts": entry.get("ts"),
+                "type": event_type,
+                "state": entry.get("state"),
+                "attempt": entry.get("attempt"),
+                "error": entry.get("error"),
+                "reason": entry.get("reason"),
+            }
+        )
+    return rows
+
+
+def _batch_title(base: str, task: TaskEvent) -> str:
+    batch = task.payload.get("batch")
+    if isinstance(batch, dict):
+        batch_index = batch.get("batch_index")
+        batch_count = batch.get("batch_count")
+        if isinstance(batch_index, int) and isinstance(batch_count, int):
+            return f"{base} [{batch_index}/{batch_count}]"
+    return base
 
 
 def _matches_pipeline_descriptor(descriptor: PipelineStepDescriptor, step_id: str) -> bool:
