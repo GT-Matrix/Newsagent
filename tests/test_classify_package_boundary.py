@@ -18,6 +18,11 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
         self.assertTrue(hasattr(module, "run_clustered_event_extraction_task"))
         self.assertTrue(hasattr(module, "run_clustered_event_merge_task"))
         self.assertTrue(hasattr(module, "REGISTERED_CLASSIFY_TASK_EXECUTORS"))
+        self.assertFalse(hasattr(module, "run_classification"))
+
+    def test_manual_module_exports_manual_classify_entrypoint(self) -> None:
+        module = importlib.import_module("modnews.service.classify.manual")
+        self.assertTrue(hasattr(module, "run_classification"))
 
     def test_planner_does_not_export_legacy_whole_graph_helper(self) -> None:
         module = importlib.import_module("modnews.service.classify.planner")

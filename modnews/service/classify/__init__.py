@@ -1,3 +1,3 @@
-from modnews.service.classify.task_execution import run_classification
+from modnews.service.classify.manual import run_classification
 
 __all__ = ["run_classification"]

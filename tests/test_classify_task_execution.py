@@ -9,10 +9,10 @@ from unittest.mock import patch
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 from modnews.core.models import NewsItem
+from modnews.service.classify.manual import run_classification
 from modnews.service.classify.run_result import build_classify_step_result
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
 from modnews.service.classify.state import ClassifyState
-from modnews.service.classify.task_execution import run_classification
 from modnews.service.classify.task_registry import get_registered_classify_task
 from modnews.service.classify.steps import get_registered_classify_flow
 
@@ -55,9 +55,9 @@ class ClassifyTaskExecutionTest(unittest.TestCase):
                 ),
             )
 
-            with patch("modnews.service.classify.task_execution.build_classify_state_from_resolved_input", return_value=state):
-                with patch("modnews.service.classify.task_execution.build_classify_runtime_for_context", return_value=object()):
-                    with patch("modnews.service.classify.task_execution.ClassifyStepRunner.run", return_value=run_result):
+            with patch("modnews.service.classify.manual.build_classify_state_from_resolved_input", return_value=state):
+                with patch("modnews.service.classify.manual.build_classify_runtime_for_context", return_value=object()):
+                    with patch("modnews.service.classify.manual.ClassifyStepRunner.run", return_value=run_result):
                         items, events, step_result = run_classification(
                             PipelineContext.create(pipeline_config),
                             [item],
