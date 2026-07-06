@@ -6,7 +6,7 @@ from datetime import datetime
 from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
-from modnews.service.classify.clustered_tasks import (
+from modnews.service.classify.task_execution import (
     run_clustered_event_extraction_task,
     run_clustered_event_merge_task,
 )
@@ -67,7 +67,6 @@ def _with_classify_batch_queue(queue: EventQueue, executor):
             queue,
             run_id=task.pipeline_run_id,
             step_id=task.step_id,
-            task_type_prefix="classify.batch_item",
             base_payload=task.payload,
         )
         with default_batch_backend(backend):
