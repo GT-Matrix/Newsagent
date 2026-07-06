@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from modnews.core.context import PipelineContext
-from modnews.core.models import EventRecord
 from modnews.core.progress import emit
 
 from .event_membership_codec import build_membership_candidate_payload, build_membership_messages, decode_membership_decision
+from .event_state_ops import assign_item_to_event, build_event_state
 from .llm_client import LlmClient
 from .types import DiscardedRecord, EventState, PreparedItem
 from .utils import (
     clean_event_type,
     discard,
-    parse_datetime,
 )
 
 
@@ -63,29 +62,22 @@ def apply_event_decision(
         action = "create"
 
     if action == "create":
-        event_id = new_event_id(ctx.scrape_date, len(events) + 1)
-        event = EventRecord(
-            event_id=event_id,
+        state = build_event_state(
+            scrape_date=ctx.scrape_date,
+            index=len(events) + 1,
             event_label=str(decoded["event_label"] or item.canonical_summary or item.title),
-            member_count=0,
-            platforms=[],
-            latest_pubtime=None,
-            representative_titles=[],
-            confidence=confidence,
             event_summary=str(decoded["event_summary"] or item.canonical_summary),
             event_type=clean_event_type(decoded["event_type"] or item.event_type),
             key_entities=list(decoded["key_entities"]) or item.entities,
-            source_news_ids=[],
-            last_llm_updated_at=ctx.scrape_date,
+            confidence=confidence,
         )
-        state = EventState(record=event)
         events.append(state)
         assign_item_to_event(entry, state, confidence)
         emit(
             "membership_decision",
             index=entry.index,
             decision="create",
-            event_id=event.event_id,
+            event_id=state.record.event_id,
             confidence=confidence,
             reason=reason,
         )
@@ -95,36 +87,3 @@ def apply_event_decision(
     item.is_ai_relevant = False
     discarded.append(discard(entry.index, item, "event_membership", reason or "LLM discarded during event matching"))
     emit("membership_decision", index=entry.index, decision="discard", confidence=confidence, reason=reason)
-
-
-def assign_item_to_event(entry: PreparedItem, state: EventState, confidence: float | None) -> None:
-    item = entry.item
-    record = state.record
-    item.event_id = record.event_id
-    item.event_label = record.event_label
-    item.event_confidence = confidence if confidence is not None else record.confidence
-    item.classification_decision = "assign"
-    item.is_ai_relevant = True
-
-    platforms = set(record.platforms)
-    platforms.add(item.platform)
-    record.platforms = sorted(platforms)
-    if entry.index not in record.source_news_ids:
-        record.source_news_ids.append(entry.index)
-    titles = [*record.representative_titles, item.title]
-    record.representative_titles = sorted(set(titles), key=lambda value: (len(value), value))[:5]
-    record.member_count = len(record.source_news_ids)
-    if record.confidence is None or (confidence is not None and confidence > record.confidence):
-        record.confidence = confidence
-    if entry.pubtime:
-        first = parse_datetime(record.first_pubtime)
-        latest = parse_datetime(record.latest_pubtime)
-        if first is None or entry.pubtime < first:
-            record.first_pubtime = entry.pubtime.isoformat()
-        if latest is None or entry.pubtime > latest:
-            record.latest_pubtime = entry.pubtime.isoformat()
-
-
-def new_event_id(scrape_date: str, index: int) -> str:
-    date_part = scrape_date[:10].replace("-", "")
-    return f"evt_{date_part}_{index:04d}"

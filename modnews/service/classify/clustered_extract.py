@@ -5,7 +5,7 @@ from modnews.core.progress import emit
 from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
 from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .clustered_embedding import cluster_prepared_items
-from .event_membership import assign_item_to_event
+from .event_state_ops import assign_item_to_event, build_event_state
 from .prompts import clustered_event_extraction_system_prompt
 from .types import DiscardedRecord, EventState, PreparedItem
 from .utils import (
@@ -16,7 +16,6 @@ from .utils import (
     int_or_none,
     normalize_confidence,
 )
-from modnews.core.models import EventRecord
 
 CLUSTERED_EXTRACTION_STAGE = LlmBatchStage[list[dict[str, object]]](
     profile=CLUSTERED_EVENT_EXTRACTION_BATCH,
@@ -92,30 +91,23 @@ def extract_events_from_title_clusters(
                 continue
             event_counter += 1
             confidence = normalize_confidence(event_row.get("confidence"))
-            event = EventRecord(
-                event_id=new_event_id(ctx.scrape_date, event_counter),
+            state = build_event_state(
+                scrape_date=ctx.scrape_date,
+                index=event_counter,
                 event_label=clean_string(event_row.get("event_label")) or by_index[source_ids[0]].item.title,
-                member_count=0,
-                platforms=[],
-                latest_pubtime=None,
-                representative_titles=[],
-                first_pubtime=None,
-                confidence=confidence,
                 event_summary=clean_string(event_row.get("event_summary")),
                 event_type=clean_event_type(event_row.get("event_type")),
                 key_entities=clean_list(event_row.get("key_entities")),
-                source_news_ids=[],
-                last_llm_updated_at=ctx.scrape_date,
+                confidence=confidence,
             )
-            state = EventState(record=event)
             events.append(state)
             member_reasons = event_row.get("member_reasons") if isinstance(event_row.get("member_reasons"), dict) else {}
             for index in source_ids:
                 entry = by_index[index]
                 item = entry.item
-                item.canonical_summary = event.event_summary or event.event_label
-                item.entities = event.key_entities
-                item.event_type = event.event_type
+                item.canonical_summary = state.record.event_summary or state.record.event_label
+                item.entities = state.record.key_entities
+                item.event_type = state.record.event_type
                 item.relevance_score = item.relevance_score or 90
                 item.classification_reason = clean_string(member_reasons.get(str(index))) or "clustered title extraction"
                 assign_item_to_event(entry, state, confidence)
@@ -154,8 +146,3 @@ def clean_int_list(value) -> list[int]:
         if parsed is not None:
             result.append(parsed)
     return result
-
-
-def new_event_id(scrape_date: str, index: int) -> str:
-    date_part = scrape_date[:10].replace("-", "")
-    return f"evt_{date_part}_{index:04d}"

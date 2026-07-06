@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from modnews.core.config import ClassificationConfig
-from modnews.core.models import EventRecord
 from modnews.core.progress import emit
 
 from .event_merge_codec import build_merge_candidate_payload, build_merge_messages, decode_merge_event_ids
+from .event_state_ops import merge_event_records
 from .llm_client import LlmClient
 from .retriever import EventVectorRetriever
 from .types import EventState, PreparedItem
-from .utils import parse_datetime
 
 
 def merge_similar_events(
@@ -121,26 +120,3 @@ def apply_merge_groups(events: list[EventState], merge_groups: dict[str, set[str
             remove_ids.add(source_id)
     if remove_ids:
         events[:] = [state for state in events if state.record.event_id not in remove_ids]
-
-
-def merge_event_records(target: EventRecord, source: EventRecord) -> None:
-    target.event_summary = target.event_summary or source.event_summary
-    target.event_type = target.event_type or source.event_type
-    target.platforms = sorted(set(target.platforms) | set(source.platforms))
-    target.representative_titles = sorted(
-        set(target.representative_titles) | set(source.representative_titles),
-        key=lambda value: (len(value), value),
-    )[:5]
-    target.source_news_ids = sorted(set(target.source_news_ids) | set(source.source_news_ids))
-    target.member_count = len(target.source_news_ids)
-    target.key_entities = sorted(set(target.key_entities) | set(source.key_entities))
-    if source.confidence is not None and (target.confidence is None or source.confidence > target.confidence):
-        target.confidence = source.confidence
-    first_left = parse_datetime(target.first_pubtime)
-    first_right = parse_datetime(source.first_pubtime)
-    if first_right and (first_left is None or first_right < first_left):
-        target.first_pubtime = source.first_pubtime
-    latest_left = parse_datetime(target.latest_pubtime)
-    latest_right = parse_datetime(source.latest_pubtime)
-    if latest_right and (latest_left is None or latest_right > latest_left):
-        target.latest_pubtime = source.latest_pubtime
