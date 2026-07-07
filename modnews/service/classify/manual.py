@@ -4,25 +4,17 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from modnews.bootstrap.event_handlers import register_completion_callbacks, register_task_executors
-from modnews.bootstrap.pipeline_registry import register_pipeline_steps
-from modnews.core.completion_callbacks import CompletionCallbackRegistry
+from modnews.bootstrap import configure_services
 from modnews.core.config import ClassificationConfig
 from modnews.core.context import PipelineContext
-from modnews.core.event_queue import EventQueue
-from modnews.core.events import EventRouter
 from modnews.core.models import EventRecord, NewsItem, StepResult
 from modnews.core.task import TaskBlocked
 from modnews.repository.checkpoints import CheckpointRepository
-from modnews.repository.runs import RunRepository
 from modnews.service.classify.io import load_news_items
-from modnews.service.classify.planner import (
-    build_clustered_event_extraction_task,
-    build_clustered_event_merge_task,
-)
+from modnews.service.classify.queue_runtime import submit_clustered_classify_run
 from modnews.service.classify.run_result import build_classify_step_result_from_stats
 from modnews.service.classify.state_codec import decode_event_records
-from modnews.service.pipeline.manager import PipelineManager
+from modnews.service.pipeline.query_facade import PipelineQueryFacade
 
 
 def run_classification(
@@ -37,42 +29,36 @@ def run_classification(
     run_id = f"manual-classify-{uuid4().hex}"
     input_path = _write_manual_input(project_root, run_id, items)
     config_path = _write_manual_config_override(project_root, run_id, config)
-    queue = EventQueue()
-    router = EventRouter()
-    callbacks = CompletionCallbackRegistry()
-    pipeline_manager = PipelineManager()
-    pipeline_manager.bind(queue, router)
-    queue.bind_router(router)
-    register_pipeline_steps(pipeline_manager)
-    register_completion_callbacks(callbacks, pipeline_manager)
-    callbacks.bind(router)
-    register_task_executors(queue)
-
-    RunRepository(project_root).create(run_id, {"source": "manual_classify_task", "input_path": str(input_path)})
-    extraction_task = build_clustered_event_extraction_task(
+    container = configure_services(project_root)
+    queries = PipelineQueryFacade(
         project_root=project_root,
+        queue=container.event_queue,
+        pipeline_descriptors=container.pipeline_manager.describe_steps(),
+    )
+    result = submit_clustered_classify_run(
+        project_root=project_root,
+        queue=container.event_queue,
+        queue_show=queries.task_detail,
         run_id=run_id,
         input_path=str(input_path),
         config=str(config_path),
+        pipeline_descriptors=container.pipeline_manager.describe_steps(),
     )
-    merge_task = build_clustered_event_merge_task(
-        project_root=project_root,
-        run_id=run_id,
-        input_path=None,
-        config=str(config_path),
-        depends_on=[extraction_task.id],
+    merge_task = next(
+        (task for task in result["tasks"] if task.get("type") == "classify.clustered_event_merge"),
+        None,
     )
-    queue.register(extraction_task)
-    queue.register(merge_task)
-    queue.drain_ready()
+    if not isinstance(merge_task, dict):
+        raise RuntimeError("manual classify did not produce clustered merge task")
 
-    merge_current = queue.get(merge_task.id)
-    if merge_current.state == "blocked":
-        raise TaskBlocked(str(queue.result(merge_task.id).get("blocked_reason") or "manual classify blocked"))
-    if merge_current.state != "succeeded":
-        raise RuntimeError(str(queue.result(merge_task.id).get("error") or f"manual classify ended as {merge_current.state}"))
+    if merge_task.get("state") == "blocked":
+        blocked_reason = merge_task.get("result", {}).get("blocked_reason") if isinstance(merge_task.get("result"), dict) else None
+        raise TaskBlocked(str(blocked_reason or "manual classify blocked"))
+    if merge_task.get("state") != "succeeded":
+        error = merge_task.get("result", {}).get("error") if isinstance(merge_task.get("result"), dict) else None
+        raise RuntimeError(str(error or f"manual classify ended as {merge_task.get('state')}"))
 
-    checkpoint_path = Path(str(queue.result(merge_task.id)["checkpoint_path"]))
+    checkpoint_path = Path(str(merge_task["result"]["checkpoint_path"]))
     checkpoint_payload = CheckpointRepository(project_root).read(checkpoint_path)
     output_refs = checkpoint_payload.get("output_refs") if isinstance(checkpoint_payload.get("output_refs"), dict) else {}
     output_items = load_news_items(Path(str(output_refs["news_with_events"])).resolve())

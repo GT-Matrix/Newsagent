@@ -9,6 +9,7 @@ from unittest.mock import patch
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
 from modnews.core.models import NewsItem
+from modnews.bootstrap import configure_services
 from modnews.service.classify.manual import run_classification
 from modnews.service.classify.run_result import build_classify_step_result
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
@@ -48,88 +49,88 @@ class ClassifyTaskExecutionTest(unittest.TestCase):
             pipeline_config = load_config(str(_write_config(project_root)), project_root=project_root)
             item = NewsItem(platform="x", title="t", url="https://example.com", pubtime=None, scrape_date="2026-07-03")
             checkpoint_manager = CheckpointManager(project_root)
+            container = configure_services(project_root)
 
-            def fake_register_task_executors(queue) -> None:
-                def extraction_executor(task):
-                    artifact = checkpoint_manager.write_artifact(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_extraction",
-                        task.id,
-                        "classification_progress.json",
-                        {"meta": {"stage": "after_clustered_event_extraction"}, "items": [item.to_dict()], "events": [], "discarded": []},
-                    )
-                    checkpoint = checkpoint_manager.write(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_extraction",
-                        task.id,
-                        {
-                            "run_id": task.pipeline_run_id,
-                            "step_id": "classify/clustered_event_extraction",
-                            "task_id": task.id,
-                            "status": "succeeded",
-                            "output_refs": {"classification_progress": str(artifact)},
-                            "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 0},
-                            "error": None,
+            def extraction_executor(task):
+                artifact = checkpoint_manager.write_artifact(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_extraction",
+                    task.id,
+                    "classification_progress.json",
+                    {"meta": {"stage": "after_clustered_event_extraction"}, "items": [item.to_dict()], "events": [], "discarded": []},
+                )
+                checkpoint = checkpoint_manager.write(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_extraction",
+                    task.id,
+                    {
+                        "run_id": task.pipeline_run_id,
+                        "step_id": "classify/clustered_event_extraction",
+                        "task_id": task.id,
+                        "status": "succeeded",
+                        "output_refs": {"classification_progress": str(artifact)},
+                        "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 0},
+                        "error": None,
+                    },
+                )
+                RunRepository(project_root).append_checkpoint(task.pipeline_run_id, checkpoint, create_payload={"source": "test"})
+                return {"checkpoint_path": str(checkpoint), "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 0}}
+
+            def merge_executor(task):
+                news_path = checkpoint_manager.write_artifact(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_merge",
+                    task.id,
+                    "news_with_events.json",
+                    [item.to_dict()],
+                )
+                events_path = checkpoint_manager.write_artifact(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_merge",
+                    task.id,
+                    "events.json",
+                    [],
+                )
+                discarded_path = checkpoint_manager.write_artifact(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_merge",
+                    task.id,
+                    "discarded_news.json",
+                    [],
+                )
+                progress_path = checkpoint_manager.write_artifact(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_merge",
+                    task.id,
+                    "classification_progress.json",
+                    {"meta": {"stage": "completed"}, "items": [item.to_dict()], "events": [], "discarded": []},
+                )
+                checkpoint = checkpoint_manager.write(
+                    task.pipeline_run_id,
+                    "classify/clustered_event_merge",
+                    task.id,
+                    {
+                        "run_id": task.pipeline_run_id,
+                        "step_id": "classify/clustered_event_merge",
+                        "task_id": task.id,
+                        "status": "succeeded",
+                        "output_refs": {
+                            "news_with_events": str(news_path),
+                            "events": str(events_path),
+                            "discarded_news": str(discarded_path),
+                            "classification_progress": str(progress_path),
                         },
-                    )
-                    RunRepository(project_root).append_checkpoint(task.pipeline_run_id, checkpoint, create_payload={"source": "test"})
-                    return {"checkpoint_path": str(checkpoint), "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 0}}
+                        "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 7},
+                        "error": None,
+                    },
+                )
+                RunRepository(project_root).append_checkpoint(task.pipeline_run_id, checkpoint, create_payload={"source": "test"})
+                return {"checkpoint_path": str(checkpoint), "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 7}}
 
-                def merge_executor(task):
-                    news_path = checkpoint_manager.write_artifact(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_merge",
-                        task.id,
-                        "news_with_events.json",
-                        [item.to_dict()],
-                    )
-                    events_path = checkpoint_manager.write_artifact(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_merge",
-                        task.id,
-                        "events.json",
-                        [],
-                    )
-                    discarded_path = checkpoint_manager.write_artifact(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_merge",
-                        task.id,
-                        "discarded_news.json",
-                        [],
-                    )
-                    progress_path = checkpoint_manager.write_artifact(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_merge",
-                        task.id,
-                        "classification_progress.json",
-                        {"meta": {"stage": "completed"}, "items": [item.to_dict()], "events": [], "discarded": []},
-                    )
-                    checkpoint = checkpoint_manager.write(
-                        task.pipeline_run_id,
-                        "classify/clustered_event_merge",
-                        task.id,
-                        {
-                            "run_id": task.pipeline_run_id,
-                            "step_id": "classify/clustered_event_merge",
-                            "task_id": task.id,
-                            "status": "succeeded",
-                            "output_refs": {
-                                "news_with_events": str(news_path),
-                                "events": str(events_path),
-                                "discarded_news": str(discarded_path),
-                                "classification_progress": str(progress_path),
-                            },
-                            "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 7},
-                            "error": None,
-                        },
-                    )
-                    RunRepository(project_root).append_checkpoint(task.pipeline_run_id, checkpoint, create_payload={"source": "test"})
-                    return {"checkpoint_path": str(checkpoint), "stats": {"item_count": 1, "event_count": 0, "discarded_count": 0, "merged_event_count": 7}}
+            container.event_queue.register_executor("classify.clustered_event_extraction", extraction_executor)
+            container.event_queue.register_executor("classify.clustered_event_merge", merge_executor)
 
-                queue.register_executor("classify.clustered_event_extraction", extraction_executor)
-                queue.register_executor("classify.clustered_event_merge", merge_executor)
-
-            with patch("modnews.service.classify.manual.register_task_executors", new=fake_register_task_executors):
+            with patch("modnews.service.classify.manual.configure_services", return_value=container):
                 items, events, step_result = run_classification(
                     PipelineContext.create(pipeline_config),
                     [item],
