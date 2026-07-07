@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from modnews.service.classify.runner import ClassifyStepResult, ClassifyStepRunner
+from modnews.service.classify.runner import ClassifyStepResult
+from modnews.service.classify.step_runner_compat import ClassifyStepRunner
 from modnews.service.classify.state import ClassifyState
 
 

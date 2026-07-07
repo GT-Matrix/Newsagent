@@ -27,6 +27,13 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
         self.assertTrue(hasattr(module, "REGISTERED_CLASSIFY_TASK_EXECUTORS"))
         self.assertFalse(hasattr(module, "run_classification"))
 
+    def test_runner_module_only_exports_runtime_and_result_structures(self) -> None:
+        module = importlib.import_module("modnews.service.classify.runner")
+        self.assertTrue(hasattr(module, "ClassifyRuntime"))
+        self.assertTrue(hasattr(module, "ClassifyRunResult"))
+        self.assertTrue(hasattr(module, "ClassifyStepResult"))
+        self.assertFalse(hasattr(module, "ClassifyStepRunner"))
+
     def test_manual_module_exports_manual_classify_entrypoint(self) -> None:
         module = importlib.import_module("modnews.service.classify.manual")
         self.assertTrue(hasattr(module, "run_classification"))
@@ -47,6 +54,11 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
 
     def test_step_observer_module_is_not_importable(self) -> None:
         self.assertIsNone(importlib.util.find_spec("modnews.service.classify.step_observer"))
+
+    def test_step_runner_compat_module_is_explicit_shim(self) -> None:
+        module = importlib.import_module("modnews.service.classify.step_runner_compat")
+        self.assertTrue(getattr(module, "COMPATIBILITY_SHIM", False))
+        self.assertTrue(hasattr(module, "ClassifyStepRunner"))
 
     def test_batch_compat_modules_are_explicit_shims(self) -> None:
         batch_tasks = importlib.import_module("modnews.service.classify.batch_tasks")

@@ -6,7 +6,8 @@ from typing import Callable
 from .checkpoint import build_checkpoint_meta
 from .clustered_extract import extract_events_from_title_clusters
 from .clustered_merge import merge_event_clusters
-from .runner import ClassifyRuntime, ClassifyStep, ClassifyStepResult
+from .runner import ClassifyRuntime, ClassifyStepResult
+from .step_runner_compat import ClassifyStep
 from .state import ClassifyState
 
 # Compatibility layer for legacy step-oriented tests and fixed-output helpers.
