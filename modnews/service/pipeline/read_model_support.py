@@ -7,6 +7,7 @@ from typing import Any
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.runtime_store import callback_events_for_run
 from modnews.service.pipeline.step import PipelineStepDescriptor
 from modnews.service.pipeline.task_domain_view import resolve_task_domain_view
 from modnews.service.pipeline.task_presentation import default_task_title, resolve_task_presentation
@@ -153,13 +154,21 @@ def step_status(tasks: list[TaskEvent], checkpoints: list[dict[str, Any]]) -> st
     return "idle"
 
 
-def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) -> dict[str, Any]:
+def task_summary(
+    queue: EventQueue,
+    task: TaskEvent,
+    *,
+    include_result: bool,
+    inspection: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     payload = task.to_dict()
-    waiting_reason = queue.waiting_reason(task)
-    waiting_details = queue.waiting_details(task)
-    blocked_reason = queue.blocked_reason(task)
-    blocked_details = queue.blocked_details(task)
-    result = queue.result(task.id)
+    if inspection is None:
+        inspection = queue.inspect_tasks([task]).get(task.id, {})
+    waiting_reason = inspection.get("waiting_reason")
+    waiting_details = inspection.get("waiting_details")
+    blocked_reason = inspection.get("blocked_reason")
+    blocked_details = inspection.get("blocked_details")
+    result = inspection.get("result") if isinstance(inspection.get("result"), dict) else queue.result(task.id)
     checkpoints = []
     domain_view = build_domain_view(task, result, checkpoints)
     related_artifacts = collect_artifacts(result, checkpoints)
@@ -177,7 +186,7 @@ def task_summary(queue: EventQueue, task: TaskEvent, *, include_result: bool) ->
         payload["retry_delay_seconds"] = result.get("retry_delay_seconds")
     if result.get("next_attempt_at") is not None:
         payload["scheduled_next_attempt_at"] = result.get("next_attempt_at")
-    payload["ready"] = waiting_details is None and task.state in {"queued", "waiting"}
+    payload["ready"] = bool(inspection.get("ready")) if "ready" in inspection else waiting_details is None and task.state in {"queued", "waiting"}
     payload["title"] = task_title(task)
     payload["summary"] = task_display_summary(
         task,
@@ -224,13 +233,17 @@ def attach_checkpoint_callback_summaries(project_root: Path, checkpoints: list[d
         row = dict(checkpoint)
         run_id = str(row.get("run_id") or "")
         if run_id and run_id not in run_events_cache:
-            try:
-                record = RunRepository(project_root).get(run_id)
-            except KeyError:
-                run_events_cache[run_id] = []
+            runtime_events = callback_events_for_run(project_root, run_id)
+            if runtime_events:
+                run_events_cache[run_id] = runtime_events
             else:
-                raw_events = record.get("step_callback_events")
-                run_events_cache[run_id] = [item for item in raw_events if isinstance(item, dict)] if isinstance(raw_events, list) else []
+                try:
+                    record = RunRepository(project_root).get(run_id)
+                except KeyError:
+                    run_events_cache[run_id] = []
+                else:
+                    raw_events = record.get("step_callback_events")
+                    run_events_cache[run_id] = [item for item in raw_events if isinstance(item, dict)] if isinstance(raw_events, list) else []
         row["callback_summary"] = checkpoint_callback_summary(
             row,
             run_events_cache.get(run_id, []),

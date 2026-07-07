@@ -9,7 +9,7 @@ from modnews.service.extraction.repair_manager import RepairManager
 from modnews.service.extraction.repair_policy import classify_exception
 from modnews.service.extraction.source_selection import enabled_sources as resolve_enabled_sources
 from modnews.service.extraction.web_contract import ExtractorFailure, WebJob, WebSource
-from modnews.service.extraction.web_runner import run_extractor, write_json
+from modnews.service.extraction.web_runner import run_extractor
 
 
 class WebExtractionOrchestrator:
@@ -38,15 +38,12 @@ class WebExtractionOrchestrator:
             self.store.append(job.id, "scrape_started", attempt=attempt, max_attempts=max_attempts)
             try:
                 result, raw = run_extractor(registry=self.registry, source=source, scrape_date=scrape_date, limit=limit)
-                job_dir = self.store.job_dir(job.id, job.source_id)
-                output_path = job_dir / "items.json"
-                raw_path = job_dir / "raw_result.json"
-                write_json(output_path, [item.to_dict() for item in result.items])
-                write_json(raw_path, raw)
                 job.state = "succeeded"
                 job.item_count = len(result.items)
-                job.output_path = str(output_path)
-                job.raw_result_path = str(raw_path)
+                job.items = [item.to_dict() for item in result.items]
+                job.raw_result = raw
+                job.output_path = None
+                job.raw_result_path = None
                 job.error = None
                 job.error_type = None
                 self.store.save(job)

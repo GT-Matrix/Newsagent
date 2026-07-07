@@ -1,39 +1,81 @@
 from __future__ import annotations
 
-import json
+import threading
 from pathlib import Path
 from typing import Any
 from datetime import datetime
 
-from modnews.core.paths import runtime_paths
+
+_QUEUE_STATE_CACHE: dict[str, dict[str, Any]] = {}
+_QUEUE_STATE_LOCK = threading.RLock()
 
 
 class QueueStateRepository:
     def __init__(self, project_root: Path) -> None:
-        self.project_root = project_root
-        self.path = runtime_paths(project_root).process_dir / "event_queue.json"
+        self.project_root = project_root.resolve()
 
     def load(self) -> dict[str, Any]:
-        if not self.path.exists():
+        with _QUEUE_STATE_LOCK:
+            cached = _QUEUE_STATE_CACHE.get(str(self.project_root))
+            if isinstance(cached, dict):
+                cached = {
+                    "version": int(cached.get("version") or 1),
+                    "saved_at": cached.get("saved_at"),
+                    "tasks": list(cached.get("tasks") or []),
+                    "results": dict(cached.get("results") or {}),
+                }
+        if not isinstance(cached, dict):
             return {"version": 1, "saved_at": None, "tasks": [], "results": {}}
-        payload = json.loads(self.path.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
-            return {"version": 1, "saved_at": None, "tasks": [], "results": {}}
-        tasks = payload.get("tasks")
-        results = payload.get("results")
-        return {
-            "version": int(payload.get("version") or 1),
-            "saved_at": payload.get("saved_at"),
-            "tasks": tasks if isinstance(tasks, list) else [],
-            "results": results if isinstance(results, dict) else {},
-        }
+        return cached
 
     def save(self, payload: dict[str, Any]) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        persisted = {
-            "version": int(payload.get("version") or 1),
-            "saved_at": payload.get("saved_at") or datetime.now().astimezone().isoformat(timespec="seconds"),
-            "tasks": payload.get("tasks") or [],
-            "results": payload.get("results") or {},
-        }
-        self.path.write_text(json.dumps(persisted, ensure_ascii=False, indent=2), encoding="utf-8")
+        with _QUEUE_STATE_LOCK:
+            key = str(self.project_root)
+            current = _QUEUE_STATE_CACHE.get(key)
+            if not isinstance(current, dict) or payload.get("op") == "replace":
+                _QUEUE_STATE_CACHE[key] = _snapshot_payload(payload)
+                return
+
+            task_rows = {
+                str(task.get("id")): dict(task)
+                for task in current.get("tasks", [])
+                if isinstance(task, dict) and task.get("id")
+            }
+            results = dict(current.get("results") or {})
+            op = str(payload.get("op") or "")
+            if op == "upsert":
+                task = payload.get("task")
+                if isinstance(task, dict) and task.get("id"):
+                    task_id = str(task["id"])
+                    task_rows[task_id] = dict(task)
+                    result = payload.get("result")
+                    if isinstance(result, dict):
+                        results[task_id] = dict(result)
+            elif op == "upsert_many":
+                for task in payload.get("tasks") or []:
+                    if isinstance(task, dict) and task.get("id"):
+                        task_rows[str(task["id"])] = dict(task)
+                raw_results = payload.get("results")
+                if isinstance(raw_results, dict):
+                    for task_id, result in raw_results.items():
+                        if isinstance(result, dict):
+                            results[str(task_id)] = dict(result)
+            else:
+                _QUEUE_STATE_CACHE[key] = _snapshot_payload(payload)
+                return
+
+            _QUEUE_STATE_CACHE[key] = {
+                "version": int(current.get("version") or 1),
+                "saved_at": payload.get("saved_at") or datetime.now().astimezone().isoformat(timespec="seconds"),
+                "tasks": list(task_rows.values()),
+                "results": results,
+            }
+
+
+def _snapshot_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "version": int(payload.get("version") or 1),
+        "saved_at": payload.get("saved_at") or datetime.now().astimezone().isoformat(timespec="seconds"),
+        "tasks": list(payload.get("tasks") or []),
+        "results": dict(payload.get("results") or {}),
+    }

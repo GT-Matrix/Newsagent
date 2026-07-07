@@ -114,6 +114,7 @@ class ReportNodeRuntimeTest(unittest.TestCase):
             checkpoint_path = Path(str(result["checkpoint_path"]))
             checkpoint_payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
             self.assertEqual(checkpoint_payload["step_id"], "report/generate")
+            self.assertEqual(list(project_root.rglob("draft_state.json")), [])
 
             events_payload = json.loads((output_dir / "enriched_events.json").read_text(encoding="utf-8"))
             self.assertEqual(events_payload[0]["title"], "OpenAI 发布新编程模型")

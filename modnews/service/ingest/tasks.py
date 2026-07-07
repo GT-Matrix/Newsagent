@@ -28,7 +28,6 @@ def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
     items, result = step.run(ctx)
 
     checkpoint = CheckpointManager(project_root)
-    output_refs = {"step_output": result.output_path} if result.output_path else {}
     artifact_payload = [item.to_dict() for item in items]
     artifact_path = checkpoint.write_artifact(run_id, f"ingest/{step_id}", task.id, "items.json", artifact_payload)
     checkpoint_payload = {
@@ -37,7 +36,7 @@ def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
         "task_id": task.id,
         "status": "succeeded" if not result.errors else "completed_with_errors",
         "input_refs": {},
-        "output_refs": {**output_refs, "items": str(artifact_path)},
+        "output_refs": {"items": str(artifact_path)},
         "stats": {"item_count": len(items), "error_count": len(result.errors)},
         "error": "; ".join(result.errors) if result.errors else None,
     }

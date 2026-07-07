@@ -224,6 +224,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual(checkpoint["step_id"], "ingest/site_lists/site-1")
             self.assertEqual(checkpoint["stats"]["item_count"], 1)
             self.assertIn("items", checkpoint["output_refs"])
+            self.assertNotIn("job_output", checkpoint["output_refs"])
             self.assertIn(str(checkpoint_path), RunRepository(project_root).get("run-1")["checkpoints"])
 
     def test_cli_ingest_site_lists_uses_web_source_tasks(self) -> None:

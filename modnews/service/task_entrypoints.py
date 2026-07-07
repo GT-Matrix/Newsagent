@@ -5,6 +5,7 @@ from typing import Any
 
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.runtime_store import overlay_run_record
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
 from modnews.service.pipeline.step import PipelineStepDescriptor
 
@@ -35,7 +36,7 @@ def run_planned_tasks(
         "ok": bool(task_payloads) and all(task.get("state") == "succeeded" for task in task_payloads),
         "run_id": run_id,
         "tasks": task_payloads,
-        "run": runs.get(run_id),
+        "run": overlay_run_record(project_root, runs.get(run_id)),
     }
 
 

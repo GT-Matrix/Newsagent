@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -8,7 +7,6 @@ from typing import Any
 from modnews.core.config import LlmConfig, load_config
 from modnews.core.event_queue import EventQueue, current_queue
 from modnews.core.task import TaskBlocked, TaskEvent
-from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.service.report.editor import generate_report_polish
 from modnews.service.report.models import EnrichedEvent
 from modnews.service.report.pipeline import build_report_draft, write_report_outputs
@@ -55,8 +53,10 @@ def run_report_polish_task(task: TaskEvent) -> dict[str, object]:
     evidence = dict(evidence_payload) if isinstance(evidence_payload, dict) else {}
     result = generate_report_polish(event, evidence, llm_config)
     return {
-        "event_id": event.event_id,
-        "polish": result or {},
+        "batch_result": {
+            "event_id": event.event_id,
+            "polish": result or {},
+        },
     }
 
 
@@ -70,7 +70,7 @@ def run_report_trend_summary_task(task: TaskEvent) -> dict[str, object]:
         raise ValueError("report.trend_summary requires evidence payload")
     events = [_event_from_dict(row) for row in events_payload if isinstance(row, dict)]
     summary = generate_trend_summary(events, evidence_payload, llm_config)
-    return {"trend_summary": summary}
+    return {"batch_result": {"trend_summary": summary}}
 
 
 def handle_report_child_task_callback(event: dict[str, Any], queue: EventQueue | None) -> list[dict[str, Any]]:
@@ -99,7 +99,7 @@ def handle_report_child_task_callback(event: dict[str, Any], queue: EventQueue |
 def _start_report_node(task: TaskEvent, runtime, queue: EventQueue) -> dict[str, object]:
     report_date = parse_report_date(task.payload.get("date"))
     draft = build_report_draft(runtime.input_path, report_date)
-    draft_state_path = _write_draft_state(runtime.project_root, runtime.run_id, task.id, draft)
+    queue.set_transient_result(task.id, {"report_draft": _draft_to_payload(draft)})
     llm_config = _resolve_report_llm_config(runtime.config_path)
     selected = [event for event in draft.enriched_events if event.should_include_report]
     if not _has_usable_llm_config(llm_config) or not selected:
@@ -108,7 +108,6 @@ def _start_report_node(task: TaskEvent, runtime, queue: EventQueue) -> dict[str,
             runtime=runtime,
             draft=draft,
             trend_summary=None,
-            draft_state_path=draft_state_path,
         )
 
     submission = _register_polish_children(task, queue, runtime.config_path, selected, draft.evidence_payload)
@@ -117,7 +116,6 @@ def _start_report_node(task: TaskEvent, runtime, queue: EventQueue) -> dict[str,
         {
             "node_stage": POLISH_STAGE,
             "report_date": report_date.isoformat(),
-            "draft_state_path": str(draft_state_path),
             "polish_group_id": submission["group_id"],
             "polish_task_ids": submission["task_ids"],
         },
@@ -134,9 +132,9 @@ def _start_report_node(task: TaskEvent, runtime, queue: EventQueue) -> dict[str,
 
 def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, object]:
     runtime = build_report_task_runtime(task)
-    draft = _read_draft_state(Path(str(task.payload["draft_state_path"])))
+    draft = _draft_from_payload(queue.result(task.id).get("report_draft"))
     _apply_polish_results(draft.enriched_events, queue, task.payload.get("polish_task_ids") or [])
-    draft_state_path = _write_draft_state(runtime.project_root, runtime.run_id, task.id, draft)
+    queue.set_transient_result(task.id, {"report_draft": _draft_to_payload(draft)})
     llm_config = _resolve_report_llm_config(runtime.config_path)
     if not _has_usable_llm_config(llm_config):
         return _finalize_report_node(
@@ -144,7 +142,6 @@ def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
             runtime=runtime,
             draft=draft,
             trend_summary=None,
-            draft_state_path=draft_state_path,
         )
 
     selected = [event for event in draft.enriched_events if event.should_include_report and event.report_section != "watchlist"]
@@ -154,7 +151,6 @@ def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
             runtime=runtime,
             draft=draft,
             trend_summary=None,
-            draft_state_path=draft_state_path,
         )
 
     submission = _register_trend_child(task, queue, runtime.config_path, draft.enriched_events, draft.evidence_payload)
@@ -162,7 +158,6 @@ def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
         task.id,
         {
             "node_stage": TREND_STAGE,
-            "draft_state_path": str(draft_state_path),
             "trend_group_id": submission["group_id"],
             "trend_task_ids": submission["task_ids"],
         },
@@ -179,14 +174,13 @@ def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
 
 def _complete_trend_stage(task: TaskEvent, queue: EventQueue) -> dict[str, object]:
     runtime = build_report_task_runtime(task)
-    draft = _read_draft_state(Path(str(task.payload["draft_state_path"])))
+    draft = _draft_from_payload(queue.result(task.id).get("report_draft"))
     trend_summary = _collect_trend_summary(queue, task.payload.get("trend_task_ids") or [])
     return _finalize_report_node(
         task=task,
         runtime=runtime,
         draft=draft,
         trend_summary=trend_summary,
-        draft_state_path=Path(str(task.payload["draft_state_path"])),
     )
 
 
@@ -196,7 +190,6 @@ def _finalize_report_node(
     runtime,
     draft,
     trend_summary: str | None,
-    draft_state_path: Path,
 ) -> dict[str, object]:
     write_report_outputs(
         runtime.output_dir,
@@ -214,7 +207,9 @@ def _finalize_report_node(
         stats=build_report_task_stats(draft.enriched_events),
     )
     result["node_stage"] = COMPLETED_STAGE
-    result["draft_state_path"] = str(draft_state_path)
+    queue = current_queue()
+    if isinstance(queue, EventQueue):
+        queue.discard_transient_results([task.id])
     return result
 
 
@@ -245,6 +240,7 @@ def _register_polish_children(
                 "item_index": index,
                 "item_count": len(selected),
             },
+            checkpoint_policy="none",
             concurrency_key="report.polish",
             max_concurrency=int(task.payload.get("report_polish_max_concurrency") or DEFAULT_POLISH_CONCURRENCY),
             priority=task.priority,
@@ -276,6 +272,7 @@ def _register_trend_child(
             "events": [asdict(event) for event in events],
             "evidence_payload": evidence_payload,
         },
+        checkpoint_policy="none",
         concurrency_key="report.trend",
         max_concurrency=1,
         priority=task.priority,
@@ -295,11 +292,12 @@ def _apply_polish_results(events: list[EnrichedEvent], queue: EventQueue, task_i
             _append_child_warning(event_by_id, child, queue.result(task_id))
             continue
         result = queue.result(task_id)
-        event_id = str(result.get("event_id") or "")
+        batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else result
+        event_id = str(batch_result.get("event_id") or "")
         event = event_by_id.get(event_id)
         if event is None:
             continue
-        polish = result.get("polish")
+        polish = batch_result.get("polish")
         if isinstance(polish, dict):
             title = _clean_text(polish.get("title"))
             brief = _clean_text(polish.get("brief"))
@@ -311,6 +309,7 @@ def _apply_polish_results(events: list[EnrichedEvent], queue: EventQueue, task_i
             if why:
                 event.why_important = why
             event.evidence_summary["llm_polished"] = True
+    queue.discard_transient_results([str(item) for item in task_ids])
 
 
 def _append_child_warning(event_by_id: dict[str, EnrichedEvent], child: TaskEvent, result: dict[str, Any]) -> None:
@@ -343,9 +342,12 @@ def _collect_trend_summary(queue: EventQueue, task_ids: list[object]) -> str | N
         if child.state != "succeeded":
             continue
         result = queue.result(task_id)
-        value = result.get("trend_summary")
+        batch_result = result.get("batch_result") if isinstance(result.get("batch_result"), dict) else result
+        value = batch_result.get("trend_summary")
         if isinstance(value, str) and value.strip():
+            queue.discard_transient_results([str(item) for item in task_ids])
             return value.strip()
+    queue.discard_transient_results([str(item) for item in task_ids])
     return None
 
 
@@ -363,18 +365,17 @@ def _handle_child_group_completion(
     return [{"action": "retry_parent_task", "task_id": parent.id, "stage": stage}]
 
 
-def _write_draft_state(project_root: Path, run_id: str, task_id: str, draft) -> Path:
-    manager = CheckpointManager(project_root)
-    payload = {
+def _draft_to_payload(draft: ReportDraftState) -> dict[str, Any]:
+    return {
         "report_date": draft.report_date.isoformat(),
         "enriched_events": [asdict(event) for event in draft.enriched_events],
         "evidence_payload": draft.evidence_payload,
     }
-    return manager.write_artifact(run_id, "report/generate", task_id, "draft_state.json", payload)
 
 
-def _read_draft_state(path: Path):
-    payload = json.loads(path.read_text(encoding="utf-8"))
+def _draft_from_payload(payload: Any) -> ReportDraftState:
+    if not isinstance(payload, dict):
+        raise RuntimeError("report draft state missing from event queue transient results")
     return ReportDraftState(
         report_date=parse_report_date(payload.get("report_date")),
         enriched_events=[_event_from_dict(row) for row in payload.get("enriched_events", []) if isinstance(row, dict)],

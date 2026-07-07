@@ -32,6 +32,8 @@ class WebJobTaskLogTest(unittest.TestCase):
             self.assertIn("progress.web_job_event", log_types)
             web_events = [row for row in result["logs"] if row["type"] == "progress.web_job_event"]
             self.assertEqual({row["web_event_type"] for row in web_events}, {"job_created", "scrape_started"})
+            self.assertEqual(list(Path(tmp).rglob("job.json")), [])
+            self.assertEqual(list(Path(tmp).rglob("events.jsonl")), [])
 
 
 if __name__ == "__main__":

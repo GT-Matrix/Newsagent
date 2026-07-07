@@ -1,21 +1,27 @@
 from __future__ import annotations
 
-import json
 import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from modnews.repository.event_jsonl import append_event, read_events
-from modnews.core.paths import runtime_paths
 from modnews.core.progress import emit
 from modnews.service.extraction.web_contract import WebJob, WebSource
+
+_JOBS_BY_ROOT: dict[str, dict[str, dict[str, Any]]] = {}
+_EVENTS_BY_ROOT: dict[str, dict[str, list[dict[str, Any]]]] = {}
+_ROOT_LOCK = threading.Lock()
 
 
 class WebJobStore:
     def __init__(self, project_root: Path) -> None:
-        self.root = runtime_paths(project_root).agent_work_dir / "web_jobs"
+        self.project_root = project_root.resolve()
+        self.root = self.project_root / ".agent_work" / "web_jobs"
+        self._root_key = str(self.project_root)
         self._lock = threading.Lock()
+        with _ROOT_LOCK:
+            _JOBS_BY_ROOT.setdefault(self._root_key, {})
+            _EVENTS_BY_ROOT.setdefault(self._root_key, {})
 
     def create(self, source: WebSource, max_attempts: int) -> WebJob:
         now = _now()
@@ -36,9 +42,7 @@ class WebJobStore:
         return job
 
     def list(self) -> list[dict[str, Any]]:
-        if not self.root.exists():
-            return []
-        rows = [_read_json(path, {}) for path in self.root.glob("*/*/job.json")]
+        rows = [dict(row) for row in _JOBS_BY_ROOT.get(self._root_key, {}).values()]
         return sorted([row for row in rows if row], key=lambda item: str(item.get("updated_at", "")), reverse=True)
 
     def get(self, job_id: str) -> WebJob:
@@ -64,23 +68,24 @@ class WebJobStore:
         )
 
     def get_dict(self, job_id: str, include_events: bool = False) -> dict[str, Any]:
-        path = self._find_job_path(job_id)
-        if not path:
+        raw = _JOBS_BY_ROOT.get(self._root_key, {}).get(job_id)
+        if raw is None:
             raise KeyError(job_id)
-        raw = _read_json(path, {})
+        raw = dict(raw)
         if include_events:
             raw["events"] = self.events(job_id)
         return raw
 
     def save(self, job: WebJob) -> None:
         job.updated_at = _now()
-        path = self.job_dir(job.id, job.source_id) / "job.json"
         with self._lock:
-            _write_json(path, job.to_dict())
+            _JOBS_BY_ROOT.setdefault(self._root_key, {})[job.id] = job.to_dict()
 
     def append(self, job_id: str, event_type: str, **payload: Any) -> dict[str, Any]:
         job = self.get(job_id)
-        event = append_event(self.job_dir(job.id, job.source_id) / "events.jsonl", event_type, job_id=job.id, **payload)
+        event = {"ts": _now(), "type": event_type, "job_id": job.id, **payload}
+        with self._lock:
+            _EVENTS_BY_ROOT.setdefault(self._root_key, {}).setdefault(job.id, []).append(event)
         emit(
             "web_job_event",
             web_job_id=job.id,
@@ -91,15 +96,14 @@ class WebJobStore:
         return event
 
     def events(self, job_id: str, limit: int | None = None) -> list[dict[str, Any]]:
-        job = self.get(job_id)
-        return read_events(self.job_dir(job.id, job.source_id) / "events.jsonl", limit=limit)
+        self.get(job_id)
+        rows = list(_EVENTS_BY_ROOT.get(self._root_key, {}).get(job_id, []))
+        if limit is not None:
+            return rows[-limit:]
+        return rows
 
     def job_dir(self, job_id: str, source_id: str) -> Path:
         return self.root / source_id / job_id
-
-    def _find_job_path(self, job_id: str) -> Path | None:
-        matches = list(self.root.glob(f"*/{job_id}/job.json"))
-        return matches[0] if matches else None
 
 
 class WebJobRepository:
@@ -114,19 +118,6 @@ class WebJobRepository:
 
     def events(self, job_id: str) -> list[dict[str, Any]]:
         return self.store.events(job_id)
-
-
-def _read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else default
-    except Exception:
-        return default
-
-
-def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _now() -> str:

@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 import unittest
 import tempfile
+import time
+import threading
 from pathlib import Path
 
 from modnews.core.event_queue import EventQueue
@@ -238,6 +240,66 @@ class EventQueueTest(unittest.TestCase):
         self.assertEqual(queue.result("first")["skip_reason"], "safe to skip")
         self.assertEqual(queue.get("second").state, "succeeded")
         self.assertEqual(queue.result("second")["value"], "ok")
+
+    def test_drain_ready_runs_concurrency_limited_tasks_in_parallel(self) -> None:
+        queue = EventQueue()
+        counters = {"current": 0, "max_seen": 0}
+        counter_lock = threading.Lock()
+
+        def slow(_task: TaskEvent) -> dict[str, object]:
+            with counter_lock:
+                counters["current"] += 1
+                counters["max_seen"] = max(counters["max_seen"], counters["current"])
+            time.sleep(0.1)
+            with counter_lock:
+                counters["current"] -= 1
+            return {"value": "ok"}
+
+        queue.register_executor("diagnostic.slow", slow)
+        for idx in range(1, 4):
+            queue.register(
+                TaskEvent(
+                    id=f"slow-{idx}",
+                    type="diagnostic.slow",
+                    concurrency_key="classify.embedding",
+                    max_concurrency=2,
+                )
+            )
+
+        queue.drain_ready()
+
+        self.assertEqual(counters["max_seen"], 2)
+        self.assertEqual(queue.get("slow-1").state, "succeeded")
+        self.assertEqual(queue.get("slow-2").state, "succeeded")
+        self.assertEqual(queue.get("slow-3").state, "succeeded")
+
+    def test_checkpoint_none_task_keeps_batch_payload_out_of_snapshot(self) -> None:
+        queue = EventQueue()
+        queue.register_executor(
+            "diagnostic.batch",
+            lambda _task: {"batch_result": {"key": 1, "vector": [1.0, 2.0]}, "meta": "ok"},
+        )
+
+        queue.submit(TaskEvent(id="batch-1", type="diagnostic.batch", checkpoint_policy="none"))
+
+        snapshot = queue.snapshot()
+        self.assertEqual(snapshot["results"]["batch-1"]["meta"], "ok")
+        self.assertNotIn("batch_result", snapshot["results"]["batch-1"])
+        self.assertEqual(queue.result("batch-1")["batch_result"]["key"], 1)
+
+    def test_collect_task_results_can_consume_transient_payloads(self) -> None:
+        queue = EventQueue()
+        queue.register_executor(
+            "diagnostic.batch",
+            lambda _task: {"batch_result": {"key": 1, "vector": [1.0, 2.0]}, "meta": "ok"},
+        )
+
+        queue.submit(TaskEvent(id="batch-1", type="diagnostic.batch", checkpoint_policy="none"))
+
+        values = queue.collect_task_results(["batch-1"], value_key="batch_result", consume=True)
+
+        self.assertEqual(values, [{"key": 1, "vector": [1.0, 2.0]}])
+        self.assertNotIn("batch_result", queue.result("batch-1"))
 
     def test_skip_releases_cascaded_blocked_dependencies(self) -> None:
         queue = EventQueue()

@@ -29,7 +29,6 @@ def notify_steps(
 ) -> list[dict[str, Any]]:
     callback_events: list[dict[str, Any]] = []
     for step in steps:
-        before = queue_snapshot(queue)
         explicit: list[dict[str, Any]] | None = None
         if handler_name == "on_task_completed":
             explicit = step.on_task_completed(event, queue)
@@ -37,52 +36,25 @@ def notify_steps(
             explicit = step.on_task_failed(event, queue)
         elif handler_name == "on_task_blocked":
             explicit = step.on_task_blocked(event, queue)
-        after = queue_snapshot(queue)
-        callback_event = build_callback_event(step.id, handler_name, event, before, after, explicit)
-        if callback_event["changed_tasks"] or callback_event["decisions"]:
+        callback_event = build_callback_event(step.id, handler_name, event, explicit)
+        if callback_event["decisions"] or callback_event["changed_tasks"]:
             callback_events.append(callback_event)
     return callback_events
-
-
-def queue_snapshot(queue: EventQueue | None) -> dict[str, dict[str, Any]]:
-    if queue is None:
-        return {}
-    snapshot: dict[str, dict[str, Any]] = {}
-    for task in queue.list():
-        snapshot[task.id] = {
-            "state": task.state,
-            "status_reason": task.status_reason,
-            "result": queue.result(task.id),
-        }
-    return snapshot
 
 
 def build_callback_event(
     step_id: str,
     handler_name: str,
     event: dict[str, Any],
-    before: dict[str, dict[str, Any]],
-    after: dict[str, dict[str, Any]],
     explicit: list[dict[str, Any]] | None,
 ) -> dict[str, Any]:
     task = event.get("task") if isinstance(event.get("task"), dict) else {}
+    decisions = list(explicit or [])
     changed_tasks = []
-    for task_id in sorted(set(before) | set(after)):
-        previous = before.get(task_id)
-        current = after.get(task_id)
-        if previous == current:
+    for decision in decisions:
+        if not isinstance(decision, dict) or not isinstance(decision.get("changed_tasks"), list):
             continue
-        changed_tasks.append(
-            {
-                "task_id": task_id,
-                "before_state": previous.get("state") if previous else None,
-                "after_state": current.get("state") if current else None,
-                "before_reason": previous.get("status_reason") if previous else None,
-                "after_reason": current.get("status_reason") if current else None,
-                "before_result": previous.get("result") if previous else {},
-                "after_result": current.get("result") if current else {},
-            }
-        )
+        changed_tasks.extend(dict(change) for change in decision["changed_tasks"] if isinstance(change, dict))
     return {
         "step_id": step_id,
         "handler": handler_name,
@@ -90,5 +62,5 @@ def build_callback_event(
         "event_task_type": task.get("type"),
         "event_step_id": task.get("step_id"),
         "changed_tasks": changed_tasks,
-        "decisions": explicit or [],
+        "decisions": decisions,
     }

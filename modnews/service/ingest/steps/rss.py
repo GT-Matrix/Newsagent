@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from time import struct_time
 
@@ -49,16 +48,9 @@ class RssStep(IngestStep):
             except Exception as exc:
                 errors.append(f"{feed['id']}: {exc}")
 
-        output_path = ctx.work_dir / "rss_items.json"
-        output_path.write_text(
-            json.dumps([item.to_dict() for item in items], ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        ctx.artifacts[self.step_name] = output_path
         return items, StepResult(
             step=self.step_name,
             item_count=len(items),
-            output_path=str(output_path),
             errors=errors,
         )
 
@@ -83,15 +75,8 @@ def _run_via_mock(ctx: PipelineContext, api_url: str) -> tuple[list[NewsItem], S
         )
         for row in payload.get("items", [])
     ]
-    output_path = ctx.work_dir / "rss_items.json"
-    output_path.write_text(
-        json.dumps([item.to_dict() for item in items], ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    ctx.artifacts["rss"] = output_path
     return items, StepResult(
         step="rss",
         item_count=len(items),
-        output_path=str(output_path),
         meta={"mode": "mock", "api_url": api_url},
     )

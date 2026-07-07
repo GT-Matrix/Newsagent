@@ -10,6 +10,7 @@ from modnews.core.progress import BUS, emit
 from modnews.repository.runs import RunRepository
 from modnews.service.pipeline.manager import PipelineManager
 from modnews.service.pipeline.run_state import initialize_run_state, sync_run_state
+from modnews.service.pipeline.runtime_store import overlay_run_record
 
 
 @dataclass(slots=True)
@@ -41,11 +42,11 @@ class PipelineRuntimeFacade:
         )
         runs.update(run_id, state="queued", task_ids=[task["id"] for task in planned["registered_tasks"]])
         if payload.get("background", True):
-            return {"ok": True, "run": runs.get(run_id), "tasks": planned["registered_tasks"]}
+            return {"ok": True, "run": overlay_run_record(self.project_root, runs.get(run_id)), "tasks": planned["registered_tasks"]}
         BUS.clear()
         emit("pipeline_start", started_at=datetime.now().astimezone().isoformat(timespec="seconds"), run_id=run_id)
         self.queue.drain_ready()
-        run_record = runs.get(run_id)
+        run_record = overlay_run_record(self.project_root, runs.get(run_id))
         tasks = self.run_tasks(run_id)
         ok = bool(tasks) and all(task.get("state") == "succeeded" for task in tasks)
         if ok:
@@ -72,7 +73,7 @@ class PipelineRuntimeFacade:
             override_state=state,
             pipeline_descriptors=self.pipeline_manager.describe_steps(),
         )
-        return {"ok": True, "run": runs.get(run_id), "before": before, "tasks": after}
+        return {"ok": True, "run": overlay_run_record(self.project_root, runs.get(run_id)), "before": before, "tasks": after}
 
     def cancel(self, run_id: str, reason: str = "cancelled by user") -> dict[str, Any]:
         runs = RunRepository(self.project_root)
@@ -95,7 +96,7 @@ class PipelineRuntimeFacade:
             extra_updates={"cancel_reason": reason},
             pipeline_descriptors=self.pipeline_manager.describe_steps(),
         )
-        return {"ok": True, "run": runs.get(run_id), "cancelled_tasks": cancelled, "skipped_tasks": skipped}
+        return {"ok": True, "run": overlay_run_record(self.project_root, runs.get(run_id)), "cancelled_tasks": cancelled, "skipped_tasks": skipped}
 
     def run_tasks(self, run_id: str) -> list[dict[str, Any]]:
         return [task.to_dict() for task in self.queue.list() if task.pipeline_run_id == run_id]
