@@ -113,6 +113,9 @@ def handle_blocked_web_source_event(queue: EventQueue, event: dict[str, object])
         return None
     if task.get("type") != "web_source.run":
         return None
+    blocked_details = result.get("blocked_details")
+    if isinstance(blocked_details, dict) and blocked_details.get("kind") == "child_task_group_active":
+        return None
 
     queue_actions: list[dict[str, Any]] = []
     task_id = str(task.get("id") or "")
