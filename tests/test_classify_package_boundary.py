@@ -37,12 +37,16 @@ class ClassifyPackageBoundaryTest(unittest.TestCase):
 
     def test_steps_module_does_not_export_legacy_convenience_builders(self) -> None:
         module = importlib.import_module("modnews.service.classify.steps")
+        self.assertTrue(getattr(module, "COMPATIBILITY_SHIM", False))
         self.assertFalse(hasattr(module, "build_full_classify_steps"))
         self.assertFalse(hasattr(module, "build_extraction_task_steps"))
         self.assertFalse(hasattr(module, "build_merge_task_steps"))
         self.assertFalse(hasattr(module, "StartCheckpointStep"))
         self.assertFalse(hasattr(module, "ClusteredEventExtractionStep"))
         self.assertFalse(hasattr(module, "ClusteredEventMergeStep"))
+
+    def test_step_observer_module_is_not_importable(self) -> None:
+        self.assertIsNone(importlib.util.find_spec("modnews.service.classify.step_observer"))
 
     def test_batch_compat_modules_are_explicit_shims(self) -> None:
         batch_tasks = importlib.import_module("modnews.service.classify.batch_tasks")

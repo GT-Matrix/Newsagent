@@ -9,6 +9,10 @@ from .clustered_merge import merge_event_clusters
 from .runner import ClassifyRuntime, ClassifyStep, ClassifyStepResult
 from .state import ClassifyState
 
+# Compatibility layer for legacy step-oriented tests and fixed-output helpers.
+# The queue/node runtime no longer depends on these flow registries.
+COMPATIBILITY_SHIM = True
+
 
 @dataclass(frozen=True, slots=True)
 class ClassifyStepSpec:

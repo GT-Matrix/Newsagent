@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from modnews.service.classify.steps import (
+    COMPATIBILITY_SHIM,
     REGISTERED_CLASSIFY_FLOW_BY_NAME,
     REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME,
     get_registered_classify_flow,
@@ -11,6 +12,7 @@ from modnews.service.classify.steps import (
 
 class ClassifyStepsTest(unittest.TestCase):
     def test_registered_step_specs_are_single_source_for_step_builders(self) -> None:
+        self.assertTrue(COMPATIBILITY_SHIM)
         self.assertEqual(
             sorted(REGISTERED_CLASSIFY_STEP_SPEC_BY_NAME),
             ["clustered_event_extraction", "clustered_event_merge", "start_checkpoint"],
