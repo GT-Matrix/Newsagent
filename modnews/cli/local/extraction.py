@@ -63,6 +63,7 @@ class ExtractionLocalMixin:
             project_root=self.project_root,
             queue=self.container.event_queue,
             queue_show=self.queue_show,
+            pipeline_descriptors=self.container.pipeline_manager.describe_steps(),
         )
 
     def _extraction_queries(self) -> ExtractionQueryFacade:

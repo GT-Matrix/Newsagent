@@ -33,6 +33,7 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
                 project_root=project_root,
                 queue=client.container.event_queue,
                 queue_show=client.queue_show,
+                pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
             )
             captured = []
 
@@ -50,6 +51,8 @@ class WebSourcePipelineTasksTest(unittest.TestCase):
             self.assertEqual(captured[0].payload["source_id"], "site-1")
             self.assertEqual(captured[0].payload["limit"], 3)
             self.assertEqual(result["task"]["id"], "manual-web-1")
+            self.assertEqual(result["run"]["run_id"], result["run_id"])
+            self.assertTrue(result["run"]["steps"])
 
     def test_submit_ingest_step_run_uses_planned_site_list_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
