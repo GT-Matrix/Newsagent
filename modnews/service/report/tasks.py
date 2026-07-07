@@ -1,35 +1,26 @@
 from __future__ import annotations
 
 from modnews.core.task import TaskEvent
-from modnews.service.report.execution import generate_report
+from modnews.service.report.node_runtime import (
+    run_report_generate_node,
+    run_report_polish_task,
+    run_report_trend_summary_task,
+)
 from modnews.service.report.task_registry import REGISTERED_REPORT_TASKS
-from modnews.service.report.task_result import build_report_task_stats, persist_report_task_result
-from modnews.service.report.task_runtime import build_report_task_runtime, resolve_report_input
+from modnews.service.report.task_runtime import resolve_report_input
 
 
 def run_report_generate_task(task: TaskEvent) -> dict[str, object]:
-    runtime = build_report_task_runtime(task)
-    events = generate_report(
-        runtime.input_path,
-        runtime.output_dir,
-        report_date=task.payload.get("date"),
-        config_path=runtime.config_path,
-    )
-    return persist_report_task_result(
-        project_root=runtime.project_root,
-        run_id=runtime.run_id,
-        task_id=task.id,
-        input_path=runtime.input_path,
-        output_dir=runtime.output_dir,
-        stats=build_report_task_stats(events),
-    )
+    return run_report_generate_node(task)
 
 
 REGISTERED_REPORT_TASK_EXECUTORS: dict[str, object] = {
     "report.generate": run_report_generate_task,
+    "report.polish_event": run_report_polish_task,
+    "report.trend_summary": run_report_trend_summary_task,
 }
 
-assert {spec.task_type for spec in REGISTERED_REPORT_TASKS} == set(REGISTERED_REPORT_TASK_EXECUTORS)
+assert {spec.task_type for spec in REGISTERED_REPORT_TASKS}.issubset(set(REGISTERED_REPORT_TASK_EXECUTORS))
 
 
 _resolve_report_input = resolve_report_input
