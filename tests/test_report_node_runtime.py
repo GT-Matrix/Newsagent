@@ -256,6 +256,61 @@ class ReportNodeRuntimeTest(unittest.TestCase):
             self.assertEqual(trend_payload["mode"], "llm")
             self.assertIn("趋势总结", trend_payload["trend_summary"])
 
+    def test_report_node_uses_project_default_llm_config_when_task_config_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(
+            os.environ,
+            {
+                "LLM_BASE_URL": "https://example.com/v1",
+                "LLM_API_KEY": "test-key",
+                "LLM_MODEL": "test-model",
+            },
+            clear=False,
+        ):
+            project_root = Path(tmp)
+            input_path = project_root / "classification_progress.json"
+            _write_report_input(input_path)
+            output_dir = project_root / "data" / "report"
+
+            container = configure_services(project_root)
+            RunRepository(project_root).create("run-3", {})
+
+            container.event_queue.register_executor(
+                "report.polish_event",
+                lambda task: {
+                    "event_id": task.payload["event"]["event_id"],
+                    "polish": {
+                        "title": "OpenAI 发布新编程模型",
+                        "brief": "OpenAI 面向开发者发布新的编程模型，并强化代码生成与修复能力。",
+                        "why_important": "这会直接影响 AI 编程产品的模型选择与集成节奏。",
+                    },
+                },
+            )
+            container.event_queue.register_executor(
+                "report.trend_summary",
+                lambda _task: {"trend_summary": "AI 编程模型继续向更强的开发工作流集成演进。"},
+            )
+
+            task = TaskEvent(
+                id="report-run-3-generate",
+                type="report.generate",
+                pipeline_run_id="run-3",
+                step_id="report/generate",
+                payload={
+                    "project_root": str(project_root),
+                    "run_id": "run-3",
+                    "input_path": str(input_path),
+                    "output_dir": str(output_dir),
+                    "date": "2026-07-07",
+                },
+            )
+
+            container.event_queue.submit(task)
+
+            parent = container.event_queue.get(task.id)
+            self.assertEqual(parent.state, "succeeded")
+            trend_payload = json.loads((output_dir / "trend_summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(trend_payload["mode"], "llm")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -100,7 +100,7 @@ def _start_report_node(task: TaskEvent, runtime, queue: EventQueue) -> dict[str,
     report_date = parse_report_date(task.payload.get("date"))
     draft = build_report_draft(runtime.input_path, report_date)
     queue.set_transient_result(task.id, {"report_draft": _draft_to_payload(draft)})
-    llm_config = _resolve_report_llm_config(runtime.config_path)
+    llm_config = runtime.config.classification.llm
     selected = [event for event in draft.enriched_events if event.should_include_report]
     if not _has_usable_llm_config(llm_config) or not selected:
         return _finalize_report_node(
@@ -135,7 +135,7 @@ def _complete_polish_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
     draft = _draft_from_payload(queue.result(task.id).get("report_draft"))
     _apply_polish_results(draft.enriched_events, queue, task.payload.get("polish_task_ids") or [])
     queue.set_transient_result(task.id, {"report_draft": _draft_to_payload(draft)})
-    llm_config = _resolve_report_llm_config(runtime.config_path)
+    llm_config = runtime.config.classification.llm
     if not _has_usable_llm_config(llm_config):
         return _finalize_report_node(
             task=task,
@@ -387,17 +387,9 @@ def _event_from_dict(payload: dict[str, Any]) -> EnrichedEvent:
     return EnrichedEvent(**payload)
 
 
-def _resolve_report_llm_config(config_path: Path | None) -> LlmConfig | None:
-    if config_path is None:
-        return None
-    return load_config(str(config_path)).classification.llm
-
-
 def _load_llm_config_from_payload(payload: dict[str, Any]) -> LlmConfig | None:
-    config_value = payload.get("config")
-    if not config_value:
-        return None
-    return load_config(str(config_value)).classification.llm
+    project_root = Path(str(payload.get("project_root") or Path.cwd())).resolve()
+    return load_config(payload.get("config"), project_root=project_root).classification.llm
 
 
 def _has_usable_llm_config(llm_config: LlmConfig | None) -> bool:

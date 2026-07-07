@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from modnews.core.config import PipelineConfig, load_config
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
 from modnews.service.report.io.event_loader import resolve_report_input_path
@@ -14,18 +15,21 @@ class ReportTaskRuntime:
     run_id: str
     input_path: Path
     output_dir: Path
+    config: PipelineConfig
     config_path: Path | None
 
 
 def build_report_task_runtime(task: TaskEvent) -> ReportTaskRuntime:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
+    config_path = resolve_report_config_path(task, project_root)
     return ReportTaskRuntime(
         project_root=project_root,
         run_id=run_id,
         input_path=resolve_report_input(task, project_root, run_id),
         output_dir=resolve_report_output_dir(task, project_root),
-        config_path=resolve_report_config_path(task, project_root),
+        config=load_config(task.payload.get("config"), project_root=project_root),
+        config_path=config_path,
     )
 
 
