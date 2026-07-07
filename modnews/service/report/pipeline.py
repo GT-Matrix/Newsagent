@@ -23,6 +23,8 @@ from modnews.service.report.stages.trend_writer import generate_trend_summary
 from modnews.service.report.stages.verifier import verify_event
 from modnews.service.report.utils.text import text_quality
 
+COMPATIBILITY_SHIM = True
+
 
 @dataclass(slots=True)
 class ReportDraft:

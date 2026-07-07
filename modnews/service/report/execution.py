@@ -7,6 +7,8 @@ from modnews.service.report.models import EnrichedEvent
 from modnews.service.report.pipeline import run_pipeline
 from modnews.service.report.utils.time import parse_report_date
 
+COMPATIBILITY_SHIM = True
+
 
 def generate_report(
     input_path: Path,

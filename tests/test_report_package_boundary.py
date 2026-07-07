@@ -15,9 +15,12 @@ class ReportPackageBoundaryTest(unittest.TestCase):
     def test_report_package_does_not_export_execution_entrypoints(self) -> None:
         package = importlib.import_module("modnews.service.report")
         execution = importlib.import_module("modnews.service.report.execution")
+        pipeline = importlib.import_module("modnews.service.report.pipeline")
 
         self.assertFalse(hasattr(package, "generate_report"))
         self.assertFalse(hasattr(package, "run_pipeline"))
+        self.assertTrue(getattr(execution, "COMPATIBILITY_SHIM", False))
+        self.assertTrue(getattr(pipeline, "COMPATIBILITY_SHIM", False))
         self.assertTrue(hasattr(execution, "generate_report"))
 
 
