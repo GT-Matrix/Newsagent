@@ -15,9 +15,24 @@ def build_classify_step_result(
 ) -> StepResult:
     state = run_result.state
     stats = build_classify_run_stats(run_result)
+    return build_classify_step_result_from_stats(
+        config=config,
+        item_count=len(state.items),
+        stats=stats,
+        step=step,
+    )
+
+
+def build_classify_step_result_from_stats(
+    *,
+    config: ClassificationConfig,
+    item_count: int,
+    stats: dict[str, object],
+    step: str = "classify",
+) -> StepResult:
     return StepResult(
         step=step,
-        item_count=len(state.items),
+        item_count=item_count,
         output_path=str(config.output_path),
         meta={
             "events_output_path": str(config.events_output_path),

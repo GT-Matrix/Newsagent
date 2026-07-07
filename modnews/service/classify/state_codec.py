@@ -54,7 +54,7 @@ def decode_resume_state(payload: dict[str, Any], items: list[NewsItem]) -> Resum
         )
         for row in rows
     ] if rows else items
-    restored_events = [EventState(record=_decode_event_record(row)) for row in payload.get("events", [])]
+    restored_events = [EventState(record=decode_event_record(row)) for row in payload.get("events", [])]
     discarded = [_decode_discarded_record(row) for row in payload.get("discarded", [])]
     return ResumeState(
         items=restored_items,
@@ -65,7 +65,7 @@ def decode_resume_state(payload: dict[str, Any], items: list[NewsItem]) -> Resum
     )
 
 
-def _decode_event_record(row: dict[str, Any]) -> EventRecord:
+def decode_event_record(row: dict[str, Any]) -> EventRecord:
     return EventRecord(
         event_id=row["event_id"],
         event_label=row["event_label"],
@@ -84,6 +84,10 @@ def _decode_event_record(row: dict[str, Any]) -> EventRecord:
         duplicate_of_event_id=row.get("duplicate_of_event_id"),
         first_seen_date=row.get("first_seen_date"),
     )
+
+
+def decode_event_records(rows: list[dict[str, Any]]) -> list[EventRecord]:
+    return [decode_event_record(row) for row in rows if isinstance(row, dict)]
 
 
 def _decode_discarded_record(row: dict[str, Any]) -> DiscardedRecord:
