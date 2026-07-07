@@ -6,6 +6,7 @@ from modnews.core.completion_callbacks import CompletionCallbackRegistry
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import TaskEvent
 from modnews.service.classify.extraction_node_runtime import handle_clustered_event_extraction_callback
+from modnews.service.classify.merge_node_runtime import handle_clustered_event_merge_callback
 from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
 from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASKS
 from modnews.service.classify.batch_executor import (
@@ -96,7 +97,10 @@ def _auto_queue_blocked_web_source_repair(queue: EventQueue | None):
 
 def _handle_classify_child_task_callback(queue: EventQueue | None):
     def callback(event: dict[str, object]) -> dict[str, object] | None:
-        decisions = handle_clustered_event_extraction_callback(event, queue)
+        decisions = [
+            *handle_clustered_event_extraction_callback(event, queue),
+            *handle_clustered_event_merge_callback(event, queue),
+        ]
         if not decisions:
             return None
         return {"classify_callback_decisions": decisions}

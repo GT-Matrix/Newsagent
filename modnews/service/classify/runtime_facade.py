@@ -9,7 +9,12 @@ from modnews.core.models import NewsItem
 from modnews.core.task import TaskEvent
 
 from .checkpoint import load_resume_state
-from .io import load_news_items, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
+from .io import (
+    load_news_items,
+    resolve_input_resume_checkpoint_path,
+    resolve_resume_checkpoint_path,
+    resolve_task_resume_checkpoint_path,
+)
 from .llm_client import LlmClient
 from .retriever import EventVectorRetriever
 from .runner import ClassifyRuntime
@@ -77,6 +82,8 @@ class ClassifyRuntimeFacade:
         resolved_items = list(items) if items is not None else load_news_items(self._require_input_path(input_path))
         if prefer_run_checkpoint:
             resume_checkpoint_path = resolve_task_resume_checkpoint_path(project_root, run_id)
+            if resume_checkpoint_path is None:
+                resume_checkpoint_path = resolve_input_resume_checkpoint_path(input_path)
         else:
             resume_checkpoint_path = resolve_resume_checkpoint_path(project_root, run_id, configured_resume_checkpoint_path)
         return ResolvedClassifyStateInput(

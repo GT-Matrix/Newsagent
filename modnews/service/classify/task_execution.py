@@ -3,6 +3,7 @@ from __future__ import annotations
 from modnews.core.task import TaskEvent
 
 from .extraction_node_runtime import run_clustered_event_extraction_node
+from .merge_node_runtime import run_clustered_event_merge_node
 from .task_registry import REGISTERED_CLASSIFY_TASKS, get_registered_classify_task
 from .runner import ClassifyStepRunner
 from .step_observer import EmittingClassifyStepObserver
@@ -35,7 +36,7 @@ def run_clustered_event_extraction_task(task: TaskEvent) -> dict[str, object]:
 
 
 def run_clustered_event_merge_task(task: TaskEvent) -> dict[str, object]:
-    return execute_classify_task(task)
+    return run_clustered_event_merge_node(task)
 
 
 REGISTERED_CLASSIFY_TASK_EXECUTORS: dict[str, object] = {

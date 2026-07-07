@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from typing import Any
+
 from modnews.core.progress import emit
 
 from .batch_profile import CLUSTERED_EVENT_MERGE_BATCH
 from .batch_stage import LlmBatchStage, run_llm_batch_stage
-from .clustered_embedding import cluster_events
+from .clustered_embedding import VectorRow, cluster_events, event_text, greedy_vector_groups
 from .event_state_ops import merge_event_records
 from .prompts import clustered_event_merge_system_prompt
 from .utils import clean_list, clean_string, event_payload
@@ -41,7 +43,27 @@ def merge_event_clusters(
         batches=batches,
         max_workers=config.batch_concurrency,
     )
+    merged_count = apply_clustered_merge_responses(events, responses)
+    emit("clustered_merge_done", merged_event_count=merged_count, event_count=len(events))
+    return merged_count
 
+
+def build_event_merge_batches_from_vectors(
+    events,
+    vector_rows: list[dict[str, Any]],
+    batch_size: int,
+):
+    vectors = [VectorRow(key=row["key"], vector=list(row["vector"])) for row in vector_rows]
+    groups = greedy_vector_groups(vectors, batch_size)
+    by_id = {state.record.event_id: state for state in events}
+    return [[by_id[str(row.key)] for row in group] for group in groups]
+
+
+def build_event_embedding_rows(events) -> list[dict[str, object]]:
+    return [{"key": state.record.event_id, "text": event_text(state.record)} for state in events]
+
+
+def apply_clustered_merge_responses(events, responses: list[dict[str, Any]]) -> int:
     by_id = {state.record.event_id: state for state in events}
     remove_ids: set[str] = set()
     merged_count = 0
@@ -72,7 +94,6 @@ def merge_event_clusters(
 
     if remove_ids:
         events[:] = [state for state in events if state.record.event_id not in remove_ids]
-    emit("clustered_merge_done", merged_event_count=merged_count, event_count=len(events))
     return merged_count
 
 

@@ -53,6 +53,20 @@ def resolve_task_resume_checkpoint_path(project_root: Path, run_id: str) -> Path
     return _latest_run_classification_progress(project_root, run_id)
 
 
+def resolve_input_resume_checkpoint_path(input_path: Path | None) -> Path | None:
+    if input_path is None or not input_path.exists():
+        return None
+    if input_path.name == "classification_progress.json":
+        return input_path.resolve()
+    try:
+        payload = json.loads(input_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if isinstance(payload, dict) and isinstance(payload.get("meta"), dict) and "events" in payload and "discarded" in payload:
+        return input_path.resolve()
+    return None
+
+
 def _latest_run_classification_progress(project_root: Path, run_id: str) -> Path | None:
     try:
         checkpoints = RunRepository(project_root).get(run_id).get("checkpoints", [])

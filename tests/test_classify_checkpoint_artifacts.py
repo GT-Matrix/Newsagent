@@ -7,7 +7,12 @@ from pathlib import Path
 
 from modnews.core.models import EventRecord, NewsItem
 from modnews.service.classify.checkpoint import write_run_output_artifacts
-from modnews.service.classify.io import resolve_input_path, resolve_resume_checkpoint_path, resolve_task_resume_checkpoint_path
+from modnews.service.classify.io import (
+    resolve_input_path,
+    resolve_input_resume_checkpoint_path,
+    resolve_resume_checkpoint_path,
+    resolve_task_resume_checkpoint_path,
+)
 from modnews.service.classify.runtime_build import build_classify_state_from_resolved_input, resolve_classify_state_input
 from modnews.service.classify.runner import ClassifyRunResult, ClassifyStepResult
 from modnews.service.classify.state_codec import decode_resume_state
@@ -119,6 +124,16 @@ class ClassifyCheckpointArtifactsTest(unittest.TestCase):
             fixed_path.write_text(json.dumps({"meta": {"stage": "fixed"}}, ensure_ascii=False), encoding="utf-8")
 
             self.assertIsNone(resolve_task_resume_checkpoint_path(project_root, "missing-run"))
+
+    def test_input_resume_checkpoint_accepts_classification_progress_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "classification_progress.json"
+            path.write_text(
+                json.dumps({"meta": {"stage": "after_clustered_event_extraction"}, "events": [], "discarded": []}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            self.assertEqual(resolve_input_resume_checkpoint_path(path), path.resolve())
 
     def test_resolve_input_path_accepts_checkpoint_and_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
