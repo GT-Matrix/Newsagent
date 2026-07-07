@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import unittest
 
-from modnews.core.event_queue import EventQueue, queue_context
-from modnews.core.task import TaskEvent, task_context
+from modnews.core.event_queue import EventQueue
+from modnews.core.task import TaskEvent
+from modnews.service.classify.batch_backends import EventQueueBatchExecutionBackend
+from modnews.service.classify.batch_executor import default_batch_backend
 from modnews.service.classify.batch_items import build_batch_items
 from modnews.service.classify.batch_profile import CLUSTERED_EMBEDDING_BATCH
 from modnews.service.classify.batch_queue_runtime import ClassifyBatchQueueRuntime
@@ -40,7 +42,7 @@ class ClassifyBatchQueueRuntimeTest(unittest.TestCase):
 
         self.assertEqual(result, [{"key": "evt-1", "vector": [1.0]}])
 
-    def test_clustered_embedding_uses_current_queue_and_parent_task(self) -> None:
+    def test_clustered_embedding_uses_default_batch_backend_and_parent_task(self) -> None:
         queue = EventQueue()
         queue.register_executor("classify.embedding", lambda task: {"batch_result": {"key": task.payload["item_payload"]["key"], "vector": [1.0, 2.0]}})
         task = TaskEvent(
@@ -54,9 +56,15 @@ class ClassifyBatchQueueRuntimeTest(unittest.TestCase):
             EmbeddingConfig(model="test", base_url=None, api_key=None, cache_path="/tmp/test-cache.json"),
             _FakeSession(),  # type: ignore[arg-type]
         )
+        backend = EventQueueBatchExecutionBackend(
+            queue=queue,
+            run_id=task.pipeline_run_id,
+            step_id=task.step_id,
+            base_payload=task.payload,
+            base_task=task,
+        )
 
-        with queue_context(queue):
-            with task_context(task):
+        with default_batch_backend(backend):
                 rows = embed_rows_parallel([("evt-1", "hello")], retriever, concurrency=2)
 
         self.assertEqual(rows[0].key, "evt-1")

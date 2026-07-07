@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-from modnews.core.event_queue import current_queue
 from modnews.core.progress import emit
-from modnews.core.task import current_task
 
-from .batch_items import build_batch_items
 from .batch_profile import CLUSTERED_EVENT_EXTRACTION_BATCH
-from .batch_queue_runtime import ClassifyBatchQueueRuntime
 from .batch_stage import LlmBatchStage, run_llm_batch_stage
 from .clustered_embedding import cluster_prepared_items
 from .event_state_ops import assign_item_to_event, build_event_state
@@ -49,35 +45,12 @@ def extract_events_from_title_clusters(
         batch_size=config.batch_size,
         concurrency=max(1, config.batch_concurrency),
     )
-    queue = current_queue()
-    task = current_task()
-    if queue is not None and task is not None:
-        batch_payloads = [_batch_payload(batch) for batch in batches]
-        items = build_batch_items(
-            batch_payloads,
-            task_type=CLUSTERED_EVENT_EXTRACTION_BATCH.task_type,
-            concurrency_key=CLUSTERED_EVENT_EXTRACTION_BATCH.concurrency_key,
-            max_concurrency=max(1, config.batch_concurrency),
-            queue_task_type=CLUSTERED_EVENT_EXTRACTION_BATCH.queue_task_type,
-            batch_indexes=list(range(1, len(batch_payloads) + 1)),
-            batch_count=len(batch_payloads),
-            labels=CLUSTERED_EVENT_EXTRACTION_BATCH.labels,
-        )
-        runtime = ClassifyBatchQueueRuntime(
-            queue=queue,
-            run_id=task.pipeline_run_id,
-            step_id=task.step_id,
-            base_payload=task.payload,
-            base_task=task,
-        )
-        responses = runtime.submit_and_collect(items)
-    else:
-        responses = run_llm_batch_stage(
-            client=client,
-            stage=CLUSTERED_EXTRACTION_STAGE,
-            batches=batches,
-            max_workers=config.batch_concurrency,
-        )
+    responses = run_llm_batch_stage(
+        client=client,
+        stage=CLUSTERED_EXTRACTION_STAGE,
+        batches=batches,
+        max_workers=config.batch_concurrency,
+    )
 
     events: list[EventState] = []
     event_counter = 0

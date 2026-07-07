@@ -2,13 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from modnews.core.event_queue import current_queue
 from modnews.core.progress import emit
-from modnews.core.task import current_task
 
 from .batch_profile import CLUSTERED_EMBEDDING_BATCH, run_profiled_batch
-from .batch_items import build_batch_items
-from .batch_queue_runtime import ClassifyBatchQueueRuntime
 from .retriever import EventVectorRetriever, cosine_similarity
 from .types import EventState, PreparedItem
 
@@ -63,27 +59,7 @@ def embed_rows_parallel(
     workers = max(1, concurrency)
     if workers == 1:
         return [VectorRow(key, retriever.embed_text_for_clustering(text)) for key, text in rows]
-    queue = current_queue()
-    task = current_task()
     raw_rows = [{"key": key, "text": text} for key, text in rows]
-    if queue is not None and task is not None:
-        items = build_batch_items(
-            raw_rows,
-            task_type=CLUSTERED_EMBEDDING_BATCH.task_type,
-            concurrency_key=CLUSTERED_EMBEDDING_BATCH.concurrency_key,
-            max_concurrency=workers,
-            queue_task_type=CLUSTERED_EMBEDDING_BATCH.queue_task_type,
-            labels=CLUSTERED_EMBEDDING_BATCH.labels,
-        )
-        runtime = ClassifyBatchQueueRuntime(
-            queue=queue,
-            run_id=task.pipeline_run_id,
-            step_id=task.step_id,
-            base_payload=task.payload,
-            base_task=task,
-        )
-        results = runtime.submit_and_collect(items)
-        return [VectorRow(row["key"], row["vector"]) for row in results]
     results = run_profiled_batch(
         lambda row: {"key": row["key"], "vector": retriever.embed_text_for_clustering(str(row["text"]))},
         raw_rows,
