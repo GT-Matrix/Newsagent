@@ -37,14 +37,9 @@ def polish_report_events(
         evidence = evidence_by_id.get(event.event_id, {})
         emit("report_polish_start", step="report_polish", item=index, total=len(selected), title=event.title)
         try:
-            result = client.complete_json(
-                task="final_report_polish",
-                messages=[
-                    {"role": "system", "content": _system_prompt()},
-                    {"role": "user", "content": _user_prompt(event, evidence)},
-                ],
-            )
-            _apply_polish(event, result)
+            result = generate_report_polish(event, evidence, llm_config, session=client.session)
+            if result:
+                _apply_polish(event, result)
             event.evidence_summary["llm_polished"] = True
             emit("report_polish_done", step="report_polish", item=index, total=len(selected), title=event.title)
         except Exception as exc:
@@ -52,6 +47,24 @@ def polish_report_events(
             event.evidence_summary["llm_polished"] = False
             event.evidence_summary["polish_error"] = f"{type(exc).__name__}: {exc}"
             emit("report_polish_error", step="report_polish", item=index, total=len(selected), error=str(exc))
+
+
+def generate_report_polish(
+    event: EnrichedEvent,
+    evidence: dict[str, Any],
+    llm_config: LlmConfig | None,
+    session: requests.Session | None = None,
+) -> dict[str, Any] | None:
+    if llm_config is None or not llm_config.base_url or not llm_config.api_key:
+        return None
+    client = LlmClient(_editor_llm_config(llm_config), session or requests.Session())
+    return client.complete_json(
+        task="final_report_polish",
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": _user_prompt(event, evidence)},
+        ],
+    )
 
 
 def _editor_llm_config(config: LlmConfig) -> LlmConfig:

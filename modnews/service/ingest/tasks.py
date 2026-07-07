@@ -9,11 +9,14 @@ from modnews.service.pipeline.checkpoint import CheckpointManager
 from modnews.repository.runs import RunRepository
 from modnews.core.config import load_config
 from modnews.core.context import PipelineContext
+from modnews.service.ingest.task_registry import REGISTERED_INGEST_TASKS
 
 
 def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     step_id = str(task.payload["step_id"])
+    if step_id == "site_lists":
+        raise ValueError("site_lists must be planned as per-source web_source.run tasks, not ingest.run_step")
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
     config = load_config(task.payload.get("config"), project_root=project_root)
     ctx = PipelineContext.create(config)
@@ -46,3 +49,10 @@ def run_ingest_step_task(task: TaskEvent) -> dict[str, object]:
         "checkpoint_path": str(checkpoint_path),
         "artifact_path": str(artifact_path),
     }
+
+
+REGISTERED_INGEST_TASK_EXECUTORS: dict[str, object] = {
+    "ingest.run_step": run_ingest_step_task,
+}
+
+assert {spec.task_type for spec in REGISTERED_INGEST_TASKS} == set(REGISTERED_INGEST_TASK_EXECUTORS)

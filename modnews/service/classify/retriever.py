@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
-import sqlite3
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 
 import requests
 
 from modnews.core.config import EmbeddingConfig
 from modnews.core.models import EventRecord, NewsItem
 from modnews.core.progress import emit, new_request_id, simulate_cached_latency
-
-_VECTOR_CACHE_LOCK = threading.Lock()
+from modnews.repository.vector_cache import VectorCacheRepository
+from .retriever_ops import cosine_similarity, event_text, news_text, parse_datetime, rank_event_candidates
 
 
 @dataclass(slots=True)
@@ -24,6 +21,7 @@ class EventVectorRetriever:
     session: requests.Session
     _memory_cache: dict[str, list[float]] = field(default_factory=dict)
     _memory_lock: threading.Lock = field(default_factory=threading.Lock)
+    _cache_repo: VectorCacheRepository | None = field(default=None, init=False, repr=False)
 
     def embed_text_for_clustering(self, text: str) -> list[float]:
         return self._embed_text(text)
@@ -39,16 +37,14 @@ class EventVectorRetriever:
     ) -> list[EventRecord]:
         if not events:
             return []
-        query_vector = self._embed_text(_news_text(item))
-        scored: list[tuple[float, EventRecord]] = []
-        for event in events:
-            if _outside_time_window(item_pubtime, _parse_datetime(event.latest_pubtime), time_window_hours):
-                continue
-            event_vector = self._embed_text(_event_text(event))
-            similarity = cosine_similarity(query_vector, event_vector)
-            scored.append((similarity, event))
-        scored.sort(key=lambda row: row[0], reverse=True)
-        return [event for _, event in scored[:limit]]
+        return rank_event_candidates(
+            query_vector=self._embed_text(news_text(item)),
+            query_pubtime=item_pubtime,
+            events=events,
+            limit=limit,
+            time_window_hours=time_window_hours,
+            vector_for_event=lambda event: self._embed_text(event_text(event)),
+        )
 
     def search_for_event(
         self,
@@ -60,19 +56,15 @@ class EventVectorRetriever:
     ) -> list[EventRecord]:
         if not events:
             return []
-        query_vector = self._embed_text(_event_text(seed))
-        seed_pubtime = _parse_datetime(seed.latest_pubtime)
-        scored: list[tuple[float, EventRecord]] = []
-        for event in events:
-            if event.event_id == seed.event_id:
-                continue
-            if _outside_time_window(seed_pubtime, _parse_datetime(event.latest_pubtime), time_window_hours):
-                continue
-            event_vector = self._embed_text(_event_text(event))
-            similarity = cosine_similarity(query_vector, event_vector)
-            scored.append((similarity, event))
-        scored.sort(key=lambda row: row[0], reverse=True)
-        return [event for _, event in scored[:limit]]
+        return rank_event_candidates(
+            query_vector=self._embed_text(event_text(seed)),
+            query_pubtime=parse_datetime(seed.latest_pubtime),
+            events=events,
+            limit=limit,
+            time_window_hours=time_window_hours,
+            vector_for_event=lambda event: self._embed_text(event_text(event)),
+            exclude_event_id=seed.event_id,
+        )
 
     def _embed_text(self, text: str) -> list[float]:
         memory_key = self._cache_key(text)
@@ -126,7 +118,7 @@ class EventVectorRetriever:
         vector = payload["data"][0]["embedding"]
         with self._memory_lock:
             self._memory_cache[memory_key] = vector
-        self._write_cache(text, vector)
+        self._write_cache(memory_key, text, vector)
         emit(
             "embedding_request_done",
             request_id=request_id,
@@ -141,100 +133,17 @@ class EventVectorRetriever:
         return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
 
     def _read_cache(self, text: str) -> list[float] | None:
-        if not self.config.cache_path:
-            return None
-        key = self._cache_key(text)
-        with _VECTOR_CACHE_LOCK:
-            self._ensure_cache()
-            with sqlite3.connect(self.config.cache_path) as conn:
-                row = conn.execute("SELECT vector_json FROM vector_cache WHERE cache_key = ?", (key,)).fetchone()
-        return json.loads(row[0]) if row else None
+        return self._cache_repository().get(self._cache_key(text))
 
-    def _write_cache(self, text: str, vector: list[float]) -> None:
-        if not self.config.cache_path:
-            return
-        key = self._cache_key(text)
-        with _VECTOR_CACHE_LOCK:
-            self._ensure_cache()
-            with sqlite3.connect(self.config.cache_path) as conn:
-                conn.execute(
-                    """
-                    INSERT OR REPLACE INTO vector_cache (cache_key, model, text_hash, vector_json)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        key,
-                        self.config.model,
-                        hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                        json.dumps(vector, ensure_ascii=False),
-                    ),
-                )
+    def _write_cache(self, cache_key: str, text: str, vector: list[float]) -> None:
+        self._cache_repository().put(
+            cache_key,
+            model=self.config.model,
+            text_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            vector=vector,
+        )
 
-    def _ensure_cache(self) -> None:
-        assert self.config.cache_path is not None
-        Path(self.config.cache_path).parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self.config.cache_path) as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS vector_cache (
-                    cache_key TEXT PRIMARY KEY,
-                    model TEXT NOT NULL,
-                    text_hash TEXT NOT NULL,
-                    vector_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-
-
-def cosine_similarity(left: list[float], right: list[float]) -> float:
-    if not left or not right or len(left) != len(right):
-        return 0.0
-    dot = sum(a * b for a, b in zip(left, right))
-    left_norm = math.sqrt(sum(a * a for a in left))
-    right_norm = math.sqrt(sum(b * b for b in right))
-    if left_norm == 0 or right_norm == 0:
-        return 0.0
-    return dot / (left_norm * right_norm)
-
-
-def _news_text(item: NewsItem) -> str:
-    return "\n".join(
-        part
-        for part in [
-            item.canonical_summary,
-            item.title,
-            " ".join(item.entities),
-            item.event_type,
-        ]
-        if part
-    )
-
-
-def _event_text(event: EventRecord) -> str:
-    return "\n".join(
-        part
-        for part in [
-            event.event_label,
-            event.event_summary,
-            " ".join(event.key_entities),
-            event.event_type,
-            "\n".join(event.representative_titles),
-        ]
-        if part
-    )
-
-
-def _parse_datetime(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
-
-def _outside_time_window(left: datetime | None, right: datetime | None, hours: int) -> bool:
-    if left is None or right is None:
-        return False
-    return abs(left - right) > timedelta(hours=hours)
+    def _cache_repository(self) -> VectorCacheRepository:
+        if self._cache_repo is None:
+            self._cache_repo = VectorCacheRepository(self.config.cache_path)
+        return self._cache_repo

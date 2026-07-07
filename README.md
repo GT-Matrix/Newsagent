@@ -91,6 +91,12 @@ python -m modnews.cli.main --mode local run start --foreground --only rss --only
 python -m modnews.cli.main --mode local run start --foreground --disable-classify
 ```
 
+做 ingest + classify，但这轮先不自动生成 report：
+
+```bash
+python -m modnews.cli.main --mode local run start --foreground --disable-report
+```
+
 说明：
 
 - `--foreground` 适合本地直接跑完整流程
@@ -213,6 +219,8 @@ python -m modnews.cli.main --mode local ingest run rss
 python -m modnews.cli.main --mode local ingest run newsnow
 python -m modnews.cli.main --mode local ingest run site_lists
 ```
+
+其中 `ingest run site_lists` 不会再走单个聚合抓取 step，而是会按当前启用的站点 source 展开成多个 `web_source.run` 队列任务。
 
 只跑 classify：
 

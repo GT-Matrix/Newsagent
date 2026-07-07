@@ -3,26 +3,60 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from modnews.repository.runtime_config import RuntimeConfigStore, runtime_config_store
+from modnews.repository.runtime_config_repository import RuntimeConfigRepository
+from modnews.repository.runtime_config_store import RuntimeConfigStore
+from modnews.repository.runtime_config_sources import (
+    delete_rss_item as delete_rss_item_data,
+    delete_site_list_item as delete_site_list_item_data,
+    enabled_newsnow_sources as enabled_newsnow_sources_data,
+    enabled_rss_sources as enabled_rss_sources_data,
+    restore_builtin_sources as restore_builtin_sources_data,
+    update_newsnow_item as update_newsnow_item_data,
+    update_rss as update_rss_data,
+    update_rss_item as update_rss_item_data,
+    update_site_list_item as update_site_list_item_data,
+)
 
-SourceConfigStore = RuntimeConfigStore
+
+class SourceConfigStore(RuntimeConfigStore):
+    def restore_builtin_sources(self) -> dict[str, Any]:
+        return self._mutate(
+            lambda data: restore_builtin_sources_data(
+                data,
+                rss_seed_path=self.rss_seed_path,
+                newsnow_seed_path=self.newsnow_seed_path,
+            )
+        )
+
+    def update_rss(self, items: list[dict[str, Any]]) -> dict[str, Any]:
+        return self._mutate(lambda data: update_rss_data(data, items))
+
+    def update_rss_item(self, source_id: str, row: dict[str, Any]) -> dict[str, Any]:
+        return self._mutate(lambda data: update_rss_item_data(data, source_id, row))
+
+    def delete_rss_item(self, source_id: str) -> dict[str, Any]:
+        return self._mutate(lambda data: delete_rss_item_data(data, source_id))
+
+    def update_newsnow_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        return self._mutate(lambda data: update_newsnow_item_data(data, source_id, patch))
+
+    def update_site_list_item(self, source_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        return self._mutate(lambda data: update_site_list_item_data(data, source_id, patch))
+
+    def delete_site_list_item(self, source_id: str) -> dict[str, Any]:
+        return self._mutate(lambda data: delete_site_list_item_data(data, source_id))
+
+    def enabled_rss_sources(self) -> list[dict[str, Any]]:
+        return self._query(enabled_rss_sources_data)
+
+    def enabled_newsnow_sources(self) -> list[dict[str, Any]]:
+        return self._query(enabled_newsnow_sources_data)
 
 
-class SourceConfigRepository:
+class SourceConfigRepository(RuntimeConfigRepository):
     def __init__(self, project_root: Path) -> None:
-        self.store = runtime_config_store(project_root)
-
-    def load(self) -> dict[str, Any]:
-        return self.store.load()
-
-    def save(self, data: dict[str, Any]) -> dict[str, Any]:
-        return self.store.save(data)
-
-    def update_step(self, step_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        return self.store.update_step(step_id, patch)
-
-    def update_classification(self, patch: dict[str, Any]) -> dict[str, Any]:
-        return self.store.update_classification(patch)
+        super().__init__(project_root)
+        self.store = source_config_store(project_root)
 
     def list(self, source_type: str | None = None) -> list[dict[str, Any]]:
         sources = self.load().get("sources", {})
@@ -70,8 +104,8 @@ class SourceConfigRepository:
         return self.store.enabled_newsnow_sources()
 
 
-def source_config_store(project_root: Path) -> RuntimeConfigStore:
-    return runtime_config_store(project_root)
+def source_config_store(project_root: Path) -> SourceConfigStore:
+    return SourceConfigStore(project_root)
 
 
 def source_config_repository(project_root: Path) -> SourceConfigRepository:

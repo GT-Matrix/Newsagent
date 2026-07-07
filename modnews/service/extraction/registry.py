@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import importlib.util
-import json
 import shutil
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from modnews.service.extraction.contract import ExtractorRunInput, ExtractorRunResult, validate_result
 from modnews.service.extraction.metadata import ExtractorMetadata, read_metadata, replace_metadata_comment
+from modnews.service.extraction.registry_support import load_runner, now, read_manifest, write_manifest
 
 
 @dataclass(slots=True)
@@ -53,7 +51,7 @@ class ExtractorRegistry:
         extractor_path = current_dir / "extractor.py"
         manifest_path = current_dir / "manifest.json"
         metadata = read_metadata(extractor_path)
-        manifest = _read_json(manifest_path, {})
+        manifest = read_manifest(manifest_path, {})
         return ExtractorRecord(
             metadata=metadata,
             root=source_root,
@@ -66,12 +64,12 @@ class ExtractorRegistry:
     def set_enabled(self, source_id: str, enabled: bool) -> ExtractorRecord:
         record = self.get(source_id)
         record.metadata.status = "enabled" if enabled else "disabled"
-        record.metadata.updated_at = _now()
+        record.metadata.updated_at = now()
         replace_metadata_comment(record.extractor_path, record.metadata)
         manifest = dict(record.manifest)
         manifest["status"] = record.metadata.status
         manifest["updated_at"] = record.metadata.updated_at
-        _write_json(record.manifest_path, manifest)
+        write_manifest(record.manifest_path, manifest)
         return self.get(source_id)
 
     def delete(self, source_id: str) -> None:
@@ -83,7 +81,7 @@ class ExtractorRegistry:
         record = self.get(source_id)
         if record.metadata.status != "enabled":
             raise RuntimeError(f"extractor {source_id} is {record.metadata.status}")
-        runner = _load_runner(record.extractor_path)
+        runner = load_runner(record.extractor_path)
         raw = runner(payload.to_dict())
         result = raw if isinstance(raw, ExtractorRunResult) else ExtractorRunResult.from_dict(raw)
         validate_result(result)
@@ -92,34 +90,3 @@ class ExtractorRegistry:
 
 def registry_from_project(project_root: Path) -> ExtractorRegistry:
     return ExtractorRegistry(project_root / "extractors")
-
-
-def _load_runner(path: Path) -> Callable[[dict[str, Any]], dict[str, Any]]:
-    spec = importlib.util.spec_from_file_location(f"modnews_managed_extractor_{path.parent.parent.name}", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot load extractor module from {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    runner = getattr(module, "run", None)
-    if not callable(runner):
-        raise RuntimeError(f"extractor {path} does not expose run(payload)")
-    return runner
-
-
-def _read_json(path: Path, default: dict[str, Any]) -> dict[str, Any]:
-    if not path.exists():
-        return default
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else default
-    except Exception:
-        return default
-
-
-def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _now() -> str:
-    return datetime.now().astimezone().isoformat(timespec="seconds")

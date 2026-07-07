@@ -5,7 +5,8 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request
 
 from modnews.app.context import local_client
-from modnews.core.task import TaskEvent
+from modnews.service.ingest.registry import default_ingest_registry
+from modnews.service.ingest.entrypoints import run_ingest_step_tasks
 
 bp = Blueprint("ingest", __name__)
 
@@ -14,19 +15,22 @@ bp = Blueprint("ingest", __name__)
 def run_ingest_step():
     payload = request.get_json(silent=True) or {}
     step_id = str(payload.get("step_id") or "")
-    if step_id not in {"rss", "newsnow", "site_lists"}:
+    registry = default_ingest_registry()
+    if step_id not in registry.list():
         return jsonify({"ok": False, "error": "invalid step_id"}), 400
+    step_cls = registry.get(step_id)
     client = local_client()
-    task_id = f"ingest-{step_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    task = TaskEvent(
-        id=task_id,
-        type="ingest.run_step",
-        pipeline_run_id=payload.get("run_id"),
-        step_id=f"ingest/{step_id}",
-        payload={"project_root": str(client.project_root), **payload, "step_id": step_id},
-        concurrency_key=f"ingest:{step_id}",
-        max_concurrency=1,
+    run_id = payload.get("run_id") or f"ingest-{step_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    options = step_cls.options_from_api_payload(payload)
+    return jsonify(
+        run_ingest_step_tasks(
+            project_root=client.project_root,
+            queue=client.container.event_queue,
+            queue_show=client.queue_show,
+            step_id=step_id,
+            run_id=str(run_id),
+            config_path=payload.get("config"),
+            options=options,
+            pipeline_descriptors=client.container.pipeline_manager.describe_steps(),
+        )
     )
-    client.container.event_queue.submit(task)
-    task_payload = client.queue_show(task_id)
-    return jsonify({"ok": task_payload.get("state") == "succeeded", "task": task_payload})

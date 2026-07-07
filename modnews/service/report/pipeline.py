@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import date
 from pathlib import Path
 
@@ -23,6 +23,15 @@ from modnews.service.report.stages.trend_writer import generate_trend_summary
 from modnews.service.report.stages.verifier import verify_event
 from modnews.service.report.utils.text import text_quality
 
+COMPATIBILITY_SHIM = True
+
+
+@dataclass(slots=True)
+class ReportDraft:
+    report_date: date
+    enriched_events: list[EnrichedEvent]
+    evidence_payload: list[dict[str, object]]
+
 
 def run_pipeline(
     input_path: Path,
@@ -30,6 +39,25 @@ def run_pipeline(
     report_date: date,
     config_path: Path | None = None,
 ) -> list[EnrichedEvent]:
+    draft = build_report_draft(input_path, report_date)
+    enriched = draft.enriched_events
+    evidence_payload = draft.evidence_payload
+
+    trend_summary: str | None = None
+    if config_path is not None:
+        from modnews.core.config import load_config
+        from modnews.core.context import PipelineContext
+
+        modnews_config = load_config(str(config_path))
+        ctx = PipelineContext.create(modnews_config)
+        polish_report_events(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
+        trend_summary = generate_trend_summary(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
+
+    write_report_outputs(output_dir, enriched, evidence_payload, report_date, trend_summary)
+    return enriched
+
+
+def build_report_draft(input_path: Path, report_date: date) -> ReportDraft:
     candidates = load_processed_candidates(input_path)
     enriched: list[EnrichedEvent] = []
 
@@ -83,17 +111,20 @@ def run_pipeline(
     enriched.sort(key=lambda event: (event.final_score, event.importance_score, event.source_score), reverse=True)
     assign_report_sections(enriched)
     evidence_payload = enrich_report_evidence(enriched)
+    return ReportDraft(
+        report_date=report_date,
+        enriched_events=enriched,
+        evidence_payload=evidence_payload,
+    )
 
-    trend_summary: str | None = None
-    if config_path is not None:
-        from modnews.core.config import load_config
-        from modnews.core.context import PipelineContext
 
-        modnews_config = load_config(str(config_path))
-        ctx = PipelineContext.create(modnews_config)
-        polish_report_events(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
-        trend_summary = generate_trend_summary(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
-
+def write_report_outputs(
+    output_dir: Path,
+    enriched: list[EnrichedEvent],
+    evidence_payload: list[dict[str, object]],
+    report_date: date,
+    trend_summary: str | None,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_enriched_events(output_dir / "enriched_events.json", enriched)
     write_json(output_dir / "evidence_events.json", evidence_payload)
@@ -102,4 +133,3 @@ def run_pipeline(
     write_json(output_dir / "trend_summary.json", {"trend_summary": trend_summary, "mode": "llm" if trend_summary else "fallback"})
     write_text(output_dir / "daily_report.md", build_report_markdown(enriched, report_date, trend_summary))
     write_text(output_dir / "daily_report_debug.md", build_debug_report_markdown(enriched, report_date, trend_summary))
-    return enriched

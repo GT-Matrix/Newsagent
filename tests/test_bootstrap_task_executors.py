@@ -3,6 +3,13 @@ from __future__ import annotations
 import unittest
 
 from modnews.bootstrap.service_registry import configure_services
+from modnews.service.classify.batch_task_registry import REGISTERED_BATCH_TASKS
+from modnews.service.classify.task_execution import REGISTERED_CLASSIFY_TASK_EXECUTORS
+from modnews.service.extraction.tasks import REGISTERED_EXTRACTION_TASK_EXECUTORS
+from modnews.service.extraction.repair_tasks import REGISTERED_REPAIR_TASK_EXECUTORS
+from modnews.service.ingest.tasks import REGISTERED_INGEST_TASK_EXECUTORS
+from modnews.service.pipeline.tasks import REGISTERED_PIPELINE_TASK_EXECUTORS
+from modnews.service.report.tasks import REGISTERED_REPORT_TASK_EXECUTORS
 
 
 class BootstrapTaskExecutorTest(unittest.TestCase):
@@ -12,9 +19,16 @@ class BootstrapTaskExecutorTest(unittest.TestCase):
         self.assertNotIn("pipeline.run_legacy", container.event_queue._executors)
         self.assertNotIn("classify.run_legacy", container.event_queue._executors)
         self.assertNotIn("classify.clustered_pipeline", container.event_queue._executors)
+        self.assertNotIn("classify.batch_item", container.event_queue._executors)
+        self.assertNotIn("classify.batch_relevance", container.event_queue._executors)
         self.assertIn("pipeline.combine_ingest", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_extraction", container.event_queue._executors)
-        self.assertIn("classify.clustered_event_merge", container.event_queue._executors)
+        self.assertTrue({spec.task_type for spec in REGISTERED_BATCH_TASKS}.issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_CLASSIFY_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_EXTRACTION_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_REPAIR_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_INGEST_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_PIPELINE_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
+        self.assertTrue(set(REGISTERED_REPORT_TASK_EXECUTORS).issubset(set(container.event_queue._executors)))
 
 
 if __name__ == "__main__":

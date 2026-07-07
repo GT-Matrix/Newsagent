@@ -8,6 +8,12 @@ from modnews.service.ingest.steps.rss import RssStep
 from modnews.service.ingest.steps.site_lists import SiteListsStep
 
 
+@dataclass(frozen=True, slots=True)
+class RegisteredIngestStepSpec:
+    step_id: str
+    factory: type[Any]
+
+
 @dataclass(slots=True)
 class IngestStepRegistry:
     factories: dict[str, type[Any]] = field(default_factory=dict)
@@ -25,14 +31,40 @@ class IngestStepRegistry:
         return sorted(self.factories)
 
 
-def default_ingest_registry() -> IngestStepRegistry:
+REGISTERED_INGEST_STEP_SPECS: tuple[RegisteredIngestStepSpec, ...] = (
+    RegisteredIngestStepSpec(step_id="rss", factory=RssStep),
+    RegisteredIngestStepSpec(step_id="newsnow", factory=NewsNowStep),
+    RegisteredIngestStepSpec(step_id="site_lists", factory=SiteListsStep),
+)
+
+REGISTERED_INGEST_STEP_SPEC_BY_ID: dict[str, RegisteredIngestStepSpec] = {
+    spec.step_id: spec
+    for spec in REGISTERED_INGEST_STEP_SPECS
+}
+
+
+def build_ingest_registry() -> IngestStepRegistry:
     registry = IngestStepRegistry()
-    registry.register("rss", RssStep)
-    registry.register("newsnow", NewsNowStep)
-    registry.register("site_lists", SiteListsStep)
+    for spec in REGISTERED_INGEST_STEP_SPECS:
+        registry.register(spec.step_id, spec.factory)
     return registry
 
 
-STEP_FACTORIES = default_ingest_registry().factories
+DEFAULT_INGEST_REGISTRY = build_ingest_registry()
+STEP_FACTORIES = dict(DEFAULT_INGEST_REGISTRY.factories)
 
-__all__ = ["IngestStepRegistry", "STEP_FACTORIES", "default_ingest_registry"]
+
+def default_ingest_registry() -> IngestStepRegistry:
+    return DEFAULT_INGEST_REGISTRY
+
+
+__all__ = [
+    "DEFAULT_INGEST_REGISTRY",
+    "IngestStepRegistry",
+    "RegisteredIngestStepSpec",
+    "REGISTERED_INGEST_STEP_SPECS",
+    "REGISTERED_INGEST_STEP_SPEC_BY_ID",
+    "STEP_FACTORIES",
+    "build_ingest_registry",
+    "default_ingest_registry",
+]

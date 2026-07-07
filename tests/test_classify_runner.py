@@ -1,0 +1,76 @@
+from __future__ import annotations
+
+import unittest
+
+from modnews.service.classify.runner import ClassifyStepResult
+from modnews.service.classify.step_runner_compat import ClassifyStepRunner
+from modnews.service.classify.state import ClassifyState
+
+
+class _TransitionStep:
+    name = "transition"
+    output_stage = "after_transition"
+
+    def should_run(self, state: ClassifyState) -> bool:
+        return state.stage == "started"
+
+    def run(self, state: ClassifyState, runtime) -> ClassifyStepResult:  # noqa: ANN001
+        state.processed_candidates = 3
+        return ClassifyStepResult(state=state, next_stage="after_transition")
+
+
+class _NoopStep:
+    name = "noop"
+    output_stage = "ignored"
+
+    def should_run(self, state: ClassifyState) -> bool:
+        return state.stage == "after_transition"
+
+    def run(self, state: ClassifyState, runtime) -> ClassifyStepResult:  # noqa: ANN001
+        return ClassifyStepResult(state=state, next_stage=None)
+
+
+class _RecordingObserver:
+    def __init__(self) -> None:
+        self.events: list[tuple[str, str, str]] = []
+
+    def on_skip(self, *, step_name: str, state: ClassifyState) -> None:
+        self.events.append(("skip", step_name, state.stage))
+
+    def on_start(self, *, step_name: str, output_stage: str, state: ClassifyState) -> None:
+        self.events.append(("start", step_name, f"{state.stage}->{output_stage}"))
+
+    def on_done(self, *, step_name: str, state: ClassifyState) -> None:
+        self.events.append(("done", step_name, state.stage))
+
+
+class ClassifyRunnerTest(unittest.TestCase):
+    def test_runner_applies_explicit_next_stage_from_step_result(self) -> None:
+        runner = ClassifyStepRunner([_TransitionStep(), _NoopStep()])
+        result = runner.run(ClassifyState(items=[], prepared=[]), runtime=None)  # type: ignore[arg-type]
+        state = result.state
+
+        self.assertEqual(state.stage, "after_transition")
+        self.assertEqual(state.processed_candidates, 3)
+        self.assertIsNotNone(result.last_step_result)
+        self.assertEqual(result.last_step_result.next_stage, None)
+
+    def test_runner_reports_lifecycle_to_observer(self) -> None:
+        observer = _RecordingObserver()
+        runner = ClassifyStepRunner([_TransitionStep(), _NoopStep()], observer=observer)
+
+        runner.run(ClassifyState(items=[], prepared=[]), runtime=None)  # type: ignore[arg-type]
+
+        self.assertEqual(
+            observer.events,
+            [
+                ("start", "transition", "started->after_transition"),
+                ("done", "transition", "after_transition"),
+                ("start", "noop", "after_transition->ignored"),
+                ("done", "noop", "after_transition"),
+            ],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,42 +1,45 @@
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
 from modnews.core.task import TaskEvent
+from .task_registry import (
+    build_registered_classify_task,
+    get_registered_classify_task,
+)
 
 
-def plan_clustered_classify_tasks(
+def build_clustered_event_extraction_task(
     *,
     project_root: Path,
-    run_id: str | None,
+    run_id: str,
     input_path: str | None,
     config: str | None = None,
-) -> list[TaskEvent]:
-    task_run_id = run_id or f"classify-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    payload = {
-        "project_root": str(project_root),
-        "run_id": task_run_id,
-        "config": config,
-        "input_path": input_path,
-    }
-    extraction_task = TaskEvent(
-        id=f"classify-{task_run_id}-clustered-event-extraction",
-        type="classify.clustered_event_extraction",
-        pipeline_run_id=task_run_id,
-        step_id="classify/clustered_event_extraction",
-        payload=payload,
-        concurrency_key="classify",
-        max_concurrency=1,
+    depends_on: list[str] | None = None,
+) -> TaskEvent:
+    return build_registered_classify_task(
+        get_registered_classify_task("classify.clustered_event_extraction"),
+        project_root=project_root,
+        run_id=run_id,
+        input_path=input_path,
+        config=config,
+        depends_on=depends_on,
     )
-    merge_task = TaskEvent(
-        id=f"classify-{task_run_id}-clustered-event-merge",
-        type="classify.clustered_event_merge",
-        pipeline_run_id=task_run_id,
-        step_id="classify/clustered_event_merge",
-        payload=payload,
-        depends_on=[extraction_task.id],
-        concurrency_key="classify",
-        max_concurrency=1,
+
+
+def build_clustered_event_merge_task(
+    *,
+    project_root: Path,
+    run_id: str,
+    input_path: str | None,
+    config: str | None = None,
+    depends_on: list[str] | None = None,
+) -> TaskEvent:
+    return build_registered_classify_task(
+        get_registered_classify_task("classify.clustered_event_merge"),
+        project_root=project_root,
+        run_id=run_id,
+        input_path=input_path,
+        config=config,
+        depends_on=depends_on,
     )
-    return [extraction_task, merge_task]

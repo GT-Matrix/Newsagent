@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,68 @@ from modnews.core.task import TaskEvent
 
 
 class QueueControlTest(unittest.TestCase):
+    def test_queue_status_includes_snapshot_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="task-1", type="diagnostic.echo"))
+
+            result = client.queue_status()
+
+            self.assertIn("snapshot", result)
+            self.assertEqual(result["snapshot"]["version"], 1)
+            self.assertEqual(result["snapshot"]["task_count"], 1)
+            self.assertIsNotNone(result["snapshot"]["saved_at"])
+
+    def test_queue_status_includes_waiting_retry_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            next_attempt_at = (datetime.now().astimezone() + timedelta(minutes=1)).isoformat(timespec="seconds")
+            client.container.event_queue.register(
+                TaskEvent(
+                    id="task-1",
+                    type="diagnostic.echo",
+                    state="waiting",
+                    next_attempt_at=next_attempt_at,
+                    status_reason=f"waiting until retry window {next_attempt_at}",
+                )
+            )
+
+            result = client.queue_status()
+
+            self.assertEqual(result["waiting_retry_ids"], ["task-1"])
+            self.assertEqual(result["waiting_dependency_ids"], [])
+            self.assertEqual(result["waiting_concurrency_ids"], [])
+            self.assertEqual(result["blocked_dependency_ids"], [])
+            self.assertEqual(result["blocked_business_ids"], [])
+            self.assertEqual(result["next_retry_at"], next_attempt_at)
+
+    def test_queue_status_separates_dependency_and_concurrency_waiting(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="running"))
+            client.container.event_queue.register(TaskEvent(id="wait-dep", type="diagnostic.echo", depends_on=["dep-1"]))
+            client.container.event_queue.register(TaskEvent(id="run-slot", type="diagnostic.echo", state="running", concurrency_key="classify", max_concurrency=1))
+            client.container.event_queue.register(TaskEvent(id="wait-slot", type="diagnostic.echo", concurrency_key="classify", max_concurrency=1))
+            client.container.event_queue.drain_ready(limit=0)
+
+            result = client.queue_status()
+
+            self.assertEqual(result["waiting_dependency_ids"], ["wait-dep"])
+            self.assertEqual(result["waiting_concurrency_ids"], ["wait-slot"])
+
+    def test_queue_status_separates_blocked_dependency_and_business_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register(TaskEvent(id="dep-1", type="diagnostic.echo", state="failed"))
+            client.container.event_queue.register(TaskEvent(id="blocked-dep", type="diagnostic.echo", state="blocked", depends_on=["dep-1"]))
+            client.container.event_queue.register(TaskEvent(id="blocked-business", type="diagnostic.echo", state="blocked"))
+            client.container.event_queue._results["blocked-business"] = {"blocked_reason": "captcha required", "blocked_details": {"kind": "business"}}  # type: ignore[attr-defined]
+
+            result = client.queue_status()
+
+            self.assertEqual(result["blocked_dependency_ids"], ["blocked-dep"])
+            self.assertEqual(result["blocked_business_ids"], ["blocked-business"])
+
     def test_queue_cancel_marks_task_cancelled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))
@@ -19,6 +82,7 @@ class QueueControlTest(unittest.TestCase):
             result = client.queue_cancel("task-1", "test cancel")
 
             self.assertTrue(result["ok"])
+            self.assertEqual(result["item"]["id"], "task-1")
             self.assertEqual(result["task"]["state"], "cancelled")
             self.assertEqual(result["task"]["result"]["cancel_reason"], "test cancel")
 
@@ -49,8 +113,21 @@ class QueueControlTest(unittest.TestCase):
             result = client.queue_retry("task-1")
 
             self.assertTrue(result["ok"])
+            self.assertEqual(result["item"]["id"], "task-1")
             self.assertEqual(result["task"]["state"], "succeeded")
             self.assertEqual(result["task"]["result"]["value"], "ok")
+
+    def test_queue_drain_returns_items_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+            client.container.event_queue.register_executor("diagnostic.echo", lambda _task: {"value": "ok"})
+            client.container.event_queue.register(TaskEvent(id="task-1", type="diagnostic.echo"))
+
+            result = client.queue_drain()
+
+            self.assertTrue(result["ok"])
+            self.assertEqual([item["id"] for item in result["items"]], ["task-1"])
+            self.assertEqual(result["items"], result["ran"])
 
     def test_queue_retry_api_route(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -6,6 +6,7 @@ from modnews.bootstrap import configure_services
 from modnews.cli.local.artifacts import ArtifactsLocalMixin
 from modnews.cli.local.extraction import ExtractionLocalMixin
 from modnews.cli.local.queue import QueueLocalMixin
+from modnews.cli.local.report import ReportLocalMixin
 from modnews.cli.local.runtime import RuntimeLocalMixin
 from modnews.cli.local.runs import RunsLocalMixin
 
@@ -15,6 +16,7 @@ class LocalClient(
     QueueLocalMixin,
     RunsLocalMixin,
     ExtractionLocalMixin,
+    ReportLocalMixin,
     ArtifactsLocalMixin,
 ):
     def __init__(self, project_root: Path | None = None) -> None:

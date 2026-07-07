@@ -1,17 +1,55 @@
 from __future__ import annotations
 
 import threading
-from collections import Counter
+from contextlib import contextmanager
+from contextvars import ContextVar
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
+from typing import Any, Iterator
 
 from .events import EventRouter
+from .event_queue_support import (
+    blocked_tasks_to_mark,
+    dependency_blocked_details,
+    dependency_blocked_reason,
+    is_ready,
+    mark_task_blocked,
+    mark_task_cancelled,
+    mark_task_failed,
+    mark_task_retry_scheduled,
+    mark_task_running,
+    mark_task_skipped,
+    mark_task_succeeded,
+    mark_task_waiting,
+    next_ready_task,
+    now,
+    reset_task_for_retry,
+    snapshot_tasks,
+    status_counts,
+    unblock_released_tasks,
+    waiting_details,
+    waiting_reason,
+)
 from .task import SUCCESS_STATES, TERMINAL_STATES, TaskBlocked, TaskEvent, task_context
 
 TaskExecutor = Callable[[TaskEvent], dict[str, Any] | None]
 TaskLogger = Callable[[TaskEvent, str, dict[str, Any]], None]
+TaskStateWriter = Callable[[dict[str, Any]], None]
+
+_CURRENT_QUEUE: ContextVar["EventQueue | None"] = ContextVar("modnews_current_queue", default=None)
+
+
+@contextmanager
+def queue_context(queue: "EventQueue") -> Iterator[None]:
+    token = _CURRENT_QUEUE.set(queue)
+    try:
+        yield
+    finally:
+        _CURRENT_QUEUE.reset(token)
+
+
+def current_queue() -> "EventQueue | None":
+    return _CURRENT_QUEUE.get()
 
 
 @dataclass(slots=True)
@@ -20,8 +58,9 @@ class EventQueue:
     _results: dict[str, dict[str, Any]] = field(default_factory=dict)
     _executors: dict[str, TaskExecutor] = field(default_factory=dict)
     _loggers: list[TaskLogger] = field(default_factory=list)
+    _state_writer: TaskStateWriter | None = None
     _router: EventRouter | None = None
-    _lock: threading.Lock = field(default_factory=threading.Lock)
+    _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def bind_router(self, router: EventRouter) -> None:
         self._router = router
@@ -35,11 +74,58 @@ class EventQueue:
     def bind_logger(self, logger: TaskLogger) -> None:
         self._loggers.append(logger)
 
+    def bind_state_writer(self, writer: TaskStateWriter) -> None:
+        self._state_writer = writer
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "version": 1,
+                "saved_at": now(),
+                "tasks": [task.to_dict() for task in self._tasks.values()],
+                "results": {task_id: dict(result) for task_id, result in self._results.items()},
+            }
+
+    def load_snapshot(self, payload: dict[str, Any]) -> None:
+        tasks: dict[str, TaskEvent] = {}
+        results: dict[str, dict[str, Any]] = {}
+        for raw in payload.get("tasks", []):
+            if not isinstance(raw, dict) or not raw.get("id") or not raw.get("type"):
+                continue
+            task = TaskEvent.from_dict(raw)
+            if task.state == "running" and task.recovery_policy == "requeue_running":
+                task.state = "queued"
+                task.status_reason = "restored from interrupted running state"
+                task.started_at = None
+                task.finished_at = None
+                restored = dict(payload.get("results", {}).get(task.id, {})) if isinstance(payload.get("results"), dict) else {}
+                restored["restored_from"] = "running"
+                results[task.id] = restored
+            elif task.state == "running" and task.recovery_policy == "fail_running":
+                task.state = "failed"
+                task.status_reason = "restored interrupted running task as failed"
+                task.finished_at = now()
+                restored = dict(payload.get("results", {}).get(task.id, {})) if isinstance(payload.get("results"), dict) else {}
+                restored["restored_from"] = "running"
+                restored["error"] = "restored interrupted running task as failed"
+                results[task.id] = restored
+            else:
+                if isinstance(payload.get("results"), dict):
+                    result = payload["results"].get(task.id)
+                    if isinstance(result, dict):
+                        results[task.id] = dict(result)
+            tasks[task.id] = task
+        with self._lock:
+            self._tasks = tasks
+            self._results = results
+        self._persist()
+
     def register(self, task: TaskEvent) -> TaskEvent:
         with self._lock:
             if task.created_at is None:
-                task.created_at = _now()
+                task.created_at = now()
             self._tasks[task.id] = task
+        self._persist()
         self._log(task, "task.registered")
         return task
 
@@ -66,77 +152,63 @@ class EventQueue:
         blocked_before_run = False
         with self._lock:
             task = self._tasks[task_id]
-            blocked_reason = self._dependency_blocked_reason(task, dict(self._tasks))
+            tasks_snapshot = snapshot_tasks(self._tasks)
+            blocked_reason = dependency_blocked_reason(task, tasks_snapshot)
             if blocked_reason:
-                self._block_task(task, blocked_reason)
+                mark_task_blocked(task, self._results, blocked_reason, details=dependency_blocked_details(task, tasks_snapshot))
+                self._log(task, "task.blocked", reason=blocked_reason)
                 blocked_before_run = True
-            waiting_reason = self._waiting_reason(task, dict(self._tasks))
-            if not blocked_before_run and waiting_reason:
-                task.state = "waiting"
-                task.status_reason = waiting_reason
-                self._results[task.id] = {"waiting_reason": waiting_reason}
-                self._log(task, "task.waiting", reason=waiting_reason)
+            current_waiting_reason = waiting_reason(task, tasks_snapshot)
+            if not blocked_before_run and current_waiting_reason:
+                mark_task_waiting(task, self._results, current_waiting_reason)
+                self._persist()
+                self._log(task, "task.waiting", reason=current_waiting_reason)
                 return task
             if not blocked_before_run:
-                task.state = "running"
-                task.status_reason = None
-                task.attempt += 1
-                task.started_at = _now()
+                mark_task_running(task)
+                self._persist()
                 self._log(task, "task.started")
         if blocked_before_run:
+            self._persist()
             self._dispatch("task.blocked", task)
             self.drain_ready()
             return task
         executor = self._executors.get(task.type)
         if not executor:
             with self._lock:
-                task.state = "failed"
-                task.finished_at = _now()
-                self._results[task.id] = {"error": f"no executor registered for {task.type}"}
+                mark_task_failed(task, self._results, f"no executor registered for {task.type}")
+                self._persist()
                 self._log(task, "task.failed", error=self._results[task.id]["error"])
             self._dispatch("task.failed", task)
             self.drain_ready()
             return task
         try:
-            with task_context(task):
-                result = executor(task) or {}
+            with queue_context(self):
+                with task_context(task):
+                    result = executor(task) or {}
             with self._lock:
-                task.state = "succeeded"
-                task.finished_at = _now()
-                self._results[task.id] = {
-                    "finished_at": task.finished_at,
-                    **result,
-                }
+                mark_task_succeeded(task, self._results, result)
+                self._persist()
                 self._log(task, "task.completed", result_keys=sorted(self._results[task.id].keys()))
             self._dispatch("task.completed", task)
             self.drain_ready()
         except TaskBlocked as exc:
             with self._lock:
-                self._block_task(task, exc.reason, exc.details)
+                mark_task_blocked(task, self._results, exc.reason, details=exc.details)
+                self._persist()
+                self._log(task, "task.blocked", reason=exc.reason)
             self._dispatch("task.blocked", task)
             self.drain_ready()
         except Exception as exc:
             with self._lock:
-                task.finished_at = _now()
                 if task.attempt < max(1, task.max_attempts):
-                    task.state = "queued"
-                    task.status_reason = f"retry scheduled after attempt {task.attempt}"
-                    self._results[task.id] = {
-                        "error": str(exc),
-                        "attempt": task.attempt,
-                        "max_attempts": task.max_attempts,
-                        "retry_scheduled": True,
-                    }
+                    mark_task_retry_scheduled(task, self._results, str(exc))
+                    self._persist()
                     self._log(task, "task.retry_scheduled", error=str(exc))
                     event_type = "task.retry_scheduled"
                 else:
-                    task.state = "failed"
-                    task.status_reason = str(exc)
-                    self._results[task.id] = {
-                        "error": str(exc),
-                        "attempt": task.attempt,
-                        "max_attempts": task.max_attempts,
-                    }
+                    mark_task_failed(task, self._results, str(exc))
+                    self._persist()
                     self._log(task, "task.failed", error=str(exc))
                     event_type = "task.failed"
             self._dispatch(event_type, task)
@@ -162,6 +234,7 @@ class EventQueue:
         with self._lock:
             task = self._tasks[task_id]
             task.payload.update(patch)
+            self._persist()
             return task
 
     def cancel(self, task_id: str, *, reason: str = "cancelled") -> TaskEvent:
@@ -171,10 +244,10 @@ class EventQueue:
                 return task
             if task.state == "running":
                 self._results[task.id] = {"error": "cannot cancel running task", "cancel_reason": reason}
+                self._persist()
                 return task
-            task.state = "cancelled"
-            task.finished_at = _now()
-            self._results[task.id] = {"cancel_reason": reason}
+            mark_task_cancelled(task, self._results, reason)
+            self._persist()
             self._log(task, "task.cancelled", reason=reason)
             return task
 
@@ -183,45 +256,26 @@ class EventQueue:
             task = self._tasks[task_id]
             if task.state not in {"failed", "cancelled", "blocked"}:
                 return task
-            task.state = "queued"
-            task.status_reason = None
-            task.started_at = None
-            task.finished_at = None
-            task.attempt = 0
-            self._results.pop(task.id, None)
+            reset_task_for_retry(task, self._results)
+            self._persist()
             self._log(task, "task.retry_requested")
             return task
 
     def skip(self, task_id: str, *, reason: str = "skipped") -> TaskEvent:
-        released: list[TaskEvent] = []
         with self._lock:
             task = self._tasks[task_id]
             if task.state in {"succeeded", "skipped"}:
                 return task
             if task.state == "running":
                 self._results[task.id] = {"error": "cannot skip running task", "skip_reason": reason}
+                self._persist()
                 return task
-            task.state = "skipped"
-            task.status_reason = reason
-            task.finished_at = _now()
-            self._results[task.id] = {"skip_reason": reason}
+            mark_task_skipped(task, self._results, reason)
+            released = unblock_released_tasks(self._tasks, self._results, dependency_task_id=task_id)
+            self._persist()
             self._log(task, "task.skipped", reason=reason)
-            while True:
-                tasks = dict(self._tasks)
-                unblocked = [
-                    item
-                    for item in tasks.values()
-                    if item.state == "blocked" and self._dependency_blocked_reason(item, tasks) is None
-                ]
-                if not unblocked:
-                    break
-                for dependent in unblocked:
-                    dependent.state = "queued"
-                    dependent.status_reason = None
-                    dependent.finished_at = None
-                    self._results.pop(dependent.id, None)
-                    self._log(dependent, "task.unblocked", dependency=task_id)
-                    released.append(dependent)
+            for dependent in released:
+                self._log(dependent, "task.unblocked", dependency=task_id)
         self._dispatch("task.skipped", task)
         for dependent in released:
             self._dispatch("task.unblocked", dependent)
@@ -232,26 +286,126 @@ class EventQueue:
         with self._lock:
             return [task for task in self._tasks.values() if task_id in task.depends_on]
 
+    def children_of(self, task_id: str) -> list[TaskEvent]:
+        with self._lock:
+            return [task for task in self._tasks.values() if task.parent_task_id == task_id]
+
+    def group_members(self, task_group_id: str) -> list[TaskEvent]:
+        with self._lock:
+            return [task for task in self._tasks.values() if task.task_group_id == task_group_id]
+
+    def group_summary(self, task_group_id: str) -> dict[str, Any]:
+        members = self.group_members(task_group_id)
+        by_state = self._group_state_counts(members)
+        return {
+            "task_group_id": task_group_id,
+            "size": len(members),
+            "by_state": by_state,
+            "active": sum(by_state.get(state, 0) for state in ("queued", "waiting", "running")),
+            "terminal": sum(by_state.get(state, 0) for state in TERMINAL_STATES),
+            "succeeded": by_state.get("succeeded", 0),
+            "failed": by_state.get("failed", 0) + by_state.get("cancelled", 0),
+            "blocked": by_state.get("blocked", 0),
+            "member_ids": [task.id for task in members],
+        }
+
+    def _group_state_counts(self, members: list[TaskEvent]) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for task in members:
+            counts[task.state] = counts.get(task.state, 0) + 1
+        return dict(sorted(counts.items()))
+
     def status(self) -> dict[str, int]:
         with self._lock:
-            return dict(Counter(task.state for task in self._tasks.values()))
+            return status_counts(self._tasks)
 
     def waiting_reason(self, task: TaskEvent) -> str | None:
         with self._lock:
-            tasks = dict(self._tasks)
-        return self._waiting_reason(task, tasks)
+            tasks = snapshot_tasks(self._tasks)
+        return waiting_reason(task, tasks)
+
+    def waiting_details(self, task: TaskEvent) -> dict[str, Any] | None:
+        with self._lock:
+            tasks = snapshot_tasks(self._tasks)
+        details = waiting_details(task, tasks)
+        return dict(details) if isinstance(details, dict) else None
+
+    def waiting_groups(self) -> dict[str, list[str]]:
+        groups: dict[str, list[str]] = {
+            "retry_window": [],
+            "dependency": [],
+            "concurrency": [],
+        }
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.waiting_details(task)
+            if not details:
+                continue
+            kind = str(details.get("kind") or "")
+            if kind in groups:
+                groups[kind].append(task.id)
+        return groups
 
     def blocked_reason(self, task: TaskEvent) -> str | None:
         if task.state == "blocked":
             result = self.result(task.id)
             reason = result.get("blocked_reason") or task.status_reason
-            return str(reason) if reason else None
+            if reason:
+                return str(reason)
+            with self._lock:
+                tasks = snapshot_tasks(self._tasks)
+            inferred = dependency_blocked_reason(task, tasks)
+            if inferred:
+                return inferred
         return None
+
+    def blocked_details(self, task: TaskEvent) -> dict[str, Any] | None:
+        if task.state != "blocked":
+            return None
+        result = self.result(task.id)
+        details = result.get("blocked_details")
+        if isinstance(details, dict):
+            return dict(details)
+        with self._lock:
+            tasks = snapshot_tasks(self._tasks)
+        dependency_details = dependency_blocked_details(task, tasks)
+        return dict(dependency_details) if isinstance(dependency_details, dict) else None
+
+    def blocked_groups(self) -> dict[str, list[str]]:
+        groups: dict[str, list[str]] = {
+            "dependency": [],
+            "business": [],
+        }
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.blocked_details(task)
+            if not details:
+                continue
+            kind = str(details.get("kind") or "business")
+            if kind not in groups:
+                kind = "business"
+            groups[kind].append(task.id)
+        return groups
+
+    def next_retry_at(self) -> str | None:
+        candidates: list[str] = []
+        with self._lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
+            details = self.waiting_details(task)
+            if not details or details.get("kind") != "retry_window":
+                continue
+            candidate = details.get("next_attempt_at")
+            if isinstance(candidate, str) and candidate:
+                candidates.append(candidate)
+        return min(candidates) if candidates else None
 
     def ready(self) -> list[TaskEvent]:
         with self._lock:
-            tasks = dict(self._tasks)
-        return [task for task in tasks.values() if self._is_ready(task, tasks)]
+            tasks = snapshot_tasks(self._tasks)
+        return [task for task in tasks.values() if is_ready(task, tasks)]
 
     def _dispatch(self, event_type: str, task: TaskEvent) -> None:
         if self._router:
@@ -264,74 +418,24 @@ class EventQueue:
 
     def _next_ready(self) -> TaskEvent | None:
         with self._lock:
-            tasks = dict(self._tasks)
-        for task in tasks.values():
-            if self._is_ready(task, tasks):
-                return task
-        return None
+            tasks = snapshot_tasks(self._tasks)
+        ready = [task for task in tasks.values() if is_ready(task, tasks)]
+        if not ready:
+            return None
+        ready.sort(key=lambda task: (task.priority, task.created_at or "", task.id))
+        return ready[0]
 
     def _mark_blocked(self) -> None:
-        blocked_tasks: list[TaskEvent] = []
+        blocked_tasks: list[TaskEvent]
         with self._lock:
-            tasks = dict(self._tasks)
-            for task in tasks.values():
-                blocked_reason = self._dependency_blocked_reason(task, tasks)
-                if task.state in {"queued", "waiting"} and blocked_reason:
-                    self._block_task(task, blocked_reason)
-                    blocked_tasks.append(task)
-                    continue
-                reason = self._waiting_reason(task, tasks)
-                if task.state == "queued" and reason:
-                    task.state = "waiting"
-                    task.status_reason = reason
-                    self._results[task.id] = {"waiting_reason": reason}
-                    self._log(task, "task.waiting", reason=reason)
+            blocked_tasks, waiting_tasks = blocked_tasks_to_mark(self._tasks, self._results)
+            self._persist()
+            for task, reason in waiting_tasks:
+                self._log(task, "task.waiting", reason=reason)
+            for task in blocked_tasks:
+                self._log(task, "task.blocked", reason=self._results[task.id]["blocked_reason"])
         for task in blocked_tasks:
             self._dispatch("task.blocked", task)
-
-    def _is_ready(self, task: TaskEvent, tasks: dict[str, TaskEvent]) -> bool:
-        return (
-            task.state in {"queued", "waiting"}
-            and self._dependency_blocked_reason(task, tasks) is None
-            and self._waiting_reason(task, tasks) is None
-        )
-
-    def _waiting_reason(self, task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
-        for dependency_id in task.depends_on:
-            dependency = tasks.get(dependency_id)
-            if dependency is None:
-                continue
-            if dependency.state not in SUCCESS_STATES:
-                if dependency.state in TERMINAL_STATES:
-                    continue
-                return f"waiting for dependency {dependency_id}"
-        if task.concurrency_key and task.max_concurrency:
-            running = sum(
-                1
-                for other in tasks.values()
-                if other.id != task.id
-                and other.state == "running"
-                and other.concurrency_key == task.concurrency_key
-            )
-            if running >= task.max_concurrency:
-                return f"waiting for concurrency slot {task.concurrency_key}"
-        return None
-
-    def _dependency_blocked_reason(self, task: TaskEvent, tasks: dict[str, TaskEvent]) -> str | None:
-        for dependency_id in task.depends_on:
-            dependency = tasks.get(dependency_id)
-            if dependency is None:
-                return f"missing dependency {dependency_id}"
-            if dependency.state in TERMINAL_STATES and dependency.state not in SUCCESS_STATES:
-                return f"dependency {dependency_id} ended as {dependency.state}"
-        return None
-
-    def _block_task(self, task: TaskEvent, reason: str, details: dict[str, Any] | None = None) -> None:
-        task.state = "blocked"
-        task.status_reason = reason
-        task.finished_at = _now()
-        self._results[task.id] = {"blocked_reason": reason, **(details or {})}
-        self._log(task, "task.blocked", reason=reason)
 
     def _log(self, task: TaskEvent, event_type: str, **payload: Any) -> None:
         for logger in list(self._loggers):
@@ -340,6 +444,11 @@ class EventQueue:
             except Exception:
                 pass
 
-
-def _now() -> str:
-    return datetime.now().astimezone().isoformat(timespec="seconds")
+    def _persist(self) -> None:
+        writer = self._state_writer
+        if writer is None:
+            return
+        try:
+            writer(self.snapshot())
+        except Exception:
+            pass
