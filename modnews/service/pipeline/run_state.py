@@ -6,6 +6,7 @@ from typing import Any
 from modnews.core.event_queue import EventQueue
 from modnews.core.task import SUCCESS_STATES, TERMINAL_STATES, TaskEvent
 from modnews.repository.runs import RunRepository
+from modnews.service.pipeline.runtime_store import update_runtime_run_state, runtime_run_state
 from modnews.service.pipeline.run_state_views import (
     build_pipeline_step_snapshots,
     build_step_snapshots,
@@ -36,7 +37,7 @@ def initialize_run_state(
             existing=record.get("pipeline_steps"),
         ),
     }
-    return RunRepository(project_root).update(run_id, **updates)
+    return update_runtime_run_state(project_root, run_id, updates, base_record=record)
 
 
 def sync_run_state(
@@ -69,7 +70,7 @@ def sync_run_state(
     }
     if extra_updates:
         updates.update(extra_updates)
-    return runs.update(run_id, **updates)
+    return update_runtime_run_state(project_root, run_id, updates, base_record=record)
 
 
 def append_step_callback_events(project_root: Path, run_id: str, callback_events: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -80,9 +81,23 @@ def append_step_callback_events(project_root: Path, run_id: str, callback_events
         record = runs.get(run_id)
     except KeyError:
         return None
-    existing_events = list(record.get("step_callback_events", [])) if isinstance(record.get("step_callback_events"), list) else []
+    runtime = runtime_run_state(project_root, run_id)
+    existing_events = (
+        list(runtime.get("step_callback_events", []))
+        if isinstance(runtime.get("step_callback_events"), list)
+        else list(record.get("step_callback_events", [])) if isinstance(record.get("step_callback_events"), list) else []
+    )
     merged_events = [*existing_events, *callback_events][-200:]
-    existing_steps = list(record.get("steps", [])) if isinstance(record.get("steps"), list) else []
+    existing_steps = (
+        list(runtime.get("steps", []))
+        if isinstance(runtime.get("steps"), list)
+        else list(record.get("steps", [])) if isinstance(record.get("steps"), list) else []
+    )
+    existing_pipeline_steps = (
+        runtime.get("pipeline_steps")
+        if isinstance(runtime.get("pipeline_steps"), list)
+        else record.get("pipeline_steps")
+    )
     step_map = {
         str(step.get("step_id")): dict(step)
         for step in existing_steps
@@ -96,12 +111,15 @@ def append_step_callback_events(project_root: Path, run_id: str, callback_events
         history = list(step.get("callback_events", [])) if isinstance(step.get("callback_events"), list) else []
         history.append(callback)
         step["callback_events"] = history[-50:]
-    pipeline_steps = merge_pipeline_callback_events(record.get("pipeline_steps"), callback_events)
-    return runs.update(
+    return update_runtime_run_state(
+        project_root,
         run_id,
-        step_callback_events=merged_events,
-        steps=sorted(step_map.values(), key=lambda item: str(item.get("step_id") or "")),
-        pipeline_steps=pipeline_steps,
+        {
+            "step_callback_events": merged_events,
+            "steps": sorted(step_map.values(), key=lambda item: str(item.get("step_id") or "")),
+            "pipeline_steps": merge_pipeline_callback_events(existing_pipeline_steps, callback_events),
+        },
+        base_record=record,
     )
 
 
@@ -125,8 +143,6 @@ def update_run_state(queue: EventQueue, event: dict[str, Any], *, failed: bool =
         if "blocked_reason" in result:
             updates["blocked_reason"] = result["blocked_reason"]
     sync_run_state(Path(str(project_root)), queue, str(run_id), extra_updates=updates)
-
-
 def _derive_run_state(tasks: list[TaskEvent], *, fallback: str) -> str:
     if not tasks:
         return fallback

@@ -18,7 +18,7 @@ class ExtractionPackageBoundaryTest(unittest.TestCase):
 
         self.assertTrue(getattr(module, "COMPATIBILITY_SHIM", False))
         self.assertIs(module.run_extractor, runner_module.run_extractor)
-        self.assertIs(module.write_json, runner_module.write_json)
+        self.assertFalse(hasattr(module, "write_json"))
 
 
 if __name__ == "__main__":

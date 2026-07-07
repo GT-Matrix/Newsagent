@@ -61,16 +61,9 @@ class NewsNowStep(IngestStep):
                     )
                 errors.append(f"{source['id']}: live failed, used cache ({exc})")
 
-        output_path = ctx.work_dir / "newsnow_items.json"
-        output_path.write_text(
-            json.dumps([item.to_dict() for item in items], ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        ctx.artifacts[self.step_name] = output_path
         return items, StepResult(
             step=self.step_name,
             item_count=len(items),
-            output_path=str(output_path),
             errors=errors,
         )
 

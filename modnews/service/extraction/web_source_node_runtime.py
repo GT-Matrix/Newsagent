@@ -46,9 +46,13 @@ def run_web_source_scrape_task(task: TaskEvent) -> dict[str, object]:
     scrape_date = str(task.payload.get("scrape_date") or datetime.now().astimezone().isoformat(timespec="seconds"))
     job = WebExtractionOrchestrator(project_root).run_source(source, scrape_date=scrape_date, limit=limit)
     return {
-        "job": job.to_dict(),
-        "source_id": source_id,
-        "scrape_date": scrape_date,
+        "batch_result": {
+            "job": job.to_dict(),
+            "items": job.items,
+            "raw_result": job.raw_result,
+            "source_id": source_id,
+            "scrape_date": scrape_date,
+        },
     }
 
 
@@ -111,12 +115,18 @@ def _complete_scrape_stage(task: TaskEvent, queue: EventQueue) -> dict[str, obje
             },
         )
     child_result = queue.result(scrape_task_id)
-    job_payload = child_result.get("job")
+    batch_result = child_result.get("batch_result") if isinstance(child_result.get("batch_result"), dict) else child_result
+    job_payload = batch_result.get("job")
     if not isinstance(job_payload, dict):
         raise RuntimeError("web source scrape result missing job payload")
     job = WebJob(**job_payload)
+    if not job.items and isinstance(batch_result.get("items"), list):
+        job.items = [row for row in batch_result.get("items", []) if isinstance(row, dict)]
+    if job.raw_result is None and "raw_result" in batch_result:
+        job.raw_result = batch_result.get("raw_result")
     if job.state == "succeeded":
         result = _persist_web_source_checkpoint(task, job)
+        queue.discard_transient_results([scrape_task_id])
         result["node_stage"] = COMPLETED_STAGE
         return result
     if job.state in {"repair_queued", "repairing"} and job.repair_task_id:
@@ -193,8 +203,8 @@ def _persist_web_source_checkpoint(task: TaskEvent, job: WebJob) -> dict[str, ob
     project_root = Path(str(task.payload.get("project_root") or Path.cwd())).resolve()
     run_id = task.pipeline_run_id or str(task.payload.get("run_id") or "manual")
     checkpoint = CheckpointManager(project_root)
-    rows: list[dict[str, Any]] = []
-    if job.output_path:
+    rows: list[dict[str, Any]] = [row for row in job.items if isinstance(row, dict)]
+    if not rows and job.output_path:
         try:
             payload = json.loads(Path(job.output_path).read_text(encoding="utf-8"))
             rows = payload if isinstance(payload, list) else []
@@ -209,7 +219,6 @@ def _persist_web_source_checkpoint(task: TaskEvent, job: WebJob) -> dict[str, ob
         "input_refs": {},
         "output_refs": {
             "items": str(artifact_path),
-            **({"job_output": str(job.output_path)} if job.output_path else {}),
         },
         "stats": {"item_count": len(rows), "job_id": job.id},
         "error": None,
@@ -234,6 +243,7 @@ def _register_scrape_child(task: TaskEvent, queue: EventQueue, *, round_index: i
         parent_task_id=task.id,
         task_group_id=group_id,
         payload=dict(task.payload),
+        checkpoint_policy="none",
         concurrency_key=task.concurrency_key,
         max_concurrency=task.max_concurrency,
         priority=task.priority,

@@ -15,7 +15,7 @@ class QueueLocalMixin:
         )
 
     def queue_status(self) -> dict[str, Any]:
-        snapshot = self.container.queue_state().load()
+        snapshot = self.container.event_queue.snapshot()
         waiting_groups = self.container.event_queue.waiting_groups()
         blocked_groups = self.container.event_queue.blocked_groups()
         return {

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -29,17 +30,17 @@ class RunRepository:
         record["updated_at"] = _now()
         path = self.run_dir(run_id) / "run.json"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        _write_json_atomic(path, record)
         return record
 
     def update(self, run_id: str, **patch: Any) -> dict[str, Any]:
-        record = self.get(run_id)
+        record = self._read(run_id)
         record.update(patch)
         return self.save(run_id, record)
 
     def append_checkpoint(self, run_id: str, checkpoint_path: Path | str, *, create_payload: dict[str, Any] | None = None) -> dict[str, Any]:
         try:
-            record = self.get(run_id)
+            record = self._read(run_id)
         except KeyError:
             record = self.create(run_id, create_payload or {})
         checkpoints = list(record.get("checkpoints", []))
@@ -47,6 +48,14 @@ class RunRepository:
         return self.update(run_id, checkpoints=checkpoints)
 
     def get(self, run_id: str) -> dict[str, Any]:
+        data = self._read(run_id)
+        try:
+            from modnews.service.pipeline.runtime_store import overlay_run_record
+        except Exception:
+            return data
+        return overlay_run_record(self.project_root, data)
+
+    def _read(self, run_id: str) -> dict[str, Any]:
         path = self.run_dir(run_id) / "run.json"
         if not path.exists():
             raise KeyError(run_id)
@@ -75,3 +84,10 @@ class RunRepository:
 
 def _now() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+
+
+def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
+    text = json.dumps(payload, ensure_ascii=False, indent=2)
+    tmp_path = path.with_name(f".{path.name}.tmp-{os.getpid()}")
+    tmp_path.write_text(text, encoding="utf-8")
+    os.replace(tmp_path, path)

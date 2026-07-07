@@ -289,7 +289,7 @@ class PipelineTaskGraphTest(unittest.TestCase):
                     project_root,
                     "run-1",
                 ),
-                checkpoint_path.resolve(),
+                artifact_path.resolve(),
             )
 
     def test_classify_input_placeholder_resolves_combined_ingest_artifact(self) -> None:

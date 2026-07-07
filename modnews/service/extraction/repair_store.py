@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+_TASKS_BY_ROOT: dict[str, dict[str, dict[str, Any]]] = {}
+_ROOT_LOCK = threading.Lock()
+
 
 @dataclass(slots=True)
 class RepairTask:
@@ -54,15 +57,14 @@ class RepairTask:
 class RepairTaskStore:
     def __init__(self, tasks_root: Path) -> None:
         self.tasks_root = tasks_root
+        self._root_key = str(tasks_root.resolve())
         self._lock = threading.Lock()
+        with _ROOT_LOCK:
+            _TASKS_BY_ROOT.setdefault(self._root_key, {})
 
     def list_tasks(self) -> list[dict[str, Any]]:
-        if not self.tasks_root.exists():
-            return []
-        rows = []
-        for meta_path in sorted(self.tasks_root.glob("*/*/task.json"), reverse=True):
-            rows.append(read_json(meta_path, {}))
-        return rows
+        rows = [dict(row) for row in _TASKS_BY_ROOT.get(self._root_key, {}).values()]
+        return sorted(rows, key=lambda row: str(row.get("updated_at", "")), reverse=True)
 
     def get_task(self, task_id: str) -> RepairTask:
         for raw in self.list_tasks():
@@ -85,12 +87,14 @@ class RepairTaskStore:
 
     def save_task(self, task: RepairTask) -> None:
         with self._lock:
-            write_json(task.work_dir / "task.json", task.to_dict())
+            _TASKS_BY_ROOT.setdefault(self._root_key, {})[task.id] = task.to_dict()
 
     def delete_task(self, task_id: str) -> None:
         task = self.get_task(task_id)
         if task.work_dir.exists():
             shutil.rmtree(task.work_dir)
+        with self._lock:
+            _TASKS_BY_ROOT.get(self._root_key, {}).pop(task_id, None)
 
     def read_log(self, task: RepairTask | str, *, max_chars: int = 40000) -> str:
         current = self.get_task(task) if isinstance(task, str) else task

@@ -37,11 +37,9 @@ class ClassifyBatchQueueRuntime:
             raise RuntimeError("event queue batch backend requires explicit queue_task_type for all classify batch items")
 
         group_id = uuid4().hex
-        task_ids: list[str] = []
-        for item in items:
-            task = self.build_task(group_id, item)
-            task_ids.append(task.id)
-            self.queue.register(task)
+        tasks = [self.build_task(group_id, item) for item in items]
+        task_ids = [task.id for task in tasks]
+        self.queue.register_many(tasks)
 
         if self.auto_drain:
             self.queue.drain_ready()
@@ -77,7 +75,7 @@ class ClassifyBatchQueueRuntime:
                 f"{summary['by_state']} details={self.member_terminal_details(task_ids)}"
             )
 
-        return [self.queue.result(task_id)["batch_result"] for task_id in task_ids]
+        return self.queue.collect_task_results(task_ids, value_key="batch_result", consume=True)  # type: ignore[return-value]
 
     def build_task(self, group_id: str, item: BatchExecutionItem[object]) -> TaskEvent:
         metadata = item.metadata

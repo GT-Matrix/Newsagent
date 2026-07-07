@@ -50,6 +50,8 @@ def register_followup_for_event(
     task = event_task(event)
     if queue is None or not task:
         return []
+    if is_transient_blocked_event(event):
+        return []
     for rule in rules:
         if not rule.matches(task):
             continue
@@ -80,6 +82,15 @@ def register_task(queue: EventQueue, task: TaskEvent, *, trigger: str) -> list[d
 def event_task(event: dict[str, object]) -> dict[str, object]:
     value = event.get("task")
     return value if isinstance(value, dict) else {}
+
+
+def is_transient_blocked_event(event: dict[str, object]) -> bool:
+    task = event_task(event)
+    if str(task.get("state") or "") != "blocked":
+        return False
+    result = event.get("result") if isinstance(event.get("result"), dict) else {}
+    details = result.get("blocked_details") if isinstance(result.get("blocked_details"), dict) else {}
+    return details.get("kind") == "child_task_group_active"
 
 
 def event_run_id(task: dict[str, object]) -> str:
@@ -149,11 +160,27 @@ def build_combine_ingest_followup(
     )
     if not ingest_task_ids:
         return None
+    if not all(_ingest_task_ready_for_combine(queue, task_id) for task_id in ingest_task_ids):
+        return None
     return build_combine_ingest_task_for_run(
         run_id=run_id,
         project_root=project_root,
         ingest_task_ids=ingest_task_ids,
     )[0]
+
+
+def _ingest_task_ready_for_combine(queue: EventQueue, task_id: str) -> bool:
+    try:
+        task = queue.get(task_id)
+    except KeyError:
+        return False
+    if task.state in {"queued", "running", "waiting"}:
+        return False
+    result = queue.result(task.id)
+    details = result.get("blocked_details") if isinstance(result.get("blocked_details"), dict) else {}
+    if task.state == "blocked" and details.get("kind") == "child_task_group_active":
+        return False
+    return True
 
 
 def build_classify_extraction_followup(

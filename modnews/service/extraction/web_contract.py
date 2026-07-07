@@ -57,6 +57,8 @@ class WebJob:
     repair_task_id: str | None = None
     output_path: str | None = None
     raw_result_path: str | None = None
+    items: list[dict[str, Any]] = field(default_factory=list)
+    raw_result: Any | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
