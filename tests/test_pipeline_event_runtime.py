@@ -77,6 +77,79 @@ class PipelineEventRuntimeTest(unittest.TestCase):
             callback_step = next(step for step in run["steps"] if step["step_id"] == "skip_blocked")
             self.assertEqual(callback_step["callback_events"][-1]["handler"], "on_task_blocked")
 
+    def test_child_group_blocked_event_does_not_register_ingest_followup(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            container = configure_services(project_root)
+            queue = container.event_queue
+            RunRepository(project_root).create("run-1", {})
+            task = TaskEvent(
+                id="web-source-run-1-site-1",
+                type="web_source.run",
+                pipeline_run_id="run-1",
+                step_id="ingest/site_lists/site-1",
+                state="blocked",
+                payload={"project_root": tmp, "run_id": "run-1"},
+            )
+            queue.register(task)
+
+            PipelineEventRuntime(container.pipeline_manager.step_registry, queue).handle(
+                {
+                    "task": queue.get(task.id).to_dict(),
+                    "result": {
+                        "blocked_reason": "waiting for web source scrape task",
+                        "blocked_details": {
+                            "kind": "child_task_group_active",
+                            "task_group_id": f"{task.id}:scrape:1",
+                        },
+                    },
+                },
+                event_type="task.blocked",
+            )
+
+            self.assertFalse(any(item.type == "pipeline.combine_ingest" for item in queue.list()))
+
+    def test_ingest_followup_waits_for_all_ingest_tasks_to_finish(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            container = configure_services(project_root)
+            queue = container.event_queue
+            RunRepository(project_root).create("run-1", {})
+            done = TaskEvent(
+                id="ingest-done",
+                type="ingest.run_step",
+                pipeline_run_id="run-1",
+                step_id="ingest/rss",
+                state="succeeded",
+                payload={"project_root": tmp, "run_id": "run-1"},
+            )
+            active = TaskEvent(
+                id="web-active",
+                type="web_source.run",
+                pipeline_run_id="run-1",
+                step_id="ingest/site_lists/site-1",
+                state="blocked",
+                payload={"project_root": tmp, "run_id": "run-1"},
+            )
+            queue.register(done)
+            queue.register(active)
+            queue.set_transient_result(
+                active.id,
+                {
+                    "blocked_details": {
+                        "kind": "child_task_group_active",
+                        "task_group_id": "web-active:scrape:1",
+                    }
+                },
+            )
+
+            PipelineEventRuntime(container.pipeline_manager.step_registry, queue).handle(
+                {"task": queue.get(done.id).to_dict(), "result": queue.result(done.id)},
+                event_type="task.completed",
+            )
+
+            self.assertFalse(any(item.type == "pipeline.combine_ingest" for item in queue.list()))
+
 
 if __name__ == "__main__":
     unittest.main()
