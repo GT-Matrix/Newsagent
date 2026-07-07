@@ -122,6 +122,80 @@ class ReportNodeRuntimeTest(unittest.TestCase):
             self.assertEqual(trend_payload["mode"], "llm")
             self.assertIn("AI 编程模型", trend_payload["trend_summary"])
 
+    def test_report_node_accepts_classify_checkpoint_directory_input(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(
+            os.environ,
+            {
+                "LLM_BASE_URL": "https://example.com/v1",
+                "LLM_API_KEY": "test-key",
+                "LLM_MODEL": "test-model",
+            },
+            clear=False,
+        ):
+            project_root = Path(tmp)
+            classify_checkpoint_dir = (
+                project_root / "var" / "process" / "runs" / "run-1" / "checkpoints" / "classify" / "clustered_event_merge" / "one"
+            )
+            classify_checkpoint_dir.mkdir(parents=True)
+            progress_path = classify_checkpoint_dir / "classification_progress.json"
+            _write_report_input(progress_path)
+            (classify_checkpoint_dir / "checkpoint.json").write_text(
+                json.dumps(
+                    {
+                        "step_id": "classify/clustered_event_merge",
+                        "output_refs": {"classification_progress": str(progress_path)},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            config_path = project_root / "report-config.json"
+            config_path.write_text("{}", encoding="utf-8")
+            output_dir = project_root / "data" / "report"
+
+            container = configure_services(project_root)
+            RunRepository(project_root).create("run-1", {})
+
+            container.event_queue.register_executor(
+                "report.polish_event",
+                lambda task: {
+                    "event_id": task.payload["event"]["event_id"],
+                    "polish": {
+                        "title": "OpenAI 发布新编程模型",
+                        "brief": "OpenAI 面向开发者发布新的编程模型，并强化代码生成与修复能力。",
+                        "why_important": "这会直接影响 AI 编程产品的模型选择与集成节奏。",
+                    },
+                },
+            )
+            container.event_queue.register_executor(
+                "report.trend_summary",
+                lambda _task: {"trend_summary": "AI 编程模型继续向更强的开发工作流集成演进。"},
+            )
+
+            task = TaskEvent(
+                id="report-run-1-generate",
+                type="report.generate",
+                pipeline_run_id="run-1",
+                step_id="report/generate",
+                payload={
+                    "project_root": str(project_root),
+                    "run_id": "run-1",
+                    "input_path": str(classify_checkpoint_dir),
+                    "output_dir": str(output_dir),
+                    "config": str(config_path),
+                    "date": "2026-07-07",
+                },
+            )
+
+            container.event_queue.submit(task)
+
+            parent = container.event_queue.get(task.id)
+            self.assertEqual(parent.state, "succeeded")
+            result = container.event_queue.result(task.id)
+            self.assertEqual(result["node_stage"], "completed")
+            events_payload = json.loads((output_dir / "enriched_events.json").read_text(encoding="utf-8"))
+            self.assertEqual(events_payload[0]["title"], "OpenAI 发布新编程模型")
+
     def test_report_node_skips_blocked_polish_child_and_continues(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, patch.dict(
             os.environ,

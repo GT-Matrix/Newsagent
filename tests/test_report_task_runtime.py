@@ -83,7 +83,40 @@ class ReportTaskRuntimeTest(unittest.TestCase):
                     project_root,
                     "run-1",
                 ),
-                checkpoint_path.resolve(),
+                artifact_path.resolve(),
+            )
+
+    def test_resolve_report_input_accepts_directory_and_checkpoint_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_root = Path(tmp)
+            checkpoint_dir = project_root / "runs" / "run-1" / "checkpoints" / "classify" / "clustered_event_merge" / "one"
+            checkpoint_dir.mkdir(parents=True)
+            artifact_path = checkpoint_dir / "classification_progress.json"
+            artifact_path.write_text(
+                json.dumps({"items": [], "events": [], "discarded": [], "meta": {}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            checkpoint_path = checkpoint_dir / "checkpoint.json"
+            checkpoint_path.write_text(
+                json.dumps({"output_refs": {"classification_progress": str(artifact_path)}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                resolve_report_input(
+                    TaskEvent(id="task-dir", type="report.generate", payload={"input_path": str(checkpoint_dir)}),
+                    project_root,
+                    "run-1",
+                ),
+                artifact_path.resolve(),
+            )
+            self.assertEqual(
+                resolve_report_input(
+                    TaskEvent(id="task-file", type="report.generate", payload={"input_path": str(checkpoint_path)}),
+                    project_root,
+                    "run-1",
+                ),
+                artifact_path.resolve(),
             )
 
     def test_build_report_task_stats_counts_selected_and_sourced_events(self) -> None:

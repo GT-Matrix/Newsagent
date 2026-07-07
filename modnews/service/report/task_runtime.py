@@ -5,6 +5,7 @@ from pathlib import Path
 
 from modnews.core.task import TaskEvent
 from modnews.repository.runs import RunRepository
+from modnews.service.report.io.event_loader import resolve_report_input_path
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,14 +33,15 @@ def resolve_report_input(task: TaskEvent, project_root: Path, run_id: str) -> Pa
     input_value = task.payload.get("input_path")
     if input_value and str(input_value) != "__latest_classify_checkpoint__":
         path = Path(str(input_value)).expanduser()
-        return path.resolve() if path.is_absolute() else (project_root / path).resolve()
+        resolved = path.resolve() if path.is_absolute() else (project_root / path).resolve()
+        return resolve_report_input_path(resolved)
     runs = RunRepository(project_root)
     record = runs.get(run_id)
     checkpoints = [Path(str(path)).resolve() for path in record.get("checkpoints", [])]
     classify_checkpoints = [path for path in checkpoints if "/classify/" in str(path)]
     if not classify_checkpoints:
         raise ValueError(f"no classify checkpoint found for run {run_id}")
-    return classify_checkpoints[-1]
+    return resolve_report_input_path(classify_checkpoints[-1])
 
 
 def resolve_report_output_dir(task: TaskEvent, project_root: Path) -> Path:
