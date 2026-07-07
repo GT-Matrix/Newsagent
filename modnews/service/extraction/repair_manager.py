@@ -7,6 +7,8 @@ from modnews.core.paths import runtime_paths
 from modnews.service.extraction.registry import ExtractorRegistry
 from modnews.service.extraction.repair_creation import create_repair_task
 from modnews.service.extraction.repair_lifecycle import run_and_promote_repair_task
+from modnews.service.extraction.repair_promote import promote_repair_task
+from modnews.service.extraction.repair_runtime import run_repair_task
 from modnews.service.extraction.repair_store import RepairTask, RepairTaskStore
 
 
@@ -27,8 +29,6 @@ class RepairManager:
         self.store.delete_task(task_id)
 
     def promote_task(self, task_id: str) -> RepairTask:
-        from modnews.service.extraction.repair_promote import promote_repair_task
-
         task = promote_repair_task(self.project_root, self.registry, self._load_task(task_id))
         self._save_task(task)
         return task
@@ -64,6 +64,24 @@ class RepairManager:
             task=self._load_task(task_id),
         )
         self._save_task(task)
+
+    def run_task_once(self, task_id: str) -> RepairTask:
+        task = run_repair_task(self._load_task(task_id))
+        self._save_task(task)
+        return task
+
+    def finalize_task(self, task_id: str) -> RepairTask:
+        task = self._load_task(task_id)
+        if task.status != "succeeded":
+            self._save_task(task)
+            return task
+        try:
+            task = promote_repair_task(self.project_root, self.registry, task)
+        except Exception:
+            self._save_task(task)
+            return task
+        self._save_task(task)
+        return task
 
     def _load_task(self, task_id: str) -> RepairTask:
         return self.store.get_task(task_id)

@@ -17,6 +17,7 @@ from modnews.service.ingest.tasks import REGISTERED_INGEST_TASK_EXECUTORS
 from modnews.service.extraction.tasks import REGISTERED_EXTRACTION_TASK_EXECUTORS
 from modnews.service.extraction.web_source_node_runtime import handle_web_source_child_task_callback
 from modnews.service.extraction.repair_tasks import REGISTERED_REPAIR_TASK_EXECUTORS
+from modnews.service.extraction.repair_node_runtime import handle_repair_child_task_callback
 from modnews.service.extraction.repair_queue_runtime import handle_blocked_web_source_event
 from modnews.service.pipeline.tasks import REGISTERED_PIPELINE_TASK_EXECUTORS
 from modnews.service.report.node_runtime import handle_report_child_task_callback
@@ -104,6 +105,7 @@ def _handle_classify_child_task_callback(queue: EventQueue | None):
             *handle_clustered_event_merge_callback(event, queue),
             *handle_report_child_task_callback(event, queue),
             *handle_web_source_child_task_callback(event, queue),
+            *handle_repair_child_task_callback(event, queue),
         ]
         if not decisions:
             return None

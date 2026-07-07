@@ -22,14 +22,21 @@ class RepairQueueTest(unittest.TestCase):
                 queue_show=client.queue_show,
             )
 
-            def write_log(self, task_id: str) -> None:
+            def write_log(self, task_id: str):
                 task = self._load_task(task_id)
                 task.log_path.write_text("codex line 1\ncodex line 2\n", encoding="utf-8")
                 task.status = "succeeded"
                 task.error = None
                 self._save_task(task)
+                return task
 
-            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task", new=write_log):
+            def finalize(self, task_id: str):
+                return self._load_task(task_id)
+
+            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task_once", new=write_log), patch(
+                "modnews.service.extraction.repair_manager.RepairManager.finalize_task",
+                new=finalize,
+            ):
                 result = facade.create_task({"source_id": "source-1", "reason": "test repair"})
 
             self.assertTrue(result["ok"])
@@ -41,14 +48,21 @@ class RepairQueueTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             client = LocalClient(Path(tmp))
 
-            def write_log(self, task_id: str) -> None:
+            def write_log(self, task_id: str):
                 task = self._load_task(task_id)
                 task.log_path.write_text("codex line 1\ncodex line 2\n", encoding="utf-8")
                 task.status = "succeeded"
                 task.error = None
                 self._save_task(task)
+                return task
 
-            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task", new=write_log):
+            def finalize(self, task_id: str):
+                return self._load_task(task_id)
+
+            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task_once", new=write_log), patch(
+                "modnews.service.extraction.repair_manager.RepairManager.finalize_task",
+                new=finalize,
+            ):
                 result = client.repair_create({"source_id": "source-1", "reason": "test repair"})
 
             self.assertTrue(result["ok"])
@@ -58,6 +72,28 @@ class RepairQueueTest(unittest.TestCase):
             self.assertIn("codex line 2", result["task"]["result"]["codex_log_tail"])
             self.assertIn("task.completed", {row["type"] for row in result["task"]["logs"]})
             self.assertIn("progress.codex_repair_log", {row["type"] for row in result["task"]["logs"]})
+
+    def test_repair_parent_task_blocks_when_exec_child_blocks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = LocalClient(Path(tmp))
+
+            created = client.repair_create({"source_id": "source-1", "reason": "test repair", "auto_start": False})
+            repair_task_id = created["item"]["id"]
+
+            def blocked(self, task_id: str):
+                task = self._load_task(task_id)
+                task.status = "blocked"
+                task.error = "captcha required"
+                self._save_task(task)
+                return task
+
+            with patch("modnews.service.extraction.repair_manager.RepairManager.run_task_once", new=blocked):
+                result = client.repair_retry(repair_task_id)
+
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["task"]["type"], "extractor.repair.codex")
+            self.assertEqual(result["task"]["state"], "blocked")
+            self.assertIn("captcha required", result["task"]["result"]["blocked_reason"])
 
     def test_repair_create_can_queue_without_auto_start(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
