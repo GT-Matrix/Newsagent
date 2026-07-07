@@ -6,8 +6,6 @@ from pathlib import Path
 
 from modnews.core.task import TaskEvent
 
-from .steps import get_registered_classify_flow
-
 
 @dataclass(frozen=True, slots=True)
 class RegisteredClassifyTask:
@@ -15,18 +13,11 @@ class RegisteredClassifyTask:
     step_id: str
     task_id_suffix: str
     auto_publish: bool
-    flow_name: str
+    node_stages: tuple[str, ...]
     concurrency_key: str = "classify"
     max_concurrency: int = 1
     default_input_path: str | None = None
     default_write_fixed_outputs: bool = False
-
-    @property
-    def step_names(self) -> tuple[str, ...]:
-        return get_registered_classify_flow(self.flow_name).step_names
-
-    def build_steps(self):
-        return get_registered_classify_flow(self.flow_name).build_steps()
 
 
 REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
@@ -35,7 +26,7 @@ REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
         step_id="classify/clustered_event_extraction",
         task_id_suffix="clustered-event-extraction",
         auto_publish=False,
-        flow_name="clustered_event_extraction_task",
+        node_stages=("embedding", "extraction", "completed"),
         default_input_path="__combined_ingest__",
     ),
     RegisteredClassifyTask(
@@ -43,7 +34,7 @@ REGISTERED_CLASSIFY_TASKS: tuple[RegisteredClassifyTask, ...] = (
         step_id="classify/clustered_event_merge",
         task_id_suffix="clustered-event-merge",
         auto_publish=True,
-        flow_name="clustered_event_merge_task",
+        node_stages=("embedding", "merge", "completed"),
         default_input_path="__combined_ingest__",
     ),
 )

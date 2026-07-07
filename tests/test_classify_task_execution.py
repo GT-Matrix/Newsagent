@@ -150,14 +150,8 @@ class ClassifyTaskExecutionTest(unittest.TestCase):
             [step.name for step in get_registered_classify_flow("full").build_steps()],
             ["start_checkpoint", "clustered_event_extraction", "clustered_event_merge"],
         )
-        self.assertEqual(
-            [step.name for step in extraction_task.build_steps()],
-            [step.name for step in get_registered_classify_flow("clustered_event_extraction_task").build_steps()],
-        )
-        self.assertEqual(
-            [step.name for step in merge_task.build_steps()],
-            [step.name for step in get_registered_classify_flow("clustered_event_merge_task").build_steps()],
-        )
+        self.assertEqual(extraction_task.node_stages, ("embedding", "extraction", "completed"))
+        self.assertEqual(merge_task.node_stages, ("embedding", "merge", "completed"))
 
     def test_run_classification_short_circuits_when_disabled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
