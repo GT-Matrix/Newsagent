@@ -10,8 +10,8 @@ from src.io.event_loader import load_processed_candidates
 from src.io.report_writer import write_enriched_events, write_json, write_text
 from src.models import EnrichedEvent
 from src.pipeline.classifier import classify_event
-from src.pipeline.editor import polish_report_events
-from src.pipeline.evidence import enrich_report_evidence
+from src.pipeline.editor import polish_report_events, sanitize_public_report_events
+from src.pipeline.evidence import apply_evidence_verification, enrich_report_evidence
 from src.pipeline.reporter import (
     assign_report_sections,
     build_debug_report_markdown,
@@ -19,7 +19,7 @@ from src.pipeline.reporter import (
     report_candidates_payload,
     review_candidates_payload,
 )
-from src.pipeline.scorer import score_event
+from src.pipeline.scorer import apply_evidence_score_adjustments, score_event
 from src.pipeline.summarizer import summarize_event
 from src.pipeline.trend_writer import generate_trend_summary
 from src.pipeline.verifier import verify_event
@@ -84,8 +84,11 @@ def run_pipeline(
         )
 
     enriched.sort(key=lambda event: (event.final_score, event.importance_score, event.source_score), reverse=True)
+    evidence_payload = enrich_report_evidence(enriched, report_only=False)
+    apply_evidence_verification(enriched)
+    apply_evidence_score_adjustments(enriched)
+    enriched.sort(key=lambda event: (event.final_score, event.importance_score, event.source_score), reverse=True)
     assign_report_sections(enriched)
-    evidence_payload = enrich_report_evidence(enriched)
 
     trend_summary: str | None = None
     if config_path is not None:
@@ -96,6 +99,8 @@ def run_pipeline(
         ctx = PipelineContext.create(modnews_config)
         polish_report_events(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
         trend_summary = generate_trend_summary(enriched, evidence_payload, modnews_config.classification.llm, ctx.session)
+
+    sanitize_public_report_events(enriched)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     write_enriched_events(output_dir / "enriched_events.json", enriched)

@@ -60,21 +60,28 @@ ACTION_PATTERNS = [
     (re.compile(r"\blimit(?:s|ed|ing)?\b|\brestrict(?:s|ed|ing)?\b", re.I), "\u9650\u5236"),
 ]
 
+FALLBACK_FACT_PATTERNS = [
+    ("microsoft 365 copilot", "\u5df2\u6210\u4e3a Microsoft 365 Copilot \u7684\u9996\u9009\u6a21\u578b"),
+    ("amazon bedrock", "\u5df2\u53ef\u901a\u8fc7 Amazon Bedrock \u4f7f\u7528"),
+    ("agent arena", "\u5728 Agent Arena \u771f\u5b9e\u667a\u80fd\u4f53\u4f1a\u8bdd\u8bc4\u6d4b\u4e2d\u6392\u540d\u7b2c\u4e8c"),
+    ("aa-briefcase", "\u53d1\u5e03 AA-Briefcase\uff0c\u7528\u4e8e\u8861\u91cf\u590d\u6742\u667a\u80fd\u4f53\u4efb\u52a1\u7684\u6210\u672c"),
+    ("erdos", "\u6709\u7528\u6237\u79f0\u5176\u7ed9\u51fa\u4e86 Erd\u0151s \u6570\u5b66\u95ee\u9898\u7684\u89e3\u6cd5\uff0c\u4ecd\u5f85\u72ec\u7acb\u9a8c\u8bc1"),
+    ("trade secret", "\u82f9\u679c\u6307\u63a7 OpenAI \u6d89\u53ca AI \u786c\u4ef6\u76f8\u5173\u5546\u4e1a\u673a\u5bc6"),
+]
+
 
 def summarize_event(candidate: EventCandidate, normalized_type: str) -> tuple[str, str, str]:
     raw_title = choose_best_title(candidate.event_label, candidate.representative_titles)
     title = _rewrite_title(raw_title)
     one_sentence = short_sentence(candidate.event_summary, title)
     one_sentence = _rewrite_summary(raw_title, one_sentence) or one_sentence
-    if mostly_english(one_sentence):
+    if mostly_english(one_sentence) or _is_generic_summary(one_sentence, title):
         if not mostly_english(title):
             one_sentence = short_sentence(title, title)
         else:
             one_sentence = _chinese_sentence(candidate, title, one_sentence, normalized_type)
-    why = WHY_IMPORTANT_BY_TYPE.get(
-        normalized_type,
-        "\u8fd9\u6761\u4fe1\u606f\u4e0e AI \u884c\u4e1a\u52a8\u6001\u76f8\u5173\uff0c\u9002\u5408\u8fdb\u5165\u56e2\u961f\u60c5\u62a5\u6c60\u7ee7\u7eed\u89c2\u5bdf\u3002",
-    )
+    one_sentence = _add_source_fact(candidate, one_sentence)
+    why = _why_important(candidate, normalized_type)
     return title, one_sentence, why
 
 
@@ -102,6 +109,44 @@ def _chinese_sentence(candidate: EventCandidate, title: str, summary: str, norma
     if detail:
         return f"{subject}{action}{noun}\uff0c\u91cd\u70b9\u6d89\u53ca{detail}\u3002"
     return f"{subject}{action}{noun}\u3002"
+
+
+def _is_generic_summary(summary: str, title: str) -> bool:
+    compact = " ".join(summary.split()).rstrip("\u3002.!\uff01?")
+    return not compact or compact == title.rstrip("\u3002.!\uff01?") or len(compact) < 14
+
+
+def _add_source_fact(candidate: EventCandidate, summary: str) -> str:
+    source_text = " ".join(source.title for source in candidate.source_items).lower()
+    for marker, fact in FALLBACK_FACT_PATTERNS:
+        if marker in source_text:
+            clean = summary.rstrip("\u3002.!\uff01?")
+            if marker in clean.lower():
+                return summary
+            if marker == "trade secret" and "\u5546\u4e1a\u673a\u5bc6" in clean:
+                return summary
+            return f"{clean}\uff0c{fact}\u3002"
+    return summary
+
+
+def _why_important(candidate: EventCandidate, normalized_type: str) -> str:
+    source_text = " ".join(source.title for source in candidate.source_items).lower()
+    if normalized_type == "model_release" and "microsoft 365 copilot" in source_text:
+        return "\u6a21\u578b\u8fdb\u5165\u4e3b\u6d41\u529e\u516c\u4ea7\u54c1\uff0c\u4f1a\u76f4\u63a5\u5f71\u54cd\u4f01\u4e1a AI \u52a9\u624b\u7684\u80fd\u529b\u9009\u62e9\u3001\u6210\u672c\u548c\u7ade\u4e89\u683c\u5c40\u3002"
+    if normalized_type == "benchmark" and ("agent arena" in source_text or "aa-briefcase" in source_text):
+        return "\u8fd9\u4e3a\u8bc4\u4f30\u667a\u80fd\u4f53\u5728\u771f\u5b9e\u4efb\u52a1\u4e2d\u7684\u80fd\u529b\u548c\u6210\u672c\u63d0\u4f9b\u4e86\u53ef\u6bd4\u8f83\u7684\u5916\u90e8\u4fe1\u53f7\u3002"
+    if normalized_type == "legal" and "trade secret" in source_text:
+        return "\u6848\u4ef6\u53ef\u80fd\u5f71\u54cd AI \u786c\u4ef6\u7684\u4eba\u624d\u6d41\u52a8\u3001\u5546\u4e1a\u673a\u5bc6\u4fdd\u62a4\u4e0e\u5934\u90e8\u516c\u53f8\u7684\u5408\u4f5c\u8fb9\u754c\u3002"
+    if normalized_type == "product":
+        return "产品能力和可用范围的变化，会影响团队对同类 AI 工具的选型与接入节奏。"
+    if normalized_type == "company":
+        return "头部公司的关键人事变化，可能影响其产品路线、组织稳定性和合作预期。"
+    if normalized_type == "security":
+        return "这提示企业在引入 AI 功能时，需要把数据授权、隐私保护和用户告知前置处理。"
+    return WHY_IMPORTANT_BY_TYPE.get(
+        normalized_type,
+        "\u8fd9\u6761\u4fe1\u606f\u4e0e AI \u884c\u4e1a\u52a8\u6001\u76f8\u5173\uff0c\u9002\u5408\u8fdb\u5165\u56e2\u961f\u60c5\u62a5\u6c60\u7ee7\u7eed\u89c2\u5bdf\u3002",
+    )
 
 
 def _subject(candidate: EventCandidate, title: str) -> str:

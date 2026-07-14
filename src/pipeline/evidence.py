@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, asdict
 from html.parser import HTMLParser
 from typing import Any
@@ -14,6 +15,7 @@ from src.models import EnrichedEvent
 MAX_SOURCES_PER_EVENT = 2
 MAX_TEXT_CHARS = 6000
 REQUEST_TIMEOUT_SECONDS = 12
+MAX_EVIDENCE_WORKERS = 8
 
 OFFICIAL_DOMAINS = {
     "openai.com",
@@ -44,19 +46,50 @@ class EvidenceItem:
     fetch_error: str | None = None
 
 
-def enrich_report_evidence(events: list[EnrichedEvent]) -> list[dict[str, Any]]:
-    selected = [event for event in events if event.should_include_report]
+def enrich_report_evidence(events: list[EnrichedEvent], *, report_only: bool = True) -> list[dict[str, Any]]:
+    selected = [event for event in events if event.should_include_report] if report_only else list(events)
     payload: list[dict[str, Any]] = []
-    session = requests.Session()
-    session.headers.update({"User-Agent": "newsagent-evidence/0.1"})
+    source_rows_by_event: dict[str, list[dict[str, Any]]] = {
+        event.event_id: _select_sources(event) for event in selected
+    }
+    evidence_by_event: dict[str, list[EvidenceItem]] = {event.event_id: [] for event in selected}
+
+    jobs: list[tuple[str, int, dict[str, Any]]] = []
+    for event_id, rows in source_rows_by_event.items():
+        for index, row in enumerate(rows):
+            jobs.append((event_id, index, row))
+
+    if jobs:
+        with ThreadPoolExecutor(max_workers=MAX_EVIDENCE_WORKERS) as executor:
+            futures = {
+                executor.submit(_fetch_source_for_job, event_id, index, row): (event_id, index)
+                for event_id, index, row in jobs
+            }
+            for future in as_completed(futures):
+                event_id, _ = futures[future]
+                try:
+                    _, _, item = future.result()
+                except Exception as exc:
+                    item = EvidenceItem(
+                        source_news_id=None,
+                        platform="unknown",
+                        url="",
+                        title="",
+                        fetched=False,
+                        http_status=None,
+                        content_type=None,
+                        canonical_domain="",
+                        text="",
+                        text_chars=0,
+                        fetch_error=f"{type(exc).__name__}: {exc}",
+                    )
+                evidence_by_event.setdefault(event_id, []).append(item)
 
     for event in selected:
-        source_rows = _select_sources(event)
-        evidence_items = [_fetch_source(session, row) for row in source_rows]
+        evidence_items = evidence_by_event.get(event.event_id, [])
+        evidence_items.sort(key=lambda item: _source_priority(item.platform, item.url))
         summary = _summarize_evidence(event, evidence_items)
         event.evidence_summary = summary
-        if summary.get("brief"):
-            event.one_sentence = str(summary["brief"])
         payload.append(
             {
                 "event_id": event.event_id,
@@ -67,6 +100,32 @@ def enrich_report_evidence(events: list[EnrichedEvent]) -> list[dict[str, Any]]:
             }
         )
     return payload
+
+
+def apply_evidence_verification(events: list[EnrichedEvent]) -> None:
+    """Set public eligibility from readable evidence, not source category."""
+    for event in events:
+        if event.verify_status == "rumor" or event.text_quality in {"bad", "missing"}:
+            continue
+        summary = event.evidence_summary or {}
+        strength = str(summary.get("evidence_strength") or "none")
+        fetched_count = int(summary.get("fetched_source_count") or 0)
+        domains = {str(domain) for domain in (summary.get("domains") or []) if domain}
+        if strength == "none" or fetched_count == 0:
+            event.verify_status = "needs_review"
+            event.verify_reason = "未取得可用于编报的原文内容。"
+        elif len(domains) >= 2 and fetched_count >= 2:
+            event.verify_status = "verified"
+            event.verify_reason = "已获得两个独立来源的可读原文。"
+        else:
+            event.verify_status = "single_source"
+            event.verify_reason = "已获得可读主原文。"
+
+
+def _fetch_source_for_job(event_id: str, index: int, row: dict[str, Any]) -> tuple[str, int, EvidenceItem]:
+    session = requests.Session()
+    session.headers.update({"User-Agent": "newsagent-evidence/0.1"})
+    return event_id, index, _fetch_source(session, row)
 
 
 def _select_sources(event: EnrichedEvent) -> list[dict[str, Any]]:
@@ -87,19 +146,7 @@ def _select_sources(event: EnrichedEvent) -> list[dict[str, Any]]:
 
 
 def _source_priority(platform: str, url: str) -> tuple[int, str]:
-    domain = _domain(url)
-    normalized_platform = platform.lower()
-    if domain in OFFICIAL_DOMAINS or any(domain.endswith("." + item) for item in OFFICIAL_DOMAINS):
-        return (0, domain)
-    if "github" in normalized_platform or domain == "github.com":
-        return (1, domain)
-    if "arxiv" in normalized_platform or domain == "arxiv.org":
-        return (1, domain)
-    if any(word in normalized_platform for word in ["reuters", "wired", "verge", "techcrunch", "mit"]):
-        return (2, domain)
-    if any(word in normalized_platform for word in ["aibase", "wallstreet", "solidot", "infoq"]):
-        return (3, domain)
-    return (4, domain)
+    return (0, f"{platform.lower()}|{_domain(url)}")
 
 
 def _fetch_source(session: requests.Session, row: dict[str, Any]) -> EvidenceItem:
@@ -151,43 +198,82 @@ def _summarize_evidence(event: EnrichedEvent, items: list[EvidenceItem]) -> dict
         source_agreement = "single_source"
 
     title_tokens = _tokens(event.title)
-    support_count = 0
     key_sentences: list[str] = []
     for item in fetched:
-        lowered = item.text.lower()
-        if title_tokens and any(token in lowered for token in title_tokens):
-            support_count += 1
         key_sentences.extend(_extract_key_sentences(item.text, title_tokens, limit=2))
 
     if not fetched:
         strength = "none"
-    elif support_count >= 2 or any(_is_official_domain(domain) for domain in domains):
+    elif len(domains) >= 2:
         strength = "strong"
-    elif support_count == 1:
+    elif key_sentences:
         strength = "medium"
     else:
         strength = "weak"
 
     mismatch_flags: list[str] = []
-    if fetched and support_count == 0 and title_tokens:
-        mismatch_flags.append("title_terms_not_found_in_fetched_text")
     if any(not item.fetched for item in items):
         mismatch_flags.append("source_fetch_failed")
 
+    key_facts = _dedupe(key_sentences)[:5]
+    signals = _news_value_signals(event, fetched, key_facts)
     summary = {
         "canonical_claim": event.one_sentence or event.title,
-        "key_facts": _dedupe(key_sentences)[:5],
+        "key_facts": key_facts,
+        "fact_summary": _build_fact_summary(event, key_facts),
+        "news_value_signals": signals,
+        "low_news_value": "low_news_value" in signals,
+        "soft_commentary": "soft_commentary" in signals,
         "domains": domains,
         "source_agreement": source_agreement,
         "evidence_strength": strength,
         "mismatch_flags": mismatch_flags,
-        "needs_review": strength in {"none", "weak"} and bool(mismatch_flags),
+        "needs_review": strength == "none",
         "fetched_source_count": len(fetched),
         "requested_source_count": len(items),
         "duplicate_key": _duplicate_key(event),
     }
     summary["brief"] = _build_evidence_brief(event, fetched, summary)
     return summary
+
+
+def _build_fact_summary(event: EnrichedEvent, key_facts: list[str]) -> str:
+    if key_facts:
+        clean = _normalize_text(key_facts[0])
+        return clean[:360].rstrip()
+    return event.one_sentence or event.title
+
+
+def _news_value_signals(event: EnrichedEvent, fetched: list[EvidenceItem], key_facts: list[str]) -> list[str]:
+    text = " ".join(
+        [
+            event.title,
+            event.one_sentence,
+            event.why_important,
+            event.normalized_event_type,
+            " ".join(event.entities),
+            " ".join(item.title for item in fetched),
+            " ".join(key_facts[:3]),
+        ]
+    ).lower()
+    signals: set[str] = set()
+    if event.normalized_event_type in {"model_release", "product_release", "policy", "legal", "funding", "partnership", "hardware", "infrastructure"}:
+        signals.add("hard_news")
+    if event.normalized_event_type in {"research", "benchmark", "paper"}:
+        signals.add("research_signal")
+    if event.normalized_event_type in {"open_source", "tooling", "framework", "library"}:
+        signals.add("reusable_asset")
+    if any(word in text for word in ["release", "released", "launch", "launched", "announce", "announced", "introduce", "introduced", "发布", "推出", "上线"]):
+        signals.add("announcement")
+    if any(word in text for word in ["guide", "best practice", "tutorial", "how to", "walkthrough", "case study", "reference architecture", "指南", "教程", "最佳实践", "案例", "参考架构"]):
+        signals.add("low_news_value")
+    if any(word in text for word in ["questions", "criticizes", "warns", "doubts", "opinion", "skeptical", "质疑", "怀疑", "警告", "批评", "观点", "担忧"]):
+        signals.add("soft_commentary")
+    if len({item.canonical_domain for item in fetched if item.canonical_domain}) >= 2:
+        signals.add("multi_source_evidence")
+    if any(_is_official_domain(item.canonical_domain) for item in fetched):
+        signals.add("official_evidence")
+    return sorted(signals)
 
 
 def _build_evidence_brief(event: EnrichedEvent, fetched: list[EvidenceItem], summary: dict[str, Any]) -> str:

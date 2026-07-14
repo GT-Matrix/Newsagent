@@ -112,6 +112,8 @@ def _best_match(event: EventRecord, rows: list[dict[str, Any]], threshold: float
         row_type = str(row.get("event_type") or "").lower()
         row_entities = {str(entity).lower() for entity in row.get("key_entities") or []}
         entity_overlap = bool(event_entities & row_entities)
+        if _same_stable_subject(event, row, event_type, row_type):
+            return row
         if event_type and row_type and event_type == row_type:
             score += 0.08
         if entity_overlap:
@@ -120,6 +122,34 @@ def _best_match(event: EventRecord, rows: list[dict[str, Any]], threshold: float
             best_score = score
             best_row = row
     return best_row if best_score >= threshold else None
+
+
+def _same_stable_subject(event: EventRecord, row: dict[str, Any], event_type: str, row_type: str) -> bool:
+    """Suppress repeated reports of the same named model, version, or product."""
+    if not event_type or event_type != row_type:
+        return False
+    left = _stable_identifiers(
+        " ".join([event.event_label or "", event.event_summary or "", " ".join(event.key_entities or [])])
+    )
+    right = _stable_identifiers(
+        " ".join(
+            [
+                str(row.get("event_label") or ""),
+                str(row.get("event_summary") or ""),
+                " ".join(str(item) for item in row.get("key_entities") or []),
+            ]
+        )
+    )
+    return bool(left & right)
+
+
+def _stable_identifiers(text: str) -> set[str]:
+    identifiers: set[str] = set()
+    for token in re.findall(r"[A-Za-z][A-Za-z0-9_.-]{1,}", text or ""):
+        normalized = token.lower().strip("._-")
+        if any(character.isdigit() for character in normalized) and len(normalized) >= 2:
+            identifiers.add(normalized)
+    return identifiers
 
 
 def _event_tokens(event: EventRecord) -> set[str]:

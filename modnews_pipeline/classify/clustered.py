@@ -12,6 +12,7 @@ from modnews_pipeline.progress import emit
 from .events import assign_item_to_event
 from .llm_client import LlmClient
 from .prompts import clustered_event_extraction_system_prompt, clustered_event_merge_system_prompt
+from .relevance import handle_suspected_items
 from .retriever import EventVectorRetriever, cosine_similarity
 from .types import DiscardedRecord, EventState, PreparedItem
 from .utils import (
@@ -61,6 +62,7 @@ def extract_events_from_title_clusters(
     event_counter = 0
     seen_discarded: set[int] = {record.index for record in discarded}
     by_index = {entry.index: entry for entry in prepared}
+    suspect_indexes: set[int] = set()
 
     for response in responses:
         for discarded_row in response.get("discards", []):
@@ -86,8 +88,7 @@ def extract_events_from_title_clusters(
             item.is_ai_relevant = None
             item.relevance_score = int_or_none(suspect.get("relevance_score"))
             item.classification_reason = clean_string(suspect.get("reason")) or "title-only suspected AI item"
-            discarded.append(discard(index, item, "clustered_title_suspect", item.classification_reason))
-            seen_discarded.add(index)
+            suspect_indexes.add(index)
 
         for event_row in response.get("events", []):
             source_ids = [index for index in _clean_int_list(event_row.get("source_news_ids")) if index in by_index]
@@ -124,9 +125,38 @@ def extract_events_from_title_clusters(
                 item.classification_reason = clean_string(member_reasons.get(str(index))) or "clustered title extraction"
                 assign_item_to_event(entry, state, confidence)
 
+    # A title-only uncertainty is not a rejection. Review it against the article
+    # body, then let accepted items rejoin the normal event merge stage.
+    if suspect_indexes:
+        handle_suspected_items(ctx, client, prepared, discarded, config.suspect_mode)
+        for index in sorted(suspect_indexes):
+            entry = by_index[index]
+            item = entry.item
+            if item.classification_decision != "candidate":
+                continue
+            event_counter += 1
+            event = EventRecord(
+                event_id=_new_event_id(ctx.scrape_date, event_counter),
+                event_label=item.canonical_summary or item.title,
+                member_count=0,
+                platforms=[],
+                latest_pubtime=None,
+                representative_titles=[],
+                first_pubtime=None,
+                confidence=0.7,
+                event_summary=item.canonical_summary,
+                event_type=clean_event_type(item.event_type),
+                key_entities=item.entities,
+                source_news_ids=[],
+                last_llm_updated_at=ctx.scrape_date,
+            )
+            state = EventState(record=event)
+            events.append(state)
+            assign_item_to_event(entry, state, event.confidence)
+
     for entry in prepared:
         item = entry.item
-        if item.classification_decision in {"assign", "suspect", "discard"}:
+        if item.classification_decision in {"assign", "candidate", "suspect", "discard"}:
             continue
         item.classification_decision = "discard"
         item.is_ai_relevant = False

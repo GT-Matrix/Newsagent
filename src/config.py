@@ -21,12 +21,12 @@ class ReportLimits:
 
 @dataclass(frozen=True)
 class ScoreWeights:
-    impact: float = 0.32
-    source: float = 0.12
-    freshness: float = 0.16
-    relevance: float = 0.17
-    actionability: float = 0.12
-    novelty: float = 0.11
+    impact: float = 0.45
+    source: float = 0.04
+    freshness: float = 0.10
+    relevance: float = 0.16
+    actionability: float = 0.10
+    novelty: float = 0.15
 
 
 REPORT_LIMITS = ReportLimits()

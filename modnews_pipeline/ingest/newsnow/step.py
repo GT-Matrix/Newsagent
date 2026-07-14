@@ -28,12 +28,16 @@ class NewsNowStep(IngestStep):
         retry_delay = float(self.options.get("retry_delay", 1.0))
         items: list[NewsItem] = []
         errors: list[str] = []
+        fetch_status: list[dict[str, str | int | bool]] = []
+        used_cache_sources: list[str] = []
 
         for source in sources:
             api_url = f"{ctx.config.newsnow_api_url}?id={source['id']}&latest"
             try:
                 payload = _fetch_payload(ctx, api_url, retries=retries, retry_delay=retry_delay)
-                for row in payload.get("items", [])[: self.options.get("limit_per_source", 50)]:
+                rows = payload.get("items", [])[: self.options.get("limit_per_source", 50)]
+                fetch_status.append({"source": source["id"], "mode": "live", "item_count": len(rows), "used_cache": False})
+                for row in rows:
                     items.append(
                         NewsItem(
                             platform=source["id"],
@@ -47,8 +51,12 @@ class NewsNowStep(IngestStep):
                 cache_rows = _load_cached_rows(ctx.config.newsnow_cache_dir, source["id"])
                 if cache_rows is None:
                     errors.append(f"{source['id']}: {exc}")
+                    fetch_status.append({"source": source["id"], "mode": "failed", "item_count": 0, "used_cache": False, "error": str(exc)})
                     continue
-                for row in cache_rows[: self.options.get("limit_per_source", 50)]:
+                rows = cache_rows[: self.options.get("limit_per_source", 50)]
+                used_cache_sources.append(source["id"])
+                fetch_status.append({"source": source["id"], "mode": "cache", "item_count": len(rows), "used_cache": True, "error": str(exc)})
+                for row in rows:
                     items.append(
                         NewsItem(
                             platform=source["id"],
@@ -65,12 +73,16 @@ class NewsNowStep(IngestStep):
             json.dumps([item.to_dict() for item in items], ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
+        status_path = ctx.work_dir / "newsnow_fetch_status.json"
+        status_path.write_text(json.dumps(fetch_status, ensure_ascii=False, indent=2), encoding="utf-8")
         ctx.artifacts[self.step_name] = output_path
+        ctx.artifacts[f"{self.step_name}_fetch_status"] = status_path
         return items, StepResult(
             step=self.step_name,
             item_count=len(items),
             output_path=str(output_path),
             errors=errors,
+            meta={"used_cache_sources": used_cache_sources, "fetch_status_path": str(status_path)},
         )
 
 

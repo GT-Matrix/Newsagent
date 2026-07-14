@@ -207,6 +207,8 @@ def _event_message(event_type: str, data: dict[str, Any]) -> str | None:
     if event_type == "ingest_source_done":
         errors = data.get("errors") or []
         suffix = f" errors={len(errors)}" if errors else ""
+        if errors:
+            suffix += " " + " | ".join(str(error)[:160] for error in errors[:3])
         return f"ingest done source={data.get('source', '')} items={data.get('item_count', '')}{suffix}"
     if event_type == "batch_relevance_start":
         return f"relevance start batches={data.get('batch_count', '')} batch_size={data.get('batch_size', '')} concurrency={data.get('concurrency', '')}"

@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 
 from src.config import SCORE_WEIGHTS
-from src.models import EventCandidate, ScoreBreakdown
+from src.models import EnrichedEvent, EventCandidate, ScoreBreakdown
 from src.rules.scoring_rules import IMPORTANCE_BASE
-from src.rules.source_weights import platform_score, source_kind
+from src.rules.source_weights import platform_score
 from src.rules.taxonomy import AI_KEYWORDS, HIGH_IMPACT_TYPES
 from src.utils.text import has_any_word
 from src.utils.time import ensure_aware
@@ -22,6 +22,12 @@ ACTIONABLE_WORDS = {
 FOLLOW_UP_WORDS = {
     "again", "update", "follow-up", "recap", "roundup", "summary", "rumor",
     "\u518d\u6b21", "\u66f4\u65b0", "\u540e\u7eed", "\u6c47\u603b", "\u4f20\u95fb",
+}
+LOW_NEWS_VALUE_WORDS = {
+    "guide", "best practice", "best practices", "tutorial", "how to", "walkthrough", "case study",
+    "reference architecture", "implementation", "design pattern", "design patterns", "sample",
+    "\u6307\u5357", "\u6700\u4f73\u5b9e\u8df5", "\u6559\u7a0b", "\u5b9e\u6218", "\u6848\u4f8b", "\u6784\u5efa\u6307\u5357",
+    "\u5b9e\u8df5\u6307\u5357", "\u8bbe\u8ba1\u5b9e\u8df5", "\u53c2\u8003\u67b6\u6784", "\u89e3\u8bfb",
 }
 NOVELTY_WORDS = {
     "first", "new", "launch", "release", "introduce", "announce", "open source",
@@ -53,8 +59,8 @@ STRATEGIC_FOCUS_KEYWORDS = {
     },
 }
 STRATEGIC_FOCUS_BOOSTS = {
-    "ai_compute_chip": {"importance": 8.0, "relevance": 10.0, "actionability": 8.0, "novelty": 3.0},
-    "ai_biomedicine": {"importance": 8.0, "relevance": 12.0, "actionability": 7.0, "novelty": 5.0},
+    "ai_compute_chip": {"importance": 3.0, "relevance": 3.0, "actionability": 2.0, "novelty": 0.0},
+    "ai_biomedicine": {"importance": 3.0, "relevance": 3.0, "actionability": 2.0, "novelty": 0.0},
 }
 
 
@@ -68,6 +74,7 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
     actionability = _actionability_score(candidate, normalized_type, focuses)
     novelty = _novelty_score(candidate, normalized_type, focuses)
     risk_penalty = _risk_penalty(candidate)
+    value_penalty = _value_penalty(candidate, normalized_type)
 
     if paper_signal:
         importance = _clamp(importance + 5.0)
@@ -83,6 +90,7 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
         + actionability * SCORE_WEIGHTS.actionability
         + novelty * SCORE_WEIGHTS.novelty
         - risk_penalty
+        - value_penalty
     )
 
     final = round(max(0.0, min(100.0, final)), 2)
@@ -91,6 +99,10 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
         reason_parts.append("focus=" + "+".join(focuses))
     if paper_signal:
         reason_parts.append("paper_signal")
+    if value_penalty:
+        reason_parts.append(f"value_penalty={value_penalty:.0f}")
+        if _is_low_news_value(candidate, normalized_type):
+            reason_parts.append("low_news_value")
     focus_reason = ", " + ", ".join(reason_parts) if reason_parts else ""
     reason = (
         f"impact={importance:.0f}, source={source:.0f}, freshness={freshness:.0f}, "
@@ -110,6 +122,39 @@ def score_event(candidate: EventCandidate, normalized_type: str, report_date: da
     )
 
 
+def apply_evidence_score_adjustments(events: list[EnrichedEvent]) -> None:
+    for event in events:
+        if "evidence_adjustment=" in event.score_reason:
+            continue
+        summary = event.evidence_summary or {}
+        signals = set(str(signal) for signal in (summary.get("news_value_signals") or []))
+        fetched_count = int(summary.get("fetched_source_count") or 0)
+        requested_count = int(summary.get("requested_source_count") or 0)
+        evidence_strength = str(summary.get("evidence_strength") or "")
+        mismatch_flags = {str(flag) for flag in (summary.get("mismatch_flags") or [])}
+
+        adjustment = 0.0
+        if "low_news_value" in signals and "low_news_value" not in event.score_reason:
+            adjustment -= 8.0
+            event.score_reason += ", low_news_value"
+        if "soft_commentary" in signals:
+            adjustment -= 5.0
+            if "soft_commentary" not in event.score_reason:
+                event.score_reason += ", soft_commentary"
+        if "multi_source_evidence" in signals:
+            adjustment += 2.0
+        if evidence_strength == "weak" and mismatch_flags:
+            adjustment -= 5.0
+            event.risk_penalty = min(40.0, event.risk_penalty + 3.0)
+        elif evidence_strength == "none" and requested_count > 0 and fetched_count == 0:
+            adjustment -= 2.0
+            event.risk_penalty = min(40.0, event.risk_penalty + 2.0)
+
+        if adjustment:
+            event.final_score = round(max(0.0, min(100.0, event.final_score + adjustment)), 2)
+            event.score_reason += f", evidence_adjustment={adjustment:+.0f}"
+
+
 def _importance_score(candidate: EventCandidate, normalized_type: str, focuses: list[str]) -> float:
     score = IMPORTANCE_BASE.get(normalized_type, IMPORTANCE_BASE["unknown"])
     distinct_platform_count = len({platform.strip().lower() for platform in candidate.platforms if platform.strip()})
@@ -121,8 +166,6 @@ def _importance_score(candidate: EventCandidate, normalized_type: str, focuses: 
         score += 4.0
     for focus in focuses:
         score += STRATEGIC_FOCUS_BOOSTS[focus]["importance"]
-    if len(focuses) >= 2:
-        score += 3.0
     if candidate.confidence < 0.7:
         score -= 10.0
     return _clamp(score)
@@ -134,22 +177,12 @@ def _source_score(candidate: EventCandidate) -> float:
     platforms = sorted({platform.strip().lower() for platform in candidate.platforms if platform.strip()})
     scores = [platform_score(platform) for platform in platforms]
     base = max(scores) if scores else 25.0
-    source_kinds = {source_kind(platform) for platform in platforms}
 
     if len(platforms) <= 1:
-        if "official" in source_kinds:
-            return min(base, 90.0)
-        if "authority_media" in source_kinds:
-            return min(base, 84.0)
-        if "chinese_media" in source_kinds:
-            return min(base, 76.0)
-        if "community" in source_kinds:
-            return min(base, 64.0)
-        return min(base, 62.0)
+        return min(base, 80.0)
 
-    diversity_bonus = min(12.0, (len(platforms) - 1) * 4.0)
-    official_bonus = 4.0 if "official" in source_kinds else 0.0
-    return _clamp(base + diversity_bonus + official_bonus)
+    diversity_bonus = min(10.0, (len(platforms) - 1) * 3.5)
+    return _clamp(base + diversity_bonus)
 
 
 def _freshness_score(candidate: EventCandidate, report_date: date) -> float:
@@ -172,8 +205,6 @@ def _freshness_score(candidate: EventCandidate, report_date: date) -> float:
 def _relevance_score(candidate: EventCandidate, focuses: list[str]) -> float:
     haystack = _haystack(candidate)
     score = 88.0 if has_any_word(haystack, AI_KEYWORDS) else 52.0
-    if focuses and score < 82.0:
-        score = 82.0
     for focus in focuses:
         score += STRATEGIC_FOCUS_BOOSTS[focus]["relevance"]
     return _clamp(score)
@@ -186,8 +217,6 @@ def _actionability_score(candidate: EventCandidate, normalized_type: str, focuse
         score += 22.0
     if has_any_word(haystack, ACTIONABLE_WORDS):
         score += 18.0
-    if normalized_type in {"policy", "legal", "hardware", "infrastructure"}:
-        score += 8.0
     for focus in focuses:
         score += STRATEGIC_FOCUS_BOOSTS[focus]["actionability"]
     if candidate.source_items and any((source.url or "").strip() for source in candidate.source_items):
@@ -214,11 +243,8 @@ def _novelty_score(candidate: EventCandidate, normalized_type: str, focuses: lis
 def _risk_penalty(candidate: EventCandidate) -> float:
     penalty = 0.0
     distinct_platforms = {platform.strip().lower() for platform in candidate.platforms if platform.strip()}
-    source_kinds = {source_kind(platform) for platform in distinct_platforms}
-    if len(distinct_platforms) <= 1 and "official" not in source_kinds:
+    if len(distinct_platforms) <= 1:
         penalty += 2.0
-    if "community" in source_kinds and len(distinct_platforms) <= 1:
-        penalty += 3.0
     if candidate.confidence < 0.7:
         penalty += 8.0
     if candidate.latest_pubtime is None:
@@ -226,6 +252,19 @@ def _risk_penalty(candidate: EventCandidate) -> float:
     if _has_possible_mismatch(candidate):
         penalty += 18.0
     return min(penalty, 40.0)
+
+
+def _value_penalty(candidate: EventCandidate, normalized_type: str) -> float:
+    penalty = 0.0
+    if _is_low_news_value(candidate, normalized_type):
+        penalty += 10.0
+    return min(penalty, 20.0)
+
+
+def _is_low_news_value(candidate: EventCandidate, normalized_type: str) -> bool:
+    if normalized_type in {"model_release", "policy", "legal", "funding", "acquisition", "partnership", "hardware"}:
+        return False
+    return has_any_word(_haystack(candidate), LOW_NEWS_VALUE_WORDS)
 
 
 def _is_paper_signal(candidate: EventCandidate, normalized_type: str) -> bool:

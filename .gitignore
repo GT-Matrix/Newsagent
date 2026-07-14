@@ -1,6 +1,12 @@
 config.local.json
+.env
+.env.*
+.venv/
 output/
 data/output*/
+data/archive/
+logs/
+*.tgz
 __pycache__/
 *.pyc
 

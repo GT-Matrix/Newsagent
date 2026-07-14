@@ -13,10 +13,12 @@ from src.models import EnrichedEvent
 
 MAX_EVIDENCE_CHARS = 4200
 BACKGROUND_PATTERNS = [
+    r"[^。！？.!?]*(?:原文回溯|系统已读取|证据强度|直接依据|原始来源|目前暂未抓取到可用原文|仍以已聚类标题判断)[^。！？.!?]*[。！？.!?]",
     r"[^。！？.!?]*证据(?:强度|来自|来源)[^。！？.!?]*[。！？.!?]",
     r"[^。！？.!?]*(?:页面|内容)(?:未完全加载|不可读|抓取失败)[^。！？.!?]*[。！？.!?]",
     r"[^。！？.!?]*仍需(?:进一步)?核验[^。！？.!?]*[。！？.!?]",
     r"[^。！？.!?]*单一(?:来源|媒体报道)[^。！？.!?]*[。！？.!?]",
+    r"[^。！？.!?]*后续可结合(?:论文|基准结果)?继续跟进[^。！？.!?]*[。！？.!?]",
 ]
 
 
@@ -52,6 +54,24 @@ def polish_report_events(
             event.evidence_summary["llm_polished"] = False
             event.evidence_summary["polish_error"] = f"{type(exc).__name__}: {exc}"
             emit("report_polish_error", step="report_polish", item=index, total=len(selected), error=str(exc))
+
+
+def sanitize_public_report_events(events: list[EnrichedEvent]) -> None:
+    for event in events:
+        if not event.should_include_report:
+            continue
+        raw_brief = event.one_sentence
+        raw_why = event.why_important
+        brief = _clean_public_text(raw_brief, max_len=420)
+        why = _clean_public_text(event.why_important, max_len=200)
+        if _has_background_text(raw_brief):
+            event.one_sentence = _fallback_public_brief(event)
+        elif brief:
+            event.one_sentence = brief
+        if why:
+            event.why_important = why
+        elif _has_background_text(raw_why):
+            event.why_important = "这条线索值得继续观察其后续进展和外部验证。"
 
 
 def _editor_llm_config(config: LlmConfig) -> LlmConfig:
@@ -142,3 +162,18 @@ def _clean_public_text(value: Any, max_len: int) -> str:
     if text and not text.endswith(("。", "！", "？", ".", "!", "?")):
         text += "。"
     return text[:max_len].rstrip()
+
+
+def _has_background_text(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    return any(re.search(pattern, value) for pattern in BACKGROUND_PATTERNS)
+
+
+def _fallback_public_brief(event: EnrichedEvent) -> str:
+    title = _clean_text(event.title, max_len=120).rstrip("。.!?！？")
+    if not title:
+        title = "这条 AI 行业线索"
+    if event.report_section == "watchlist":
+        return f"{title}。目前更适合作为待观察线索，后续需要结合更多来源确认影响。"
+    return f"{title}。该事件值得关注，后续可继续跟踪其对产品、模型、基础设施或行业竞争的影响。"

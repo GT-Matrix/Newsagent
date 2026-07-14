@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import json
 import re
+import time
+import warnings
 from datetime import datetime, timezone
 from html import unescape
 from urllib.parse import urljoin
 
+import requests
+from urllib3.exceptions import InsecureRequestWarning
+
 from modnews_pipeline.context import PipelineContext
 from modnews_pipeline.models import NewsItem, StepResult
 
-from ..base import IngestStep
+from ..base import IngestStep, fetch_via_curl
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -30,6 +35,7 @@ class SiteListsStep(IngestStep):
         errors: list[str] = []
         items: list[NewsItem] = []
         raw_output: dict[str, list[dict[str, str | None]]] = {}
+        fetch_status: list[dict[str, str | int | bool]] = []
 
         fetchers = {
             "anthropic": _fetch_anthropic,
@@ -47,6 +53,7 @@ class SiteListsStep(IngestStep):
             try:
                 rows = fetcher(ctx, limit=limit)
                 raw_output[site_id] = rows
+                fetch_status.append({"site": site_id, "ok": True, "item_count": len(rows)})
                 for row in rows:
                     items.append(
                         NewsItem(
@@ -59,6 +66,7 @@ class SiteListsStep(IngestStep):
                     )
             except Exception as exc:
                 errors.append(f"{site_id}: {exc}")
+                fetch_status.append({"site": site_id, "ok": False, "item_count": 0, "error": str(exc)})
 
         output_path = ctx.work_dir / "site_lists_items.json"
         output_path.write_text(
@@ -67,20 +75,52 @@ class SiteListsStep(IngestStep):
         )
         raw_path = ctx.work_dir / "site_lists_raw.json"
         raw_path.write_text(json.dumps(raw_output, ensure_ascii=False, indent=2), encoding="utf-8")
+        status_path = ctx.work_dir / "site_lists_fetch_status.json"
+        status_path.write_text(json.dumps(fetch_status, ensure_ascii=False, indent=2), encoding="utf-8")
         ctx.artifacts[self.step_name] = output_path
         ctx.artifacts[f"{self.step_name}_raw"] = raw_path
+        ctx.artifacts[f"{self.step_name}_fetch_status"] = status_path
         return items, StepResult(
             step=self.step_name,
             item_count=len(items),
             output_path=str(output_path),
             errors=errors,
+            meta={
+                "failed_sites": [row["site"] for row in fetch_status if not row["ok"]],
+                "fetch_status_path": str(status_path),
+            },
         )
 
 
 def _fetch_html(ctx: PipelineContext, url: str) -> str:
-    resp = ctx.session.get(url, timeout=20, headers={"User-Agent": USER_AGENT})
-    resp.raise_for_status()
-    return resp.text
+    last_exc: Exception | None = None
+    for attempt in range(2):
+        try:
+            resp = ctx.session.get(url, timeout=20, headers={"User-Agent": USER_AGENT})
+            resp.raise_for_status()
+            return resp.text
+        except requests.exceptions.SSLError as exc:
+            last_exc = exc
+            break
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt == 0:
+                time.sleep(1.0)
+                continue
+            break
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", InsecureRequestWarning)
+            resp = ctx.session.get(url, timeout=20, headers={"User-Agent": USER_AGENT}, verify=False)
+        resp.raise_for_status()
+        return resp.text
+    except Exception as exc:
+        try:
+            return fetch_via_curl(url, user_agent=USER_AGENT).text
+        except Exception as curl_exc:
+            if last_exc is not None:
+                raise RuntimeError(f"{last_exc}; ssl_fallback_failed: {exc}; curl_fallback_failed: {curl_exc}") from curl_exc
+            raise
 
 
 def _run_via_mock(ctx: PipelineContext, api_url: str) -> tuple[list[NewsItem], StepResult]:

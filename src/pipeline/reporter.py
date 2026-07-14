@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from datetime import date
+import re
 
 from src.config import REPORT_LIMITS
 from src.models import EnrichedEvent, ReportSection
@@ -42,13 +43,17 @@ TOP_TYPE_LIMITS = {
     "partnership": 2,
 }
 DEEP_ASSET_EXCLUDE = {"course", "academy", "education", "\u8bfe\u7a0b", "\u6559\u80b2"}
-ASSET_TYPES = {"open_source", "tooling", "framework", "library", "paper", "benchmark", "research"}
+ASSET_TYPES = {"open_source", "tooling", "framework", "library", "paper", "research"}
 ASSET_WORDS = {
     "github", "repo", "repository", "open source", "opensource", "framework", "toolkit", "sdk", "library",
     "benchmark", "dataset", "paper", "arxiv", "model card", "readme",
     "\u5f00\u6e90", "\u4ed3\u5e93", "\u6846\u67b6", "\u5de5\u5177", "\u6570\u636e\u96c6", "\u8bba\u6587", "\u57fa\u51c6",
 }
 WATCH_TYPES = {"rumor", "company_business", "company_policy", "funding", "partnership", "product_release", "model_release"}
+SOFT_COMMENTARY_WORDS = {
+    "questions", "criticizes", "warns", "doubts", "opinion", "skeptical",
+    "\u8d28\u7591", "\u6000\u7591", "\u8b66\u544a", "\u6279\u8bc4", "\u89c2\u70b9", "\u62c5\u5fe7",
+}
 
 
 def assign_report_sections(events: list[EnrichedEvent]) -> list[EnrichedEvent]:
@@ -134,13 +139,12 @@ def review_candidates_payload(events: list[EnrichedEvent]) -> list[dict[str, obj
 
 
 def _section_scores(event: EnrichedEvent) -> dict[str, float]:
-    strategic_bonus = _strategic_section_bonus(event)
     paper_bonus = 6.0 if _is_paper_event(event) else 0.0
     asset_bonus = 5.0 if _has_reusable_asset_signal(event) else 0.0
-    top_news = event.importance_score * 0.40 + event.source_score * 0.14 + event.freshness_score * 0.22 + event.relevance_score * 0.14 + event.novelty_score * 0.10 - event.risk_penalty * 0.45 + strategic_bonus
-    insight = event.novelty_score * 0.32 + event.relevance_score * 0.28 + event.source_score * 0.10 + event.importance_score * 0.18 + event.freshness_score * 0.12 - event.risk_penalty * 0.35 + strategic_bonus * 0.80 + paper_bonus
-    deep_asset = event.actionability_score * 0.38 + event.novelty_score * 0.26 + event.source_score * 0.10 + event.relevance_score * 0.16 + event.importance_score * 0.10 - event.risk_penalty * 0.30 + strategic_bonus * 0.65 + asset_bonus
-    watchlist = event.importance_score * 0.34 + event.novelty_score * 0.18 + event.actionability_score * 0.16 + event.freshness_score * 0.14 + event.relevance_score * 0.10 + min(event.risk_penalty, 24.0) * 0.08 - max(event.risk_penalty - 24.0, 0.0) * 0.50 + strategic_bonus * 0.90
+    top_news = event.importance_score * 0.58 + event.source_score * 0.06 + event.freshness_score * 0.12 + event.relevance_score * 0.13 + event.actionability_score * 0.06 + event.novelty_score * 0.05 - event.risk_penalty * 0.50
+    insight = event.novelty_score * 0.34 + event.relevance_score * 0.27 + event.source_score * 0.08 + event.importance_score * 0.21 + event.freshness_score * 0.10 - event.risk_penalty * 0.38 + paper_bonus
+    deep_asset = event.actionability_score * 0.42 + event.novelty_score * 0.22 + event.source_score * 0.08 + event.relevance_score * 0.16 + event.importance_score * 0.12 - event.risk_penalty * 0.34 + asset_bonus
+    watchlist = event.importance_score * 0.42 + event.novelty_score * 0.14 + event.actionability_score * 0.14 + event.freshness_score * 0.14 + event.relevance_score * 0.16 - max(event.risk_penalty - 18.0, 0.0) * 0.50
     return {"top_news": _clamp_score(top_news), "insight": _clamp_score(insight), "deep_asset": _clamp_score(deep_asset), "watchlist": _clamp_score(watchlist)}
 
 
@@ -165,9 +169,26 @@ def _clamp_score(value: float) -> float:
 def _is_top_news_candidate(event: EnrichedEvent) -> bool:
     if event.verify_status == "rumor":
         return False
-    if event.final_score >= 72 and event.risk_penalty <= 18:
+    if event.verify_status == "single_source" and _is_soft_commentary(event):
+        return False
+    if event.verify_status == "single_source" and event.evidence_summary.get("soft_commentary"):
+        return False
+    if "low_news_value" in event.score_reason:
+        return False
+    if event.risk_penalty > 18:
+        return False
+    if _is_incomplete_title(event.title):
+        return False
+    if event.freshness_score < 62:
+        return False
+    if event.final_score >= 60:
         return True
     return False
+
+
+def _is_incomplete_title(title: str) -> bool:
+    compact = " ".join(title.split())
+    return len(compact) < 10
 
 
 def _select_top_news(events: list[EnrichedEvent], limit: int) -> list[EnrichedEvent]:
@@ -189,7 +210,9 @@ def _select_top_news(events: list[EnrichedEvent], limit: int) -> list[EnrichedEv
         if main_entity and entity_counts[main_entity] >= 2:
             continue
         main_platform = _main_platform(event)
-        if main_platform and platform_counts[main_platform] >= 3:
+        if main_platform and platform_counts[main_platform] >= 2:
+            continue
+        if _has_near_duplicate_topic(event, selected):
             continue
         selected.append(event)
         seen.add(event.event_id)
@@ -203,18 +226,37 @@ def _select_top_news(events: list[EnrichedEvent], limit: int) -> list[EnrichedEv
     return selected
 
 
-def _dedupe_section(events: list[EnrichedEvent], excluded_ids: set[str], limit: int) -> list[EnrichedEvent]:
+def _dedupe_section(
+    events: list[EnrichedEvent],
+    excluded_ids: set[str],
+    limit: int,
+    *,
+    platform_limit: int | None = None,
+    community_single_source_limit: int | None = None,
+) -> list[EnrichedEvent]:
     selected: list[EnrichedEvent] = []
     seen_entities: set[str] = set()
+    platform_counts: defaultdict[str, int] = defaultdict(int)
+    community_single_source_count = 0
     for event in events:
         if event.event_id in excluded_ids:
             continue
         entity = _main_entity(event)
         if entity and entity in seen_entities:
             continue
+        platform = _main_platform(event)
+        if platform_limit is not None and platform and platform_counts[platform] >= platform_limit:
+            continue
+        is_community_single_source = event.verify_status == "single_source" and _is_community_only(event)
+        if community_single_source_limit is not None and is_community_single_source and community_single_source_count >= community_single_source_limit:
+            continue
         selected.append(event)
         if entity:
             seen_entities.add(entity)
+        if platform:
+            platform_counts[platform] += 1
+        if is_community_single_source:
+            community_single_source_count += 1
         if len(selected) >= limit:
             break
     return selected
@@ -222,7 +264,7 @@ def _dedupe_section(events: list[EnrichedEvent], excluded_ids: set[str], limit: 
 
 def _select_research_section(events: list[EnrichedEvent], excluded_ids: set[str], limit: int) -> list[EnrichedEvent]:
     eligible = [event for event in events if event.event_id not in excluded_ids]
-    selected = _dedupe_section(eligible, set(), limit)
+    selected = _dedupe_section(eligible, set(), limit, platform_limit=2)
     paper_candidates = [event for event in eligible if _is_paper_event(event) and event.section_scores.get("insight", 0.0) >= 58]
     trending_papers = [event for event in eligible if _is_trending_paper_event(event) and event.section_scores.get("insight", 0.0) >= 58]
     if paper_candidates and not any(_is_paper_event(event) for event in selected):
@@ -234,7 +276,7 @@ def _select_research_section(events: list[EnrichedEvent], excluded_ids: set[str]
 
 def _select_asset_section(events: list[EnrichedEvent], excluded_ids: set[str], limit: int) -> list[EnrichedEvent]:
     eligible = [event for event in events if event.event_id not in excluded_ids]
-    selected = _dedupe_section(eligible, set(), limit)
+    selected = _dedupe_section(eligible, set(), limit, platform_limit=2)
     reusable_papers = [
         event
         for event in eligible
@@ -306,15 +348,20 @@ def _is_real_deep_asset(event: EnrichedEvent) -> bool:
     text = f"{event.title} {event.one_sentence} {event.normalized_event_type} {' '.join(event.entities)}".lower()
     if any(word in text for word in DEEP_ASSET_EXCLUDE):
         return False
-    has_asset_type = event.normalized_event_type in ASSET_TYPES or event.content_layer in {"insight", "deep_asset"}
+    has_asset_type = event.normalized_event_type in ASSET_TYPES
     has_asset_word = any(word in text for word in ASSET_WORDS) or _has_reusable_asset_signal(event)
     has_link = any(str(source.get("url") or "").strip() for source in event.source_items)
     high_utility = event.actionability_score >= 70 or event.novelty_score >= 72 or (_is_paper_event(event) and event.final_score >= 52)
-    return has_asset_type and (has_asset_word or has_link) and high_utility and event.risk_penalty <= 18
+    link_can_support_asset = event.normalized_event_type in {"open_source", "tooling", "framework", "library"}
+    return has_asset_type and (has_asset_word or (link_can_support_asset and has_link)) and high_utility and event.risk_penalty <= 18
 
 
 def _is_research_insight_candidate(event: EnrichedEvent) -> bool:
     if event.verify_status not in {"verified", "single_source"} or event.risk_penalty > 18:
+        return False
+    if event.final_score < 60:
+        return False
+    if not _has_substantive_summary(event):
         return False
     if event.content_layer == "insight" and event.final_score >= 58:
         return True
@@ -340,6 +387,17 @@ def _is_trending_paper_event(event: EnrichedEvent) -> bool:
 def _has_reusable_asset_signal(event: EnrichedEvent) -> bool:
     text = f"{event.title} {event.one_sentence} {event.why_important} {event.normalized_event_type} {' '.join(event.entities)}".lower()
     return any(word in text for word in REUSABLE_ASSET_WORDS)
+
+
+def _is_direct_asset_link(url: str) -> bool:
+    host = url.lower().split("/", 3)[2] if url.startswith(("http://", "https://")) and len(url.split("/", 3)) >= 3 else ""
+    return host in {"github.com", "huggingface.co", "arxiv.org", "pypi.org", "npmjs.com"}
+
+
+def _has_substantive_summary(event: EnrichedEvent) -> bool:
+    brief = " ".join(event.one_sentence.split())
+    generic = {"\u66f4\u65b0\u7814\u7a76\u8fdb\u5c55\u3002", "\u53d1\u5e03\u7814\u7a76\u8fdb\u5c55\u3002", "\u7814\u7a76\u8fdb\u5c55\u3002"}
+    return len(brief) >= 20 and brief not in generic
 
 
 def _build_report_tags(event: EnrichedEvent) -> list[str]:
@@ -371,8 +429,46 @@ def _is_community_only(event: EnrichedEvent) -> bool:
     platforms = {platform.lower() for platform in event.platforms if platform}
     if not platforms:
         return False
-    community_hints = {"linux_do", "hacker", "product", "reddit", "github", "aihot"}
+    community_hints = {"linux_do", "hacker", "product", "reddit", "github", "aihot", "v2ex", "juejin", "coolapk"}
     return all(any(hint in platform for hint in community_hints) for platform in platforms)
+
+
+def _is_soft_commentary(event: EnrichedEvent) -> bool:
+    platforms = {platform.lower() for platform in event.platforms if platform}
+    if any(platform in {"openai", "anthropic", "google-deepmind", "nvidia", "aws-ml", "mistral", "huggingface"} for platform in platforms):
+        return False
+    text = f"{event.title} {event.one_sentence}".lower()
+    return any(word in text for word in SOFT_COMMENTARY_WORDS)
+
+
+def _has_near_duplicate_topic(event: EnrichedEvent, selected: list[EnrichedEvent]) -> bool:
+    event_tokens = _topic_tokens(event.title)
+    if len(event_tokens) < 3:
+        return False
+    event_entity = _main_entity(event)
+    event_platform = _main_platform(event)
+    for existing in selected:
+        if event_platform and event_platform != _main_platform(existing) and event_entity != _main_entity(existing):
+            continue
+        existing_tokens = _topic_tokens(existing.title)
+        if len(existing_tokens) < 3:
+            continue
+        overlap = len(event_tokens & existing_tokens) / max(1, min(len(event_tokens), len(existing_tokens)))
+        if overlap >= 0.6:
+            return True
+    return False
+
+
+def _topic_tokens(text: str) -> set[str]:
+    stopwords = {
+        "发布", "推出", "提供", "新增", "实现", "方案", "模型", "企业", "the", "and", "for", "with",
+        "release", "launch", "announces", "introduces",
+    }
+    tokens = {token.lower() for token in re.findall(r"[A-Za-z0-9][A-Za-z0-9_.-]{2,}", text)}
+    for word in stopwords:
+        if word in text:
+            tokens.add(word)
+    return {token for token in tokens if token not in stopwords}
 
 
 def _main_entity(event: EnrichedEvent) -> str:
@@ -419,8 +515,6 @@ def _render_event_section(
         lines.append(f"{index}. **{event.title}**")
         lines.append(f"   - \u7b80\u62a5\uff1a{event.one_sentence}")
         lines.append(f"   - \u4e3a\u4ec0\u4e48\u91cd\u8981\uff1a{event.why_important}")
-        if debug and event.report_section == "watchlist":
-            lines.append(f"   - \u5f85\u89c2\u5bdf\u539f\u56e0\uff1a{_watch_reason(event)}")
         lines.append(f"   - \u6765\u6e90\uff1a{sources}")
         if debug:
             lines.append(f"   - \u72b6\u6001\uff1a{status}\uff1b\u8bc1\u636e\uff1a{evidence_label}")
@@ -469,10 +563,8 @@ def _render_trends(events: list[EnrichedEvent], trend_summary: str | None = None
     research_count = section_counter.get("insight", 0) + section_counter.get("deep_asset", 0)
 
     paragraph = (
-        f"\u4eca\u5929\u5165\u9009\u5185\u5bb9\u6574\u4f53\u5448\u73b0\u51fa\u4ece\u4ea7\u4e1a\u57fa\u7840\u8bbe\u65bd\u5230\u65b9\u6cd5\u6c89\u6dc0\u540c\u6b65\u63a8\u8fdb\u7684\u7279\u5f81\uff1a{examples} \u7b49\u4e8b\u4ef6\u8bf4\u660e\uff0c"
-        f"\u5e02\u573a\u5173\u6ce8\u70b9\u6b63\u5728\u4ece\u5355\u70b9\u6a21\u578b\u80fd\u529b\u6269\u5c55\u5230\u7b97\u529b\u4f9b\u7ed9\u3001\u90e8\u7f72\u6210\u672c\u3001\u4f01\u4e1a\u843d\u5730\u548c\u53ef\u590d\u7528\u6280\u672f\u8d44\u4ea7\u3002"
-        f"\u4ece\u7c7b\u578b\u5206\u5e03\u770b\uff0c\u4eca\u5929\u66f4\u96c6\u4e2d\u7684\u4fe1\u53f7\u5305\u62ec\uff1a{topic_text}\uff1b\u540c\u65f6\u6709 {research_count} \u6761\u5185\u5bb9\u6765\u81ea\u7814\u7a76\u3001\u8bc4\u6d4b\u3001\u8bba\u6587\u6216\u957f\u671f\u8d44\u6e90\u5c42\uff0c"
-        "\u8bf4\u660e\u503c\u5f97\u8ddf\u8e2a\u7684\u4e0d\u53ea\u662f\u5373\u65f6\u65b0\u95fb\uff0c\u4e5f\u5305\u62ec\u540e\u7eed\u53ef\u80fd\u5f71\u54cd\u4ea7\u54c1\u8def\u7ebf\u548c\u5de5\u7a0b\u5b9e\u8df5\u7684\u65b9\u6cd5\u7c7b\u6210\u679c\u3002"
+        f"\u4eca\u65e5\u5165\u9009\u5185\u5bb9\u4ee5 {topic_text} \u4e3a\u4e3b\u3002{examples} \u7b49\u6761\u76ee\u5171\u540c\u53cd\u6620\u51fa\u5f53\u5929\u6700\u503c\u5f97\u8ddf\u8e2a\u7684\u65b9\u5411\uff1b"
+        f"\u5176\u4e2d\u6709 {research_count} \u6761\u6765\u81ea\u7814\u7a76\u3001\u8bc4\u6d4b\u3001\u8bba\u6587\u6216\u957f\u671f\u8d44\u6e90\u5c42\uff0c\u540e\u7eed\u5e94\u7ed3\u5408\u65b0\u589e\u7ed3\u679c\u548c\u5b9e\u9645\u843d\u5730\u60c5\u51b5\u6301\u7eed\u5224\u65ad\u5176\u5f71\u54cd\u3002"
     )
     lines.extend([paragraph, ""])
     return lines

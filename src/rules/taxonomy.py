@@ -13,6 +13,13 @@ EVENT_TYPE_ALIASES = {
     "AI产品内测": "product_release",
     "模型发布": "model_release",
     "model_release": "model_release",
+    "model": "model_release",
+    "models": "model_release",
+    "model update": "model_release",
+    "model launch": "model_release",
+    "model announcement": "model_release",
+    "模型": "model_release",
+    "模型更新": "model_release",
     "AI模型发布": "model_release",
     "AI模型更新": "model_release",
     "partnership": "partnership",
@@ -43,6 +50,9 @@ EVENT_TYPE_ALIASES = {
     "工具发布": "tooling",
     "product discovery": "rumor",
     "诉讼": "legal",
+    "litigation": "legal",
+    "lawsuit": "legal",
+    "legal dispute": "legal",
 }
 
 NEWS_TYPES = {
@@ -81,6 +91,9 @@ HIGH_IMPACT_TYPES = {
 RUMOR_WORDS = {
     "rumor",
     "reportedly",
+    "allegedly",
+    "\u88ab\u66dd",
+    "\u7f51\u4f20",
     "消息称",
     "据称",
     "预计",

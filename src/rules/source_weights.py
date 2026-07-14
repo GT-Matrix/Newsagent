@@ -9,6 +9,7 @@ OFFICIAL_PLATFORMS = {
     "microsoft",
     "aws-ml",
     "meta-ai",
+    "mistral",
     "huggingface",
     "huggingface_papers_trending",
     "stanford_hai",
@@ -19,10 +20,12 @@ AUTHORITY_MEDIA = {
     "techcrunch-ai",
     "the-verge-ai",
     "mit-technology-review",
+    "mit-tech-review",
     "venturebeat",
     "ars-technica",
     "reuters",
     "wired",
+    "wired-ai",
 }
 
 CHINESE_MEDIA = {
@@ -40,24 +43,24 @@ CHINESE_MEDIA = {
 COMMUNITY_PLATFORMS = {
     "linux_do",
     "aihot",
+    "v2ex-share",
+    "juejin",
+    "coolapk",
     "hacker-news",
+    "hackernews",
     "product-hunt",
+    "producthunt",
     "reddit",
     "github-trending",
+    "github-trending-today",
 }
 
 
 def platform_score(platform: str) -> float:
     normalized = platform.strip().lower()
-    if normalized in OFFICIAL_PLATFORMS:
-        return 94.0
-    if normalized in AUTHORITY_MEDIA:
-        return 86.0
-    if normalized in CHINESE_MEDIA:
+    if normalized in OFFICIAL_PLATFORMS | AUTHORITY_MEDIA | CHINESE_MEDIA | COMMUNITY_PLATFORMS:
         return 78.0
-    if normalized in COMMUNITY_PLATFORMS:
-        return 64.0
-    return 62.0
+    return 72.0
 
 
 def source_kind(platform: str) -> str:
